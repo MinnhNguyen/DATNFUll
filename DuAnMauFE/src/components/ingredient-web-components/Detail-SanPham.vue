@@ -112,12 +112,10 @@
                     <h3 class="option-title">Kích thước:</h3>
                     <div class="size-options">
                         <button v-for="(size, index) in availableSizes" :key="'size-' + index" class="size-option"
-                            :class="{ 
-                                active: selectedSize === size.ma, 
+                            :class="{
+                                active: selectedSize === size.ma,
                                 disabled: !size.co_san
-                            }"
-                            @click="selectSize(size)" 
-                            :disabled="!size.co_san">
+                            }" @click="selectSize(size)" :disabled="!size.co_san">
                             {{ size.ten }}
                             <span v-if="!size.co_san" class="size-unavailable">✕</span>
                         </button>
@@ -137,7 +135,8 @@
                     </div>
                     <span class="stock-status mt-2" v-if="displayStockStatus.check">{{ displayStockStatus.text }}</span>
                     <span class="stock-status low-stock mt-2"
-                        v-else-if="displayStockStatus.text.includes('Còn') && !displayStockStatus.check">{{ displayStockStatus.text
+                        v-else-if="displayStockStatus.text.includes('Còn') && !displayStockStatus.check">{{
+                            displayStockStatus.text
                         }}</span>
                     <span class="stock-status out-of-stock" v-else>{{ displayStockStatus.text }}</span>
                 </div>
@@ -279,98 +278,103 @@
             </div>
         </div>
 
-       <!-- Sản phẩm tương tự -->
-       <div class="rec-related-products-section" ref="recommendedProductsRef">
-          <h2 class="rec-related-section-title">Sản phẩm tương tự</h2>
-          <div class="rec-carousel-container" @mouseenter="showRecArrows = true" @mouseleave="showRecArrows = false">
-            <button class="rec-custom-arrow rec-prev-arrow" @click="prevRecSlide" :class="{ 'visible': showRecArrows }">
-              <left-outlined />
-            </button>
-            <button class="rec-custom-arrow rec-next-arrow" @click="nextRecSlide" :class="{ 'visible': showRecArrows }">
-              <right-outlined />
-            </button>
-            <a-carousel ref="recCarousel" dots-class="custom-dots">
-              <div v-for="(slideGroup, groupIndex) in recProductSlides" :key="groupIndex">
-                <div class="row rec-related-products-grid">
-                  <div class="col rec-product-card" v-for="(rec, index) in slideGroup" :key="index"
-                    @mouseenter="activeRecProduct = rec.id" @mouseleave="activeRecProduct = null">
-                    <div class="rec-product-image-container">
-                      <img class="rec-product-image" :src="rec.image" alt="Product image">
-                      <div class="rec-discount-badge" v-if="rec.discountPercent">
-                        -{{ rec.discountPercent }}%
-                      </div>
-                      <div class="rec-product-overlay" :class="{ 'active': activeRecProduct === rec.id }">
-                        <div class="rec-overlay-buttons">
-                          <router-link
-                            :to="{ name: 'sanPhamDetail-BanHang', params: { id: rec.id } }"
-                            class="rec-overlay-btn view-btn">
-                            <eye-outlined />
-                            <span>Xem</span>
-                          </router-link>
-                          <button class="rec-overlay-btn cart-btn" @click="showRecProductDetail(rec)">
-                            <shopping-cart-outlined />
-                            <span>Thêm</span>
-                          </button>
+        <!-- Sản phẩm tương tự -->
+        <div class="rec-related-products-section" ref="recommendedProductsRef">
+            <h2 class="rec-related-section-title">Sản phẩm tương tự</h2>
+            <div class="rec-carousel-container" @mouseenter="showRecArrows = true" @mouseleave="showRecArrows = false">
+                <button class="rec-custom-arrow rec-prev-arrow" @click="prevRecSlide"
+                    :class="{ 'visible': showRecArrows }">
+                    <left-outlined />
+                </button>
+                <button class="rec-custom-arrow rec-next-arrow" @click="nextRecSlide"
+                    :class="{ 'visible': showRecArrows }">
+                    <right-outlined />
+                </button>
+                <a-carousel ref="recCarousel" dots-class="custom-dots">
+                    <div v-for="(slideGroup, groupIndex) in recProductSlides" :key="groupIndex">
+                        <div class="row rec-related-products-grid">
+                            <div class="col rec-product-card" v-for="(rec, index) in slideGroup" :key="index"
+                                @mouseenter="activeRecProduct = rec.id" @mouseleave="activeRecProduct = null">
+                                <div class="rec-product-image-container">
+                                    <img class="rec-product-image" :src="rec.image" alt="Product image">
+                                    <div class="rec-discount-badge" v-if="rec.discountPercent">
+                                        -{{ rec.discountPercent }}%
+                                    </div>
+                                    <div class="rec-product-overlay" :class="{ 'active': activeRecProduct === rec.id }">
+                                        <div class="rec-overlay-buttons">
+                                            <router-link :to="{ name: 'sanPhamDetail-BanHang', params: { id: rec.id } }"
+                                                class="rec-overlay-btn view-btn">
+                                                <eye-outlined />
+                                                <span>Xem</span>
+                                            </router-link>
+                                            <button class="rec-overlay-btn cart-btn" @click="showRecProductDetail(rec)">
+                                                <shopping-cart-outlined />
+                                                <span>Thêm</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rec-product-info">
+                                    <div class="rec-product-price-row">
+                                        <span class="rec-product-price">{{ rec.price }}</span>
+                                        <span class="rec-product-old-price" v-if="rec.oldPrice">{{ rec.oldPrice
+                                            }}</span>
+                                        <span class="rec-product-discount" v-if="rec.discount">{{ rec.discount }}</span>
+                                    </div>
+                                    <h6 class="rec-product-name">{{ rec.name }}</h6>
+                                    <div class="rec-product-meta">
+                                        <span class="rec-product-brand">{{ rec.brand }}</span>
+                                        <div class="rec-product-rating">
+                                            <star-filled />
+                                            <span>{{ rec.rating }} ({{ rec.reviews }})</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                      </div>
                     </div>
-                    <div class="rec-product-info">
-                      <div class="rec-product-price-row">
-                        <span class="rec-product-price">{{ rec.price }}</span>
-                        <span class="rec-product-old-price" v-if="rec.oldPrice">{{ rec.oldPrice }}</span>
-                        <span class="rec-product-discount" v-if="rec.discount">{{ rec.discount }}</span>
-                      </div>
-                      <h6 class="rec-product-name">{{ rec.name }}</h6>
-                      <div class="rec-product-meta">
-                        <span class="rec-product-brand">{{ rec.brand }}</span>
-                        <div class="rec-product-rating">
-                          <star-filled />
-                          <span>{{ rec.rating }} ({{ rec.reviews }})</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a-carousel>
-          </div>
-          <!-- Modal xem nhanh sản phẩm tương tự -->
-          <a-modal v-model:visible="recModalVisible" :title="selectedRecProduct?.name" width="800px" :footer="null"
-            @cancel="handleRecModalCancel" :zIndex="9999" :maskStyle="{ zIndex: 9998 }" :wrapStyle="{ zIndex: 9999 }" centered
-            :style="{ top: '20px' }">
-            <div class="rec-product-detail-modal">
-              <div class="rec-product-detail-content">
-                <div class="rec-product-images">
-                  <div class="rec-main-image">
-                    <img :src="selectedRecProduct?.image" :alt="selectedRecProduct?.name">
-                  </div>
-                </div>
-                <div class="rec-product-info-detail">
-                  <div class="rec-price-section">
-                    <span class="rec-current-price">{{ selectedRecProduct?.price }}</span>
-                    <span class="rec-old-price" v-if="selectedRecProduct?.oldPrice">{{ selectedRecProduct?.oldPrice }}</span>
-                    <span class="rec-discount-badge" v-if="selectedRecProduct?.discount">{{ selectedRecProduct?.discount }}</span>
-                  </div>
-                  <div class="rec-brand-section">
-                    <span class="rec-brand-label">Thương hiệu:</span>
-                    <span class="rec-brand-value">{{ selectedRecProduct?.brand }}</span>
-                  </div>
-                  <div class="rec-rating-section">
-                    <div class="rec-rating">
-                      <star-filled />
-                      <span>{{ selectedRecProduct?.rating }} ({{ selectedRecProduct?.reviews }})</span>
-                    </div>
-                  </div>
-                  <div class="rec-description-section">
-                    <h4>Mô tả sản phẩm</h4>
-                    <p>{{ selectedRecProduct?.description || 'Chưa có mô tả chi tiết' }}</p>
-                  </div>
-                </div>
-              </div>
+                </a-carousel>
             </div>
-          </a-modal>
+            <!-- Modal xem nhanh sản phẩm tương tự -->
+            <a-modal v-model:visible="recModalVisible" :title="selectedRecProduct?.name" width="800px" :footer="null"
+                @cancel="handleRecModalCancel" :zIndex="9999" :maskStyle="{ zIndex: 9998 }"
+                :wrapStyle="{ zIndex: 9999 }" centered :style="{ top: '20px' }">
+                <div class="rec-product-detail-modal">
+                    <div class="rec-product-detail-content">
+                        <div class="rec-product-images">
+                            <div class="rec-main-image">
+                                <img :src="selectedRecProduct?.image" :alt="selectedRecProduct?.name">
+                            </div>
+                        </div>
+                        <div class="rec-product-info-detail">
+                            <div class="rec-price-section">
+                                <span class="rec-current-price">{{ selectedRecProduct?.price }}</span>
+                                <span class="rec-old-price" v-if="selectedRecProduct?.oldPrice">{{
+                                    selectedRecProduct?.oldPrice
+                                    }}</span>
+                                <span class="rec-discount-badge" v-if="selectedRecProduct?.discount">{{
+                                    selectedRecProduct?.discount }}</span>
+                            </div>
+                            <div class="rec-brand-section">
+                                <span class="rec-brand-label">Thương hiệu:</span>
+                                <span class="rec-brand-value">{{ selectedRecProduct?.brand }}</span>
+                            </div>
+                            <div class="rec-rating-section">
+                                <div class="rec-rating">
+                                    <star-filled />
+                                    <span>{{ selectedRecProduct?.rating }} ({{ selectedRecProduct?.reviews }})</span>
+                                </div>
+                            </div>
+                            <div class="rec-description-section">
+                                <h4>Mô tả sản phẩm</h4>
+                                <p>{{ selectedRecProduct?.description || 'Chưa có mô tả chi tiết' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a-modal>
         </div>
-         
+
 
         <!-- Modal xem ảnh toàn màn hình -->
         <div class="fullscreen-modal" v-if="showFullscreen" @click="showFullscreen = false">
@@ -478,7 +482,7 @@
 
         <!-- lềnh thêm mới -->
         <div v-if="isFavoritedVariant" class="favorited-variant-badge">
-        Đây là sản phẩm yêu thích của bạn với màu sắc và kích thước này
+            Đây là sản phẩm yêu thích của bạn với màu sắc và kích thước này
         </div>
 
         <!-- Modal thêm bình luận mới -->
@@ -501,13 +505,9 @@
                 </a-form>
             </div>
         </a-modal>
-        <a-modal
-          v-model:visible="showAddedToCartModal"
-          title="Thêm vào giỏ hàng thành công"
-          @ok="handleModalOk"
-          @cancel="handleModalCancel"
-        >
-          <!-- Nội dung modal -->
+        <a-modal v-model:visible="showAddedToCartModal" title="Thêm vào giỏ hàng thành công" @ok="handleModalOk"
+            @cancel="handleModalCancel">
+            <!-- Nội dung modal -->
         </a-modal>
     </div>
 </template>
@@ -590,41 +590,41 @@ const allImages = ref([]);
 // Cập nhật hàm fetchProductDetail để tạo map hình ảnh theo màu
 // lềnh sửa hàm
 const fetchProductDetail = async (id, route) => {
-  try {
-    isFavoritedVariant.value = false; // Reset trạng thái
-    await store.getCTSPBySanPhamFull(id);
+    try {
+        isFavoritedVariant.value = false; // Reset trạng thái
+        await store.getCTSPBySanPhamFull(id);
 
-    if (store.cTSPBySanPhamFull && store.cTSPBySanPhamFull.length > 0) {
-      productDetails.value = store.cTSPBySanPhamFull;
-      selectedVariant.value = productDetails.value[0];
-      organizeImagesByColor();
-      updateProductFromVariant(selectedVariant.value);
-      initializeColorAndSizeOptions();
+        if (store.cTSPBySanPhamFull && store.cTSPBySanPhamFull.length > 0) {
+            productDetails.value = store.cTSPBySanPhamFull;
+            selectedVariant.value = productDetails.value[0];
+            organizeImagesByColor();
+            updateProductFromVariant(selectedVariant.value);
+            initializeColorAndSizeOptions();
 
-      // Kiểm tra tham số variant
-      const variantId = route.query.variant;
-      if (variantId) {
-        const variant = productDetails.value.find(v => v.id_chi_tiet_san_pham == variantId);
-        if (variant) {
-          selectedColor.value = variant.id_mau_sac;
-          selectedColorName.value = variant.ten_mau_sac;
-          selectedSize.value = variant.id_kich_thuoc;
-          selectedSizeName.value = variant.gia_tri;
-          selectedVariant.value = variant;
-          isFavoritedVariant.value = true;
+            // Kiểm tra tham số variant
+            const variantId = route.query.variant;
+            if (variantId) {
+                const variant = productDetails.value.find(v => v.id_chi_tiet_san_pham == variantId);
+                if (variant) {
+                    selectedColor.value = variant.id_mau_sac;
+                    selectedColorName.value = variant.ten_mau_sac;
+                    selectedSize.value = variant.id_kich_thuoc;
+                    selectedSizeName.value = variant.gia_tri;
+                    selectedVariant.value = variant;
+                    isFavoritedVariant.value = true;
+                }
+            }
+
+            if (selectedVariant.value && selectedVariant.value.id_chi_tiet_san_pham) {
+                fetchProductReviews(selectedVariant.value.id_chi_tiet_san_pham);
+            }
+        } else {
+            message.error('Không tìm thấy thông tin sản phẩm');
         }
-      }
-
-      if (selectedVariant.value && selectedVariant.value.id_chi_tiet_san_pham) {
-        fetchProductReviews(selectedVariant.value.id_chi_tiet_san_pham);
-      }
-    } else {
-      message.error('Không tìm thấy thông tin sản phẩm');
+    } catch (error) {
+        console.error('Lỗi khi lấy thông tin sản phẩm:', error);
+        message.error('Đã xảy ra lỗi khi tải thông tin sản phẩm');
     }
-  } catch (error) {
-    console.error('Lỗi khi lấy thông tin sản phẩm:', error);
-    message.error('Đã xảy ra lỗi khi tải thông tin sản phẩm');
-  }
 };
 
 const cartItemCount = ref(0);
@@ -634,7 +634,7 @@ const updateCartCount = async () => {
         // Kiểm tra trạng thái đăng nhập
         const userInfo = sessionStorage.getItem('userInfo');
         const idKhachHang = userInfo ? JSON.parse(userInfo).id_khach_hang : null;
-        
+
         if (idKhachHang) {
             // Người dùng đã đăng nhập: lấy số lượng từ API
             try {
@@ -643,7 +643,7 @@ const updateCartCount = async () => {
                 const totalItems = cartItems.reduce((total, item) => total + (Number(item.so_luong) || 0), 0);
                 console.log('Tổng số sản phẩm trong giỏ hàng từ API:', totalItems);
                 cartItemCount.value = totalItems;
-                
+
                 // Phát sự kiện cập nhật giỏ hàng
                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
             } catch (error) {
@@ -653,7 +653,7 @@ const updateCartCount = async () => {
             // Khách: lấy số lượng từ localStorage
             const localCart = localStorage.getItem('gb-sport-cart');
             let totalItems = 0;
-            
+
             if (localCart) {
                 try {
                     const cartItems = JSON.parse(localCart);
@@ -662,10 +662,10 @@ const updateCartCount = async () => {
                     console.error('Lỗi khi parse giỏ hàng từ localStorage:', error);
                 }
             }
-            
+
             console.log('Tổng số sản phẩm trong giỏ hàng từ localStorage:', totalItems);
             cartItemCount.value = totalItems;
-            
+
             // Phát sự kiện cập nhật giỏ hàng
             window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
         }
@@ -750,7 +750,7 @@ const organizeImagesByColor = () => {
 
         // Xử lý hình ảnh dựa trên loại dữ liệu
         let imageUrls = [];
-        
+
         if (Array.isArray(variant.hinh_anh)) {
             imageUrls = variant.hinh_anh;
         } else if (typeof variant.hinh_anh === 'string') {
@@ -782,7 +782,7 @@ const organizeImagesByColor = () => {
                 alt: `${variant.ten_san_pham} - ${variant.ten_mau_sac || 'Màu'} - Hình ${index + 1}`,
                 color_id: variant.id_mau_sac,
                 color_name: variant.ten_mau_sac || `Màu ${variant.id_mau_sac}`,
-                color_code: getColorCode(variant.id_mau_sac),
+                color_code: variant.ma_mau_sac || '#CCCCCC', // ✅ Sử dụng mã màu từ backend
                 isPrimary: index === 0, // Ảnh đầu tiên trong danh sách là ảnh chính
                 chi_tiet_san_pham_id: variant.id_chi_tiet_san_pham
             };
@@ -814,15 +814,15 @@ const organizeImagesByColor = () => {
 
     // Tạo danh sách tất cả ảnh theo thứ tự: màu đầu tiên trước, ảnh chính lên đầu
     allImages.value = [];
-    
+
     // Lấy màu đầu tiên trong danh sách màu sắc
     const firstColorId = product.value.mau_sac?.[0]?.ma;
-    
+
     // Thêm ảnh của màu đầu tiên trước (nếu có)
     if (firstColorId && imagesByColor.value.has(firstColorId)) {
         allImages.value.push(...imagesByColor.value.get(firstColorId));
     }
-    
+
     // Thêm ảnh của các màu khác
     imagesByColor.value.forEach((images, colorId) => {
         if (colorId !== firstColorId) {
@@ -940,10 +940,10 @@ const findAndShowFirstImageOfColor = (colorId) => {
 
     // Lấy ảnh đầu tiên (đã được sắp xếp, ảnh chính ở đầu)
     const firstImage = imagesForColor[0];
-    
+
     // Tìm index của ảnh này trong danh sách tất cả ảnh
     const firstImageIndex = allImages.value.findIndex(img => img.url === firstImage.url);
-    
+
     if (firstImageIndex !== -1 && firstImageIndex !== currentImageIndex.value) {
         // Thêm một trì hoãn nhỏ để tạo hiệu ứng mượt hơn
         setTimeout(() => {
@@ -1047,9 +1047,9 @@ const canAddToCart = computed(() => {
     );
 
     // Kiểm tra đầy đủ cả trạng thái và số lượng
-    return matchedVariant && 
-           (matchedVariant.trang_thai === 1 || matchedVariant.trang_thai === true) && 
-           matchedVariant.so_luong > 0;
+    return matchedVariant &&
+        (matchedVariant.trang_thai === 1 || matchedVariant.trang_thai === true) &&
+        matchedVariant.so_luong > 0;
 });
 
 // Thêm hàm để lấy số lượng còn lại của variant hiện tại
@@ -1146,9 +1146,9 @@ const increaseQuantity = () => {
 
 // lềnh thêm mới
 watch(selectedVariant, () => {
-  if (selectedVariant.value) {
-    checkWishlistStatus();
-  }
+    if (selectedVariant.value) {
+        checkWishlistStatus();
+    }
 });
 
 // Theo dõi thay đổi của ID sản phẩm
@@ -1391,11 +1391,11 @@ const addToCartFromDetail = async () => {
     try {
         // Lưu id chi tiết sản phẩm để sử dụng
         const idChiTietSanPham = matchedVariant.id_chi_tiet_san_pham;
-        
+
         // 1. Kiểm tra trạng thái của sản phẩm qua API
         await store.getTrangThaiCTSP(idChiTietSanPham);
         const isActive = store.trangThaiCTSP;
-        
+
         if (!isActive) {
             notification.warning({
                 message: 'Sản phẩm không khả dụng',
@@ -1406,11 +1406,11 @@ const addToCartFromDetail = async () => {
             });
             return;
         }
-        
+
         // 2. Kiểm tra số lượng tối đa - cần gọi API để lấy maxSoLuongSP mới nhất
         await store.getMaxSoLuongSP(idChiTietSanPham);
         const maxQuantity = store.maxSoLuongSP;
-        
+
         if (maxQuantity <= 0) {
             notification.warning({
                 message: 'Hết hàng',
@@ -1421,7 +1421,7 @@ const addToCartFromDetail = async () => {
             });
             return;
         }
-        
+
         // Sau khi đã validate xong và có selectedVariant
         selectedVariant.value = matchedVariant;
 
@@ -1434,12 +1434,12 @@ const addToCartFromDetail = async () => {
                 z-index: 9999 !important;
             }
         `;
-        
+
         // Thêm style vào head nếu chưa có
         if (!document.getElementById('cart-modal-style')) {
             document.head.appendChild(modalStyle);
         }
-        
+
         // Hiển thị modal xác nhận trước
         Modal.confirm({
             title: 'Xác nhận thêm vào giỏ hàng',
@@ -1450,25 +1450,25 @@ const addToCartFromDetail = async () => {
             onOk: async () => {
                 // Kiểm tra xem người dùng đã đăng nhập chưa
                 const userDetailsStr = sessionStorage.getItem('userDetails');
-                
+
                 if (userDetailsStr) {
                     try {
                         // Người dùng đã đăng nhập
                         const userDetails = JSON.parse(userDetailsStr);
                         const idKhachHang = userDetails.idKhachHang;
-                        
+
                         // Lấy giỏ hàng hiện tại của khách hàng
                         const cartResponse = await banHangOnlineService.getGioHang(idKhachHang);
-                        
+
                         // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-                        const existingCartItem = cartResponse && Array.isArray(cartResponse) 
+                        const existingCartItem = cartResponse && Array.isArray(cartResponse)
                             ? cartResponse.find(item => item.id_chi_tiet_san_pham === idChiTietSanPham)
                             : null;
-                            
+
                         // Kiểm tra điều kiện số lượng
                         const currentQuantityInCart = existingCartItem ? existingCartItem.so_luong : 0;
                         const totalQuantity = currentQuantityInCart + quantity.value;
-                        
+
                         // Kiểm tra nếu tổng số lượng vượt quá số lượng tối đa cho phép
                         if (maxQuantity !== undefined && totalQuantity > maxQuantity) {
                             notification.warning({
@@ -1487,10 +1487,10 @@ const addToCartFromDetail = async () => {
                             idChiTietSanPham,
                             quantity.value
                         );
-                        
+
                         // Cập nhật số lượng
                         await updateCartCount();
-                        
+
                         notification.success({
                             message: 'Thêm vào giỏ hàng',
                             description: 'Đã thêm sản phẩm vào giỏ hàng',
@@ -1510,7 +1510,7 @@ const addToCartFromDetail = async () => {
                     // Logic cho người dùng chưa đăng nhập - kiểm tra localStorage
                     const savedCart = localStorage.getItem('gb-sport-cart');
                     let cartItems = [];
-                    
+
                     if (savedCart) {
                         try {
                             cartItems = JSON.parse(savedCart);
@@ -1519,14 +1519,14 @@ const addToCartFromDetail = async () => {
                             cartItems = [];
                         }
                     }
-                    
+
                     // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
                     const existingItemIndex = cartItems.findIndex(item => item.id === idChiTietSanPham);
-                    
+
                     // Kiểm tra điều kiện số lượng
                     const currentQuantityInCart = existingItemIndex >= 0 ? cartItems[existingItemIndex].quantity : 0;
                     const totalQuantity = currentQuantityInCart + quantity.value;
-                    
+
                     // Kiểm tra nếu tổng số lượng vượt quá số lượng tối đa cho phép
                     if (maxQuantity !== undefined && totalQuantity > maxQuantity) {
                         notification.warning({
@@ -1551,7 +1551,7 @@ const addToCartFromDetail = async () => {
                         size: selectedSizeName.value,
                         trang_thai: matchedVariant.trang_thai
                     };
-                    
+
                     // Cập nhật hoặc thêm mới sản phẩm vào giỏ hàng
                     if (existingItemIndex >= 0) {
                         // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng
@@ -1562,13 +1562,13 @@ const addToCartFromDetail = async () => {
                         // Nếu sản phẩm chưa có, thêm mới vào giỏ hàng
                         cartItems.push(cartItem);
                     }
-                    
+
                     // Lưu giỏ hàng vào localStorage
                     localStorage.setItem('gb-sport-cart', JSON.stringify(cartItems));
-                    
+
                     // Cập nhật số lượng sau khi thêm vào localStorage
                     await updateCartCount();
-                    
+
                     notification.success({
                         message: 'Thêm vào giỏ hàng',
                         description: 'Đã thêm sản phẩm vào giỏ hàng thành công',
@@ -1718,8 +1718,8 @@ const buyNow = () => {
         // Kiểm tra nếu hinh_anh là mảng (trường hợp nhiều ảnh)
         else if (Array.isArray(product.value.hinh_anh) && product.value.hinh_anh.length > 0) {
             if (product.value.hinh_anh[currentImageIndex.value]?.url) {
-            imageUrl = product.value.hinh_anh[currentImageIndex.value].url;
-        } else {
+                imageUrl = product.value.hinh_anh[currentImageIndex.value].url;
+            } else {
                 // Nếu phần tử hiện tại không có URL, thử lấy URL trực tiếp
                 imageUrl = product.value.hinh_anh[currentImageIndex.value] || product.value.hinh_anh[0] || '';
             }
@@ -1880,18 +1880,18 @@ const handleTabFocusRefresh = () => {
     if (currentTime - lastRefreshTime.value > REFRESH_THRESHOLD && productId.value) {
         console.log('Tab được focus lại - Refreshing product data...');
         lastRefreshTime.value = currentTime;
-        
+
         // Lưu lại giá trị color và size hiện tại
         const currentColor = selectedColor.value;
         const currentSize = selectedSize.value;
-        
+
         // Refresh dữ liệu sản phẩm
         fetchProductDetail(productId.value, route).then(() => {
             // Sau khi refresh, kiểm tra lại trạng thái của sản phẩm
             if (currentColor && currentSize) {
-                const refreshedVariant = productDetails.value.find(v => 
+                const refreshedVariant = productDetails.value.find(v =>
                     v.id_mau_sac === currentColor && v.id_kich_thuoc === currentSize);
-                
+
                 if (refreshedVariant) {
                     // Nếu còn tồn tại, kiểm tra có thay đổi không
                     if ((!refreshedVariant.trang_thai && refreshedVariant.trang_thai !== 1) || refreshedVariant.so_luong <= 0) {
@@ -1915,7 +1915,7 @@ const handleTabFocusRefresh = () => {
                     selectedSize.value = null;
                 }
             }
-            
+
             // Cập nhật lại trạng thái yêu thích
             if (selectedVariant.value) {
                 checkWishlistStatus();
@@ -1929,9 +1929,9 @@ const handleTabFocusRefresh = () => {
 
 // lềnh thêm mới
 watch(selectedVariant, () => {
-  if (selectedVariant.value) {
-    checkWishlistStatus();
-  }
+    if (selectedVariant.value) {
+        checkWishlistStatus();
+    }
 });
 
 // Kiểm tra trạng thái yêu thích từ server và localStorage
@@ -2516,10 +2516,10 @@ const availableSizes = computed(() => {
                     variants: []
                 });
             }
-            
+
             const sizeData = sizeMap.get(variant.id_kich_thuoc);
             sizeData.variants.push(variant);
-            
+
             // Kiểm tra xem variant này có available không
             if ((variant.trang_thai === 1 || variant.trang_thai === true) && variant.so_luong > 0) {
                 sizeData.hasAvailable = true;
@@ -2530,7 +2530,7 @@ const availableSizes = computed(() => {
     // Bước 2: Tạo danh sách size với trạng thái đúng
     sizeMap.forEach((sizeData, sizeId) => {
         const sizeInfo = product.value.kich_thuoc.find(size => size.ma === sizeId);
-        
+
         if (sizeInfo) {
             sizesForSelectedColor.push({
                 ma: sizeInfo.ma,
@@ -2635,11 +2635,11 @@ const handleGiaBanBlur = (e) => {
 const showAddedToCartModal = ref(false);
 
 const handleModalOk = () => {
-  showAddedToCartModal.value = false;
+    showAddedToCartModal.value = false;
 };
 
 const handleModalCancel = () => {
-  showAddedToCartModal.value = false;
+    showAddedToCartModal.value = false;
 };
 
 // Theo dõi khi giỏ hàng thay đổi
@@ -2655,20 +2655,20 @@ onMounted(() => {
 
 // Dữ liệu sản phẩm tương tự (bạn thay bằng dữ liệu thực tế)
 const recProducts = ref([
-  // Ví dụ mẫu, bạn thay bằng dữ liệu thực tế
-  // {
-  //   id: 1,
-  //   image: 'link_ảnh',
-  //   price: '200.000₫',
-  //   oldPrice: '250.000₫',
-  //   discountPercent: 20,
-  //   discount: '-20%',
-  //   name: 'Áo thể thao nam',
-  //   brand: 'Nike',
-  //   rating: 4.5,
-  //   reviews: 12,
-  //   description: 'Áo thể thao chất liệu tốt...'
-  // }
+    // Ví dụ mẫu, bạn thay bằng dữ liệu thực tế
+    // {
+    //   id: 1,
+    //   image: 'link_ảnh',
+    //   price: '200.000₫',
+    //   oldPrice: '250.000₫',
+    //   discountPercent: 20,
+    //   discount: '-20%',
+    //   name: 'Áo thể thao nam',
+    //   brand: 'Nike',
+    //   rating: 4.5,
+    //   reviews: 12,
+    //   description: 'Áo thể thao chất liệu tốt...'
+    // }
 ]);
 
 // Số sản phẩm mỗi slide
@@ -2676,18 +2676,18 @@ const recProductsPerSlide = 5;
 
 // Chia sản phẩm thành các slide
 const recProductSlides = computed(() => {
-  const slides = [];
-  const products = [...recProducts.value];
-  const totalNeeded = Math.ceil(products.length / recProductsPerSlide) * recProductsPerSlide;
-  if (totalNeeded > products.length) {
-    const extraNeeded = totalNeeded - products.length;
-    const extraProducts = products.slice(0, extraNeeded).map(product => ({ ...product }));
-    products.push(...extraProducts);
-  }
-  for (let i = 0; i < products.length; i += recProductsPerSlide) {
-    slides.push(products.slice(i, i + recProductsPerSlide));
-  }
-  return slides;
+    const slides = [];
+    const products = [...recProducts.value];
+    const totalNeeded = Math.ceil(products.length / recProductsPerSlide) * recProductsPerSlide;
+    if (totalNeeded > products.length) {
+        const extraNeeded = totalNeeded - products.length;
+        const extraProducts = products.slice(0, extraNeeded).map(product => ({ ...product }));
+        products.push(...extraProducts);
+    }
+    for (let i = 0; i < products.length; i += recProductsPerSlide) {
+        slides.push(products.slice(i, i + recProductsPerSlide));
+    }
+    return slides;
 });
 
 // Carousel & trạng thái
@@ -2738,19 +2738,19 @@ const recModalVisible = ref(false);
 const selectedRecProduct = ref(null);
 
 const prevRecSlide = () => {
-  if (recCarousel.value) recCarousel.value.prev();
+    if (recCarousel.value) recCarousel.value.prev();
 };
 const nextRecSlide = () => {
-  if (recCarousel.value) recCarousel.value.next();
+    if (recCarousel.value) recCarousel.value.next();
 };
 
 const showRecProductDetail = (rec) => {
-  selectedRecProduct.value = rec;
-  recModalVisible.value = true;
+    selectedRecProduct.value = rec;
+    recModalVisible.value = true;
 };
 const handleRecModalCancel = () => {
-  recModalVisible.value = false;
-  selectedRecProduct.value = null;
+    recModalVisible.value = false;
+    selectedRecProduct.value = null;
 };
 
 // Khai báo sectionRef
@@ -2761,7 +2761,7 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
         console.log("=== DEBUG: Thực thi addToCartDetail ===");
         console.log("ID chi tiết sản phẩm:", idChiTietSanPham);
         console.log("Số lượng thêm vào:", quantityToAdd);
-        
+
         // Lấy thông tin người dùng từ sessionStorage
         const userInfo = sessionStorage.getItem('userInfo');
         const idKhachHang = userInfo ? JSON.parse(userInfo).id_khach_hang : null;
@@ -2796,7 +2796,7 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
             console.log("Thêm vào giỏ hàng local");
             const savedCart = localStorage.getItem('gb-sport-cart');
             let cartItems = [];
-            
+
             if (savedCart) {
                 try {
                     cartItems = JSON.parse(savedCart);
@@ -2806,15 +2806,15 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
                     cartItems = [];
                 }
             }
-            
+
             // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
-            const existingItemIndex = cartItems.findIndex(item => 
+            const existingItemIndex = cartItems.findIndex(item =>
                 item.id_chi_tiet_san_pham === idChiTietSanPham
             );
             console.log("Index của sản phẩm trong giỏ hàng (nếu có):", existingItemIndex);
-            
+
             // Tìm variant để lấy thông tin chi tiết
-            const variant = productDetails.value.find(v => 
+            const variant = productDetails.value.find(v =>
                 v.id_chi_tiet_san_pham === idChiTietSanPham
             );
             console.log("Thông tin variant được chọn:", variant);
@@ -2838,7 +2838,7 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
                 size_id: selectedSize.value
             };
             console.log("Dữ liệu sản phẩm chuẩn bị thêm vào giỏ hàng:", cartItem);
-            
+
             // Cập nhật hoặc thêm mới sản phẩm vào giỏ hàng
             if (existingItemIndex >= 0) {
                 // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng
@@ -2851,14 +2851,14 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
                 console.log("Thêm mới sản phẩm vào giỏ hàng");
                 cartItems.push(cartItem);
             }
-            
+
             // Lưu giỏ hàng vào localStorage
             console.log("Lưu giỏ hàng vào localStorage:", cartItems);
             localStorage.setItem('gb-sport-cart', JSON.stringify(cartItems));
-            
+
             // Cập nhật số lượng trong giỏ hàng
             await updateCartCount();
-            
+
             // Hiển thị thông báo thành công
             notification.success({
                 message: 'Thêm vào giỏ hàng thành công',
@@ -2942,14 +2942,14 @@ const displayStockStatus = computed(() => {
             text: 'Vui lòng chọn màu sắc'
         };
     }
-    
+
     // Trường hợp đã chọn màu nhưng chưa chọn size
     if (selectedColor.value && !selectedSize.value) {
         // Tính tổng số lượng của tất cả biến thể có màu đã chọn
         const totalQuantityByColor = productDetails.value
             .filter(item => item.id_mau_sac === selectedColor.value)
             .reduce((total, item) => total + (item.so_luong || 0), 0);
-            
+
         if (totalQuantityByColor <= 0) {
             return {
                 check: false,
@@ -2967,23 +2967,23 @@ const displayStockStatus = computed(() => {
             };
         }
     }
-    
+
     // Trường hợp đã chọn cả màu và size
     if (selectedColor.value && selectedSize.value) {
         // Tìm biến thể phù hợp
         const selectedVariant = productDetails.value.find(
             item => item.id_mau_sac === selectedColor.value && item.id_kich_thuoc === selectedSize.value
         );
-        
+
         if (!selectedVariant) {
             return {
                 check: false,
                 text: 'Không tìm thấy sản phẩm'
             };
         }
-        
+
         const currentQuantity = selectedVariant.so_luong || 0;
-        
+
         if (currentQuantity <= 0) {
             return {
                 check: false,
@@ -3001,7 +3001,7 @@ const displayStockStatus = computed(() => {
             };
         }
     }
-    
+
     return {
         check: false,
         text: 'Vui lòng chọn kích thước'
@@ -3031,7 +3031,7 @@ const displayStockStatus = computed(() => {
 }
 
 .breadcrumb-item {
-    display: inline-block;  
+    display: inline-block;
     font-size: 14px;
 }
 
@@ -4903,12 +4903,12 @@ const displayStockStatus = computed(() => {
 
 /* lềnh thêm mới */
 .favorited-variant-badge {
-  background-color: #e53935;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  margin-bottom: 10px;
+    background-color: #e53935;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 10px;
 }
 
 /* ==== SẢN PHẨM TƯƠNG TỰ - KHÔNG TRÙNG BIẾN ==== */
@@ -4920,17 +4920,21 @@ const displayStockStatus = computed(() => {
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
+
 .rec-related-products-section.visible {
     opacity: 1;
     transform: translateY(0);
 }
+
 .rec-related-container {
     max-width: 1280px;
     margin: 0 auto;
 }
+
 .rec-related-section-header {
     text-align: center;
 }
+
 .rec-related-section-title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -4938,17 +4942,20 @@ const displayStockStatus = computed(() => {
     position: relative;
     display: inline-block;
 }
+
 .rec-related-section-divider {
     height: 3px;
     width: 100px;
     background-color: #3a86ff;
     margin: 0 auto;
 }
+
 .rec-related-products-grid {
     padding: 1rem;
     display: flex;
     flex-wrap: wrap;
 }
+
 .rec-product-card {
     position: relative;
     flex: 0 0 20%;
@@ -4962,21 +4969,25 @@ const displayStockStatus = computed(() => {
     transform: translateY(20px);
     transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
 }
+
 .rec-product-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     z-index: 5;
 }
+
 .rec-related-products-section.visible .rec-product-card {
     opacity: 1;
     transform: translateY(0);
 }
+
 .rec-product-image-container {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
     margin-bottom: 12px;
 }
+
 .rec-product-image {
     width: 100%;
     height: auto;
@@ -4984,9 +4995,11 @@ const displayStockStatus = computed(() => {
     object-fit: cover;
     transition: transform 0.5s ease;
 }
+
 .rec-product-card:hover .rec-product-image {
     transform: scale(1.05);
 }
+
 .rec-discount-badge {
     position: absolute;
     top: 10px;
@@ -4999,6 +5012,7 @@ const displayStockStatus = computed(() => {
     border-radius: 4px;
     z-index: 2;
 }
+
 .rec-product-overlay {
     position: absolute;
     bottom: -50px;
@@ -5009,14 +5023,17 @@ const displayStockStatus = computed(() => {
     transition: all 0.3s ease;
     opacity: 0;
 }
+
 .rec-product-overlay.active {
     bottom: 0;
     opacity: 1;
 }
+
 .rec-overlay-buttons {
     display: flex;
     justify-content: space-around;
 }
+
 .rec-overlay-btn {
     display: flex;
     align-items: center;
@@ -5032,33 +5049,40 @@ const displayStockStatus = computed(() => {
     transition: all 0.2s ease;
     text-decoration: none;
 }
+
 .rec-overlay-btn:hover {
     background: #3a86ff;
     color: white;
 }
+
 .rec-overlay-btn span {
     margin-left: 5px;
 }
+
 .rec-product-info {
     padding: 0 5px;
 }
+
 .rec-product-price-row {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
 }
+
 .rec-product-price {
     font-size: 15px;
     font-weight: 600;
     color: #333;
     margin-right: 8px;
 }
+
 .rec-product-old-price {
     font-size: 12px;
     color: #999;
     text-decoration: line-through;
     margin-right: 8px;
 }
+
 .rec-product-discount {
     font-size: 11px;
     font-weight: 600;
@@ -5067,6 +5091,7 @@ const displayStockStatus = computed(() => {
     padding: 2px 6px;
     border-radius: 10px;
 }
+
 .rec-product-name {
     font-size: 14px;
     font-weight: 600;
@@ -5080,32 +5105,38 @@ const displayStockStatus = computed(() => {
     line-clamp: 2;
     -webkit-box-orient: vertical;
 }
+
 .rec-product-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+
 .rec-product-brand {
     font-size: 12px;
     font-weight: 500;
     color: #666;
 }
+
 .rec-product-rating {
     display: flex;
     align-items: center;
     font-size: 12px;
     color: #666;
 }
+
 .rec-product-rating :deep(svg) {
     color: #ffc107;
     margin-right: 3px;
     font-size: 14px;
 }
+
 .rec-carousel-container {
     position: relative;
     padding: 0 50px;
     margin-bottom: 30px;
 }
+
 .rec-custom-arrow {
     position: absolute;
     top: 50%;
@@ -5126,89 +5157,110 @@ const displayStockStatus = computed(() => {
     opacity: 0;
     visibility: hidden;
 }
+
 .rec-custom-arrow:hover {
     background: rgba(0, 0, 0, 0.7);
 }
+
 .rec-custom-arrow.visible {
     opacity: 1;
     visibility: visible;
 }
+
 .rec-prev-arrow {
     left: 10px;
 }
+
 .rec-next-arrow {
     right: 10px;
 }
+
 :deep(.rec-ant-carousel) {
     width: 100%;
 }
+
 :deep(.rec-ant-carousel .slick-dots-bottom) {
     bottom: -25px;
 }
+
 :deep(.rec-ant-carousel .slick-dots li button) {
     background: #d9d9d9;
     opacity: 0.4;
 }
+
 :deep(.rec-ant-carousel .slick-dots li.slick-active button) {
     background: #3a86ff;
     opacity: 1;
 }
+
 /* Modal styles */
 .rec-product-detail-modal {
     padding: 20px;
     position: relative;
     z-index: 10000;
 }
+
 :deep(.rec-ant-modal) {
     z-index: 9999 !important;
     padding-top: 20px !important;
 }
+
 :deep(.rec-ant-modal-mask) {
     z-index: 9998 !important;
 }
+
 :deep(.rec-ant-modal-wrap) {
     z-index: 9999 !important;
 }
+
 :deep(.rec-ant-modal-content) {
     position: relative;
     z-index: 10000;
     margin-top: 0 !important;
 }
+
 :deep(.rec-ant-modal-header) {
     position: relative;
     z-index: 10000;
 }
+
 :deep(.rec-ant-modal-body) {
     position: relative;
     z-index: 10000;
 }
+
 .rec-product-detail-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
 }
+
 .rec-product-images {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
+
 .rec-main-image {
     width: 100%;
     aspect-ratio: 1;
     border-radius: 8px;
     overflow: hidden;
 }
+
 .rec-main-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
 .rec-thumbnail-images {
     display: flex;
     gap: 10px;
     overflow-x: auto;
     padding: 5px 0;
 }
+
 .rec-thumbnail-images img {
     width: 80px;
     height: 80px;
@@ -5217,76 +5269,93 @@ const displayStockStatus = computed(() => {
     cursor: pointer;
     transition: opacity 0.3s ease;
 }
+
 .rec-thumbnail-images img:hover {
     opacity: 0.8;
 }
+
 .rec-product-info-detail {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
+
 .rec-price-section {
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
 .rec-current-price {
     font-size: 24px;
     font-weight: 600;
     color: #333;
 }
+
 .rec-old-price {
     font-size: 16px;
     color: #999;
     text-decoration: line-through;
 }
+
 .rec-brand-section {
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
 .rec-brand-label {
     color: #666;
 }
+
 .rec-brand-value {
     font-weight: 500;
     color: #333;
 }
+
 .rec-rating-section {
     display: flex;
     align-items: center;
     gap: 5px;
 }
+
 .rec-rating {
     display: flex;
     align-items: center;
     gap: 5px;
 }
+
 .rec-rating :deep(svg) {
     color: #ffc107;
 }
+
 .rec-description-section h4 {
     margin-bottom: 10px;
     color: #333;
 }
+
 .rec-description-section p {
     color: #666;
     line-height: 1.6;
 }
+
 .rec-variants-section {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
+
 .rec-color-variants h4,
 .rec-size-variants h4 {
     margin-bottom: 10px;
     color: #333;
 }
+
 .rec-color-options {
     display: flex;
     gap: 10px;
 }
+
 .rec-color-option {
     width: 30px;
     height: 30px;
@@ -5295,14 +5364,17 @@ const displayStockStatus = computed(() => {
     border: 2px solid transparent;
     transition: all 0.3s ease;
 }
+
 .rec-color-option.selected {
     border-color: #3a86ff;
 }
+
 .rec-size-options {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
 }
+
 .rec-size-option {
     padding: 5px 15px;
     border: 1px solid #ddd;
@@ -5310,53 +5382,64 @@ const displayStockStatus = computed(() => {
     cursor: pointer;
     transition: all 0.3s ease;
 }
+
 .rec-size-option.selected {
     background-color: #3a86ff;
     color: white;
     border-color: #3a86ff;
 }
+
 .rec-quantity-section h4 {
     margin-bottom: 10px;
     color: #333;
 }
+
 .rec-quantity-controls {
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
 .rec-quantity-value {
     min-width: 40px;
     text-align: center;
     font-weight: 500;
 }
+
 .rec-action-buttons {
     margin-top: 20px;
 }
+
 .rec-action-buttons button {
     width: 100%;
     height: 40px;
 }
+
 @media (max-width: 1200px) {
     .rec-product-card {
         flex: 0 0 25%;
         max-width: 25%;
     }
 }
+
 @media (max-width: 992px) {
     .rec-product-card {
         flex: 0 0 33.333%;
         max-width: 33.333%;
     }
 }
+
 @media (max-width: 768px) {
     .rec-product-card {
         flex: 0 0 50%;
         max-width: 50%;
     }
+
     .rec-product-detail-content {
         grid-template-columns: 1fr;
     }
 }
+
 @media (max-width: 576px) {
     .rec-product-card {
         flex: 0 0 100%;

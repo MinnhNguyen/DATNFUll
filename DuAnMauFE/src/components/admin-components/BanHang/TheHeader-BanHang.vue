@@ -62,7 +62,7 @@
                                             </template>
                                         </div>
                                         <div class="product-stock">
-                                            Tồn kho: <span
+                                            Số lượng: <span
                                                 :class="product.so_luong > 5 ? 'in-stock' : (product.so_luong > 0 ? 'low-stock' : 'no-stock')">{{
                                                     product.so_luong }}</span>
                                         </div>
@@ -478,7 +478,7 @@
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                     <span style="color: #666;">Tổng tiền:</span>
                                     <strong style="color: #ff6600; font-size: 16px;">{{ formatCurrency(fe_tongThanhToan)
-                                        }}</strong>
+                                    }}</strong>
                                 </div>
                                 <div v-if="activeTabData?.hd?.hinh_thuc_thanh_toan === 'Tiền mặt'"
                                     style="display: flex; justify-content: space-between;">
@@ -4979,7 +4979,7 @@ label.form-label {
 }
 
 .cart-table-header th {
-    color: white !important;
+    color: rgb(0, 0, 0) !important;
     font-weight: 600 !important;
     font-size: 14px !important;
     padding: 6px 8px !important;

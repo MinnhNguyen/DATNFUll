@@ -86,5 +86,7 @@ public interface HoaDonResponse {
     // New fields for return details
     BigDecimal getTong_tien_hoan();
 
+    Integer getId_hoa_don_chi_tiet();
+
     List<ChiTietTraHangResponse> getChiTietTraHangs();
 }

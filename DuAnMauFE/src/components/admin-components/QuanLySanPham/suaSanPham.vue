@@ -374,7 +374,7 @@ const validateProductName = async (_, value) => {
         return Promise.reject('Tên sản phẩm không được chỉ chứa số');
     }
 
-    // Sửa regex để cho phép thêm ký tự đặc biệt /, -, _, &, (), 
+    // Sửa regex để cho phép thêm ký tự đặc biệt /, -, _, &, (),
     if (!/^[a-zA-Z0-9À-ỹ\s\-_\/&()]+$/.test(value)) {
         return Promise.reject('Tên sản phẩm chỉ được chứa chữ cái, số và các ký tự -, _, /, &, (), không được chứa các ký tự đặc biệt khác');
     }
@@ -1564,7 +1564,7 @@ const onFinish = async () => {
         });
 
         await Promise.all(savePromises);
-
+        await store.getAllCTSPKM();
         message.success('Cập nhật sản phẩm thành công!');
 
         // Clear cache và search/filter params

@@ -13,14 +13,18 @@ public interface ChiTietKhuyenMaiRepo extends JpaRepository<ChiTietKhuyenMai, In
 
   void deleteByKhuyenMaiId(Integer khuyenMaiId);
 
-  // ✅ FINAL: Chỉ filter NGÀY (bỏ filter trạng thái vì bị lỗi encoding/whitespace)
-  // Nghiệp vụ vẫn đúng: KM hết hạn tự động không được áp dụng
+  // ✅ FIXED: Sử dụng parameter thay vì hardcode để tránh encoding issue
   @Query("SELECT ckm FROM ChiTietKhuyenMai ckm " +
-      "JOIN ckm.khuyenMai km " +
-      "WHERE ckm.chiTietSanPham.id_chi_tiet_san_pham = :idChiTietSanPham " +
+      "JOIN FETCH ckm.khuyenMai km " +
+      "JOIN FETCH ckm.chiTietSanPham ctsp " +
+      "WHERE ctsp.id_chi_tiet_san_pham = :idChiTietSanPham " +
       "AND km.ngayBatDau <= CURRENT_TIMESTAMP " +
       "AND km.ngayHetHan >= CURRENT_TIMESTAMP " +
-      "AND km.trangThai = 'Đang diễn ra'")
-  List<ChiTietKhuyenMai> findAllByChiTietSanPhamId(@Param("idChiTietSanPham") Integer idChiTietSanPham);
+      "AND km.trangThai = :trangThai")
+  List<ChiTietKhuyenMai> findAllByChiTietSanPhamId(
+      @Param("idChiTietSanPham") Integer idChiTietSanPham,
+      @Param("trangThai") String trangThai);
 
+  @Query("SELECT ckm FROM ChiTietKhuyenMai ckm WHERE ckm.chiTietSanPham.id_chi_tiet_san_pham = :idChiTietSanPham")
+  List<ChiTietKhuyenMai> findAllActiveByCTSP(@Param("idChiTietSanPham") Integer idChiTietSanPham);
 }

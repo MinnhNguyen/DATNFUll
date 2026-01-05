@@ -260,13 +260,13 @@
                                 <p>Mã hóa đơn: {{ store.hoaDonDetail.ma_hoa_don || 'N/A' }}</p>
                                 <p>Trạng thái: {{ store.hoaDonDetail.trang_thai || 'N/A' }}</p>
                                 <p>Phương thức thanh toán: {{ store.hoaDonDetail.hinh_thuc_thanh_toan || 'Chưa xác định'
-                                }}</p>
+                                    }}</p>
                             </a-col>
                             <a-col :span="12">
                                 <p>Ngày tạo: {{ formatDateTime(store.hoaDonDetail.ngay_tao) }}</p>
-                                <p>Nhân viên tiếp nhận: {{ store.hoaDonDetail.ten_nhan_vien || 'Chưa xác định' }}</p>
+                                <!-- <p>Nhân viên tiếp nhận: {{ store.hoaDonDetail.ten_nhan_vien || 'Chưa xác định' }}</p> -->
                                 <p>Hình thức nhận hàng: {{ store.hoaDonDetail.phuong_thuc_nhan_hang || 'Chưa xác định'
-                                }}</p>
+                                    }}</p>
                             </a-col>
                         </a-row>
                     </div>
@@ -599,13 +599,13 @@
                         <div v-if="!isEditingCustomer">
                             <p>Tên: {{ store.hoaDonDetail.ho_ten || 'Khách lẻ' }}</p>
                             <p>Email: {{ store.hoaDonDetail.email || 'Chưa xác định' }}</p>
-                            <p>Phone: {{ store.hoaDonDetail.sdt || 'Chưa xác định' }}</p>
+                            <p>Phone: {{ store.hoaDonDetail.sdt_nguoi_nhan || 'Chưa xác định' }}</p>
                             <p>Địa chỉ: {{ store.hoaDonDetail.dia_chi || 'Chưa xác định' }}</p>
                         </div>
                         <div v-else>
                             <p>Tên: {{ store.hoaDonDetail.ho_ten || 'Khách lẻ' }}</p>
                             <p>Email: {{ store.hoaDonDetail.email || 'Chưa xác định' }}</p>
-                            <p>Phone: {{ store.hoaDonDetail.sdt || 'Chưa xác định' }}</p>
+                            <p>Phone: {{ store.hoaDonDetail.sdt_nguoi_nhan || 'Chưa xác định' }}</p>
                             <p>Địa chỉ: {{ store.hoaDonDetail.dia_chi || 'Chưa xác định' }}</p>
                         </div>
                         <!-- Drawer cho chỉnh sửa thông tin khách hàng -->
@@ -906,7 +906,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from 'vue';
+import { ref, reactive, computed, onMounted, watch, nextTick, h } from 'vue';
 import { useGbStore } from '@/stores/gbStore';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
@@ -919,6 +919,7 @@ import QRCode from 'qrcode';
 
 // Ant Design Vue components
 import { Row as ARow, Col as ACol, Button as AButton, Divider as ADivider, Form as AForm, FormItem as AFormItem, Input as AInput, Textarea as ATextarea, Table as ATable, Modal as AModal, InputNumber as AInputNumber, Spin as ASpin, message } from 'ant-design-vue';
+import { EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { banHangService } from '@/services/banHangService';
 import { hoaDonService } from '@/services/hoaDonService';
 

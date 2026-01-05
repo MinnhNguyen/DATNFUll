@@ -3,7 +3,8 @@
         <!-- Banner Hero Section -->
         <section class="hero-section">
             <div class="hero-content">
-                <img src="../../../images/logo/LogoM.png" alt="MenWear" class="hero-logo" />
+                <img src="../../../images/logo/anhLogoMenWear-1-removebg-preview.png" alt="MenWear"
+                    style="width: 200px; height: auto;" class="hero-logo" />
                 <h1 class="hero-title">MENWEAR</h1>
                 <p class="hero-slogan">CHẤT LƯỢNG TẠO NÊN PHONG CÁCH</p>
                 <a-button type="primary" size="large" class="shop-now-btn" @click="navigateTo('/home')">KHÁM PHÁ
@@ -20,7 +21,8 @@
                         <div class="title-divider"></div>
                         <p class="section-text">
                             MenWear tự hào là thương hiệu chuyên cung cấp các sản phẩm thời trang nam chất lượng cao tại
-                            Việt Nam. Ra đời với sứ mệnh mang đến những sản phẩm thời trang nam chất lượng, đa dạng và phù hợp
+                            Việt Nam. Ra đời với sứ mệnh mang đến những sản phẩm thời trang nam chất lượng, đa dạng và
+                            phù hợp
                             với mọi nhu cầu, MenWear đã và đang trở thành người bạn đồng hành đáng tin cậy của nhiều
                             thế hệ quý ông.
                         </p>
@@ -33,8 +35,7 @@
                 </a-col>
                 <a-col :xs="24" :md="12">
                     <div class="about-image scroll-animation delay-200">
-                        <img src="../../../images/thuongHieuSanPham/AnhCuaHang2png.png"
-                            alt="G&B Store" />
+                        <img src="../../../images/thuongHieuSanPham/AnhCuaHang2png.png" alt="G&B Store" />
                     </div>
                 </a-col>
             </a-row>
@@ -348,7 +349,7 @@ onMounted(() => {
     position: relative;
 }
 
-.hero-content { 
+.hero-content {
     max-width: 800px;
     padding: 0 20px;
 }

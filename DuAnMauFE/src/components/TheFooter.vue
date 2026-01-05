@@ -7,7 +7,7 @@
                     <img src="../images/logo/LogoM.png" class="footer-logo" alt="MenWear Logo">
                 </div>
                 <p class="brand-description">
-                    Chuyên cung cấp áo sơ mi nam cao cấp với chất liệu tốt nhất. 
+                    Chuyên cung cấp áo sơ mi nam cao cấp với chất liệu tốt nhất.
                     Sự hài lòng của quý khách là niềm tự hào của chúng tôi.
                 </p>
                 <div class="social-icons">
@@ -34,11 +34,12 @@
                         </p>
                         <p class="contact-item">
                             <span class="contact-label">Email:</span>
-                            <span class="contact-value">chinhhtph46334@fpt.edu.vn</span>
+                            <span class="contact-value">Menwear@official.com</span>
                         </p>
                         <p class="contact-item">
                             <span class="contact-label">Địa chỉ:</span>
-                            <span class="contact-value">Cao đẳng FPT Polytechnic, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội</span>
+                            <span class="contact-value">Cao đẳng FPT Polytechnic, Trịnh Văn Bô, Nam Từ Liêm, Hà
+                                Nội</span>
                         </p>
                     </div>
                 </div>

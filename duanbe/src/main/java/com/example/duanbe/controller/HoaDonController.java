@@ -744,7 +744,8 @@ public class HoaDonController {
                 // Kiểm tra khuyến mãi
                 BigDecimal giaSauGiam = giaBan;
                 OffsetDateTime now = OffsetDateTime.now();
-                List<ChiTietKhuyenMai> chiTietKhuyenMais = chiTietKhuyenMaiRepo.findAllByChiTietSanPhamId(idCTSP);
+                List<ChiTietKhuyenMai> chiTietKhuyenMais = chiTietKhuyenMaiRepo.findAllByChiTietSanPhamId(idCTSP,
+                        "Đang diễn ra");
                 for (ChiTietKhuyenMai ctkm : chiTietKhuyenMais) {
                     KhuyenMai km = ctkm.getKhuyenMai();
                     if (km.getTrangThai().equals("Đang diễn ra") &&
@@ -1055,7 +1056,8 @@ public class HoaDonController {
 
             // Kiểm tra khuyến mãi
             BigDecimal giaSauGiam = giaBan;
-            List<ChiTietKhuyenMai> chiTietKhuyenMais = chiTietKhuyenMaiRepo.findAllByChiTietSanPhamId(idCTSP);
+            List<ChiTietKhuyenMai> chiTietKhuyenMais = chiTietKhuyenMaiRepo.findAllByChiTietSanPhamId(idCTSP,
+                    "Đang diễn ra");
             for (ChiTietKhuyenMai ctkm : chiTietKhuyenMais) {
                 KhuyenMai km = ctkm.getKhuyenMai();
                 if (km.getTrangThai().equals("Đang diễn ra") &&

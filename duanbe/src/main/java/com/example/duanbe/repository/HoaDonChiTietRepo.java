@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public interface HoaDonChiTietRepo extends JpaRepository<HoaDonChiTiet, Integer> {
     @Query(value = """
-                SELECT DISTINCT hd.id_hoa_don, hd.ma_hoa_don, hd.id_khach_hang, hd.ngay_tao, hd.ho_ten, hd.sdt,
+                SELECT DISTINCT hd.id_hoa_don, hd.ma_hoa_don, hd.id_khach_hang, hd.ngay_tao, hd.ho_ten, hd.sdt as sdt_nguoi_nhan,
                     hd.dia_chi, hd.email, hd.tong_tien_truoc_giam, hd.phi_van_chuyen,
                     hd.tong_tien_sau_giam, hd.hinh_thuc_thanh_toan, hd.phuong_thuc_nhan_hang,
                     tdh.trang_thai, hdct.id_hoa_don_chi_tiet, hdct.so_luong, hdct.don_gia,
@@ -503,5 +503,13 @@ public interface HoaDonChiTietRepo extends JpaRepository<HoaDonChiTiet, Integer>
     List<HoaDonChiTiet> findAllByHoaDonAndChiTietSanPham(
             @Param("idHoaDon") Integer idHoaDon,
             @Param("idChiTietSanPham") Integer idChiTietSanPham);
+
+    @Query(value = """
+            select hdct.id_hoa_don_chi_tiet, hdct.id_hoa_don, hdct.id_chi_tiet_san_pham, hdct.don_gia, hdct.so_luong from hoa_don_chi_tiet hdct join hoa_don hd on hd.id_hoa_don = hdct.id_hoa_don
+            where hd.trang_thai=N'Đang chờ'
+            and hdct.id_chi_tiet_san_pham=:idCTSP
+            """, nativeQuery = true)
+
+    List<HoaDonChiTiet> findHDCTDangChoByCTSP(@Param("idCTSP") Integer idCTSP);
 
 }
