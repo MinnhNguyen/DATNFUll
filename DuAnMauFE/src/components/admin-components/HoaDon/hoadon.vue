@@ -68,9 +68,9 @@
                     <th scope="col">Ngày tạo</th>
                     <th scope="col">Khách hàng</th>
                     <th scope="col">Tổng tiền(VNĐ)</th>
-                    <th scope="col">Phương thức thanh toán</th>
+                    <th scope="col">Hình thức thanh toán</th>
                     <th scope="col">Trạng thái hóa đơn</th>
-                    <th scope="col">Hình thức nhận hàng</th>
+                    <th scope="col">Phương thức nhận hàng</th>
                     <th scope="col">Loại hóa đơn</th>
                     <th scope="col">Thao tác</th>
                 </tr>
@@ -120,7 +120,8 @@
     <div class="d-flex justify-content-center align-items-center mt-3">
         <button class="btn buttonPT p-0" @click="fetchData(store.currentHoaDon - 1)"
             :disabled="store.currentHoaDon === 0 || store.totalHoaDon === 0">Previous</button>
-        <span class="mx-3">Trang {{ store.totalHoaDon === 0 ? 0 : (store.currentHoaDon ?? 0) + 1 }} / {{ store.totalHoaDon }}</span>
+        <span class="mx-3">Trang {{ store.totalHoaDon === 0 ? 0 : (store.currentHoaDon ?? 0) + 1 }} / {{
+            store.totalHoaDon }}</span>
         <button class="btn buttonPT" @click="fetchData(store.currentHoaDon + 1)"
             :disabled="store.totalHoaDon === 0 || store.currentHoaDon >= store.totalHoaDon - 1">Next</button>
     </div>

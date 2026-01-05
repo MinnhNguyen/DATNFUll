@@ -920,7 +920,7 @@ import QRCode from 'qrcode';
 
 // Ant Design Vue components
 import { Row as ARow, Col as ACol, Button as AButton, Divider as ADivider, Form as AForm, FormItem as AFormItem, Input as AInput, Textarea as ATextarea, Table as ATable, Modal as AModal, InputNumber as AInputNumber, Spin as ASpin, message } from 'ant-design-vue';
-import { EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { EditOutlined, ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import { banHangService } from '@/services/banHangService';
 import { hoaDonService } from '@/services/hoaDonService';
 

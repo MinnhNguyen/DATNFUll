@@ -107,7 +107,7 @@
                 </div>
 
                 <div class="section-box">
-                    <h2 class="section-title">Phương thức thanh toán</h2>
+                    <h2 class="section-title">Hình thức thanh toán</h2>
                     <a-radio-group v-model:value="selectedPaymentMethod" class="payment-methods">
                         <div class="payment-method-item">
                             <a-radio value="cod" class="payment-radio">
@@ -152,7 +152,8 @@
                                         <p class="payment-desc">PayOS hoặc ZaloPay - Quét mã QR ngay</p>
                                     </div>
                                     <div class="payment-logo">
-                                        <img src="../images/icon/logoVietQR.png" style="width: 50px; height: 50px;" alt="QR Payment" class="online-logo" />
+                                        <img src="../images/icon/logoVietQR.png" style="width: 50px; height: 50px;"
+                                            alt="QR Payment" class="online-logo" />
                                     </div>
                                 </div>
                             </a-radio>
@@ -200,7 +201,7 @@
                                 <div class="coupon-info">
                                     <div class="coupon-badge">
                                         <span class="coupon-type">{{ coupon.loai === 'percent' ? 'GIẢM %' : 'GIẢM GIÁ'
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <div class="coupon-details">
                                         <p class="coupon-value">{{ coupon.loai === 'percent' ? `Giảm ${coupon.gia_tri}%`
@@ -343,13 +344,8 @@
         </a-modal>
 
         <!-- Payment Method Modal -->
-        <payment-method-modal
-            v-model:visible="paymentModalVisible"
-            :invoice-id="createdInvoiceId"
-            :amount="grandTotal"
-            @payment-success="handlePaymentSuccess"
-            @payment-cancelled="handlePaymentCancelled"
-        />
+        <payment-method-modal v-model:visible="paymentModalVisible" :invoice-id="createdInvoiceId" :amount="grandTotal"
+            @payment-success="handlePaymentSuccess" @payment-cancelled="handlePaymentCancelled" />
 
     </div>
 </template>
@@ -576,7 +572,7 @@ const grandTotal = computed(() => {
     const subTotal = Number(subtotal.value || 0);
     const disc = Number(discount.value || 0);
     const shipping = Number(shippingFee.value || 0);
-    
+
     // Tổng thanh toán = Tạm tính - Giảm giá + Phí ship
     // Đảm bảo không bao giờ âm
     const total = subTotal - disc + shipping;
@@ -605,17 +601,17 @@ const isLoggedIn = computed(() => {
 const getCustomerData = () => {
     // Thử lấy từ localStorage trước (nếu user chọn remember me)
     let customerDataStr = localStorage.getItem('khachHang');
-    
+
     // Nếu không có trong localStorage, thử sessionStorage
     if (!customerDataStr) {
         customerDataStr = sessionStorage.getItem('khachHang');
     }
-    
+
     if (!customerDataStr) {
         console.log('[DEBUG] Không tìm thấy khachHang trong storage');
         return null;
     }
-    
+
     try {
         const data = JSON.parse(customerDataStr);
         console.log('[DEBUG] Customer data từ storage:', data);
@@ -630,18 +626,18 @@ const getCustomerData = () => {
 const fetchCustomerAddresses = async () => {
     try {
         console.log('[DEBUG] Bắt đầu fetchCustomerAddresses');
-        
+
         // Sử dụng helper function
         const customerData = getCustomerData();
-        
+
         if (!customerData) {
             console.log('[DEBUG] Không có thông tin khách hàng trong storage');
             return;
         }
-        
+
         // Lấy idKhachHang từ customerData
         const idKhachHang = customerData.idKhachHang || customerData.id_khach_hang;
-        
+
         if (!idKhachHang) {
             console.log('[DEBUG] Không tìm thấy idKhachHang trong customerData');
             console.log('[DEBUG] customerData:', customerData);
@@ -703,16 +699,16 @@ watch(selectedAddressId, (newIndex) => {
         const selectedAddr = store.danhSachDiaChi[newIndex];
         console.log('[DEBUG] User chọn địa chỉ index:', newIndex);
         console.log('[DEBUG] Địa chỉ được chọn:', selectedAddr);
-        
+
         if (selectedAddr) {
             // Cập nhật form với địa chỉ được chọn
             customer.value.tinh_thanh_pho = selectedAddr.tinh_thanh_pho;
             customer.value.quan_huyen = selectedAddr.quan_huyen;
             customer.value.xa_phuong = selectedAddr.xa_phuong;
             customer.value.so_nha = selectedAddr.so_nha;
-            
+
             console.log('[DEBUG] Đã update form với địa chỉ:', selectedAddr);
-            
+
             // Trigger tính phí ship mới
             calculateShippingFee();
         }
@@ -828,9 +824,9 @@ const calculateOrderTotals = () => {
     let paymentMethod = {
         loai: selectedPaymentMethod.value === 'cod' ? 'cod' : 'online',
         chi_tiet: selectedPaymentMethod.value,
-        ten: selectedPaymentMethod.value === 'cod' 
-             ? 'Thanh toán khi nhận hàng' 
-             : (selectedPaymentMethod.value === 'vnpay' ? 'VNPAY' : 'PayOS')
+        ten: selectedPaymentMethod.value === 'cod'
+            ? 'Thanh toán khi nhận hàng'
+            : (selectedPaymentMethod.value === 'vnpay' ? 'VNPAY' : 'PayOS')
     };
 
     const invoice = {
@@ -862,7 +858,7 @@ const calculateOrderTotals = () => {
             ghi_chu: orderNote.value,
             hinh_thuc_thanh_toan: selectedPaymentMethod.value === 'cod' ? 'Tiền mặt' : 'Chuyển khoản',
             // Thông tin thanh toán
-            phuong_thuc_thanh_toan: paymentMethod,
+            phuong_thuc_thanh_toan: "Giao hàng",
             // Tổng tiền đơn hàng
             tong_tien: {
                 tam_tinh: Number(subtotal.value || 0),
@@ -882,8 +878,8 @@ const calculateOrderTotals = () => {
 
         // Thông tin cho thanh toán online (nếu cần)
         payment_info: {
-            productName: "Đơn hàng " + `GB-${currentDate.getTime()}`,
-            description: `GB Sport - ${orderItems.value.length} sản phẩm`,
+            productName: "Đơn hàng " + `MW-${currentDate.getTime()}`,
+            description: `MenWear - ${orderItems.value.length} sản phẩm`,
             returnUrl: "http://localhost:5173/home",
             price: Number(grandTotal.value || 0),
             cancelUrl: "http://localhost:5173/thanhtoan-banhang"
@@ -1050,7 +1046,7 @@ const placeOrder = async () => {
                 if (response && response.id_hoa_don) {
                     // Lưu ID hóa đơn để dùng cho modal thanh toán
                     createdInvoiceId.value = response.id_hoa_don;
-                    
+
                     // Hiển thị modal chọn phương thức
                     paymentModalVisible.value = true;
 
@@ -1076,7 +1072,7 @@ const placeOrder = async () => {
                         } else {
                             localStorage.removeItem('gb-sport-cart');
                         }
-                        
+
                         store.setIsThanhToanMuaNgay(false);
                     }
                 } else {
@@ -1215,10 +1211,10 @@ const placeOrder = async () => {
 // Xử lý khi thanh toán thành công từ modal
 const handlePaymentSuccess = (data) => {
     console.log('Payment success:', data);
-    
+
     currentStatus.value = 4;
     message.success('Thanh toán thành công!');
-    
+
     Modal.success({
         title: 'Thanh toán thành công',
         content: `Đơn hàng của bạn đã được thanh toán thành công qua ${data.method === 'payos' ? 'PayOS' : 'ZaloPay'}. Cảm ơn bạn đã mua hàng!`,
@@ -1416,7 +1412,7 @@ watch(subtotal, async (newSubtotal) => {
 
     try {
         const voucherResponse = newSubtotal > 0 ? await store.getVoucherByGiaTruyen(newSubtotal) : [];
-        
+
         let newAvailableVouchers = [];
         if (voucherResponse && Array.isArray(voucherResponse)) {
             // Sắp xếp voucher theo mức giảm giá tốt nhất và map dữ liệu
@@ -1440,7 +1436,7 @@ watch(subtotal, async (newSubtotal) => {
                 so_tien_giam: Number(voucher.so_tien_giam) || 0,
             }));
         }
-        
+
         availableVouchers.value = newAvailableVouchers;
 
         const currentVoucher = appliedCoupons.value.length > 0 ? appliedCoupons.value[0] : null;
@@ -1449,7 +1445,7 @@ watch(subtotal, async (newSubtotal) => {
         if (currentVoucher) {
             // Kiểm tra xem voucher đang áp dụng có còn trong danh sách hợp lệ không
             const isStillValid = newAvailableVouchers.some(v => v.id === currentVoucher.id);
-            
+
             if (!isStillValid) {
                 appliedCoupons.value = [];
                 message.warning('Voucher đang áp dụng không còn hợp lệ và đã được gỡ bỏ.');

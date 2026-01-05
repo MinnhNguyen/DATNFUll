@@ -26,7 +26,7 @@ public class KhachHang {
     private String matKhau;
 
     @Column(name = "ho_ten")
-   
+
     @Size(max = 50, message = "Tên khách hàng không được vượt quá 50 ký tự")
     private String hoTen;
 
