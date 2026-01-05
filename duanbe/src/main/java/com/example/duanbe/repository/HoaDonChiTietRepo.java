@@ -16,39 +16,94 @@ import java.util.Optional;
 
 public interface HoaDonChiTietRepo extends JpaRepository<HoaDonChiTiet, Integer> {
     @Query(value = """
-                SELECT DISTINCT hd.id_hoa_don, hd.ma_hoa_don, hd.id_khach_hang, hd.ngay_tao, hd.ho_ten, hd.sdt as sdt_nguoi_nhan,
-                    hd.dia_chi, hd.email, hd.tong_tien_truoc_giam, hd.phi_van_chuyen,
-                    hd.tong_tien_sau_giam, hd.hinh_thuc_thanh_toan, hd.phuong_thuc_nhan_hang,
-                    tdh.trang_thai, hdct.id_hoa_don_chi_tiet, hdct.so_luong, hdct.don_gia,
-                    sp.ten_san_pham, sp.ma_san_pham, ctsp2.gia_ban, hd.phu_thu,
-                    COALESCE((
-                        SELECT MIN(ctkm.gia_sau_giam)
-                        FROM chi_tiet_khuyen_mai ctkm
-                        JOIN khuyen_mai km ON ctkm.id_khuyen_mai = km.id_khuyen_mai
-                        WHERE ctkm.id_chi_tiet_san_pham = ctsp2.id_chi_tiet_san_pham
-                          AND km.trang_thai = N'Đang diễn ra'
-                          AND DATEADD(HOUR, 7, GETDATE()) BETWEEN km.ngay_bat_dau AND km.ngay_het_han
-                            ), ctsp2.gia_ban) AS gia_sau_giam,
-                    ctsp1.so_luong AS so_luong_con_lai, kt.gia_tri AS kich_thuoc, hd.trang_thai AS trang_thai_thanh_toan,
-                    hd.loai_hoa_don, hd.ghi_chu, ms.ten_mau_sac, ctsp2.id_chi_tiet_san_pham, sp.anh_dai_dien as hinh_anh, ha.anh_chinh
-                FROM hoa_don hd
-                FULL OUTER JOIN hoa_don_chi_tiet hdct ON hd.id_hoa_don = hdct.id_hoa_don
-                FULL OUTER JOIN (SELECT id_chi_tiet_san_pham, so_luong FROM chi_tiet_san_pham ct
-                				WHERE ct.trang_thai = 1
-                				) ctsp1 ON hdct.id_chi_tiet_san_pham = ctsp1.id_chi_tiet_san_pham
-                FULL OUTER JOIN chi_tiet_san_pham ctsp2 ON ctsp2.id_chi_tiet_san_pham = hdct.id_chi_tiet_san_pham
-                FULL OUTER JOIN san_pham sp ON ctsp2.id_san_pham = sp.id_san_pham
-                FULL OUTER JOIN kich_thuoc kt ON ctsp2.id_kich_thuoc = kt.id_kich_thuoc
-                FULL OUTER JOIN mau_sac ms ON ctsp2.id_mau_sac = ms.id_mau_sac
-                FULL OUTER JOIN (SELECT t.id_hoa_don, t.trang_thai
-                            FROM theo_doi_don_hang t
-                            WHERE t.ngay_chuyen = (SELECT MAX(ngay_chuyen)
-                                                    FROM theo_doi_don_hang t2
-                                                    WHERE t2.id_hoa_don = t.id_hoa_don
-                                                    )
-                            ) tdh ON hd.id_hoa_don = tdh.id_hoa_don
-                FULL OUTER JOIN hinh_anh ha ON ctsp2.id_chi_tiet_san_pham = ha.id_chi_tiet_san_pham AND ha.anh_chinh = 1
-                WHERE hd.id_hoa_don = :idHoaDon
+                SELECT
+                    -- Chi tiết hóa đơn
+                    hdct.id_hoa_don_chi_tiet,
+                    hdct.id_hoa_don,
+                    hdct.so_luong,
+                    hdct.don_gia,
+
+                    -- Sản phẩm
+                    ctsp.id_chi_tiet_san_pham,
+                    sp.ten_san_pham,
+                    sp.ma_san_pham,
+                    sp.anh_dai_dien as hinh_anh,
+                    ms.ten_mau_sac,
+                    kt.gia_tri AS kich_thuoc,
+                    ha.anh_chinh,
+
+                    -- Tồn kho
+                    ctsp.so_luong AS so_luong_ton_kho,
+                    ctsp.trang_thai AS trang_thai_ctsp,
+
+                    -- 💰 GIÁ ĐƠN VỊ (từ DB - đã lưu)
+                    ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) AS gia_don_vi_luu,
+
+                    -- 🎁 TÍNH NGƯỢC GIÁ GỐC từ giá đã lưu
+                    CASE
+                        WHEN active_km.kieu_giam_gia = N'Tiền mặt' THEN
+                            -- Giá gốc = Giá sau KM + Số tiền giảm
+                            ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) + active_km.gia_tri_giam
+
+                        WHEN active_km.kieu_giam_gia = N'Phần trăm' THEN
+                            -- Kiểm tra xem có chạm giới hạn không
+                            CASE
+                                -- TH1: Chạm giới hạn -> Giá gốc = Giá sau KM + Giới hạn
+                                WHEN active_km.gia_tri_toi_da IS NOT NULL
+                                    AND (ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) * active_km.gia_tri_giam / 100) > active_km.gia_tri_toi_da
+                                THEN
+                                    ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) + active_km.gia_tri_toi_da
+
+                                -- TH2: Chưa chạm giới hạn -> Giá gốc = Giá sau KM / (1 - %/100)
+                                ELSE
+                                    ROUND(
+                                        ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0)
+                                        / NULLIF((100 - active_km.gia_tri_giam) / 100.0, 0)
+                                    , 0)
+                            END
+
+                        -- Không có KM -> Giá gốc = Giá đã lưu
+                        ELSE
+                            ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0)
+                    END AS gia_goc,
+
+                    -- 🏷️ GIÁ SAU KHUYẾN MÃI (chính là giá đã lưu)
+                    ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) AS gia_sau_km,
+
+                    -- ✅ FLAG có khuyến mãi
+                    CASE
+                        WHEN active_km.id_khuyen_mai IS NOT NULL THEN CAST(1 AS BIT)
+                        ELSE CAST(0 AS BIT)
+                    END AS co_khuyen_mai,
+
+                    -- 📝 Tên khuyến mãi
+                    active_km.ten_khuyen_mai
+
+                FROM hoa_don_chi_tiet hdct
+                JOIN chi_tiet_san_pham ctsp ON hdct.id_chi_tiet_san_pham = ctsp.id_chi_tiet_san_pham
+                JOIN san_pham sp ON ctsp.id_san_pham = sp.id_san_pham
+                LEFT JOIN kich_thuoc kt ON ctsp.id_kich_thuoc = kt.id_kich_thuoc
+                LEFT JOIN mau_sac ms ON ctsp.id_mau_sac = ms.id_mau_sac
+                LEFT JOIN hinh_anh ha ON ctsp.id_chi_tiet_san_pham = ha.id_chi_tiet_san_pham AND ha.anh_chinh = 1
+
+                -- ✅ TÌM KHUYẾN MÃI ĐÃ ÁP DỤNG (so khớp giá)
+                LEFT JOIN (
+                    SELECT
+                        ctkm.id_chi_tiet_san_pham,
+                        ctkm.gia_sau_giam,
+                        km.id_khuyen_mai,
+                        km.ten_khuyen_mai,
+                        km.kieu_giam_gia,
+                        km.gia_tri_giam,
+                        km.gia_tri_toi_da
+                    FROM chi_tiet_khuyen_mai ctkm
+                    JOIN khuyen_mai km ON ctkm.id_khuyen_mai = km.id_khuyen_mai
+                ) active_km ON ctsp.id_chi_tiet_san_pham = active_km.id_chi_tiet_san_pham
+                    -- So khớp giá: giá trong HDCT = giá sau KM trong CTKM
+                    AND ROUND(hdct.don_gia / NULLIF(hdct.so_luong, 0), 0) = active_km.gia_sau_giam
+
+                WHERE hdct.id_hoa_don = :idHoaDon
+                ORDER BY hdct.id_hoa_don_chi_tiet
             """, nativeQuery = true)
     List<HoaDonChiTietResponse> findHoaDonChiTietById(
             @Param("idHoaDon") Integer idHoaDon);

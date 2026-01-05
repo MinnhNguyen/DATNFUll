@@ -260,13 +260,13 @@
                                 <p>Mã hóa đơn: {{ store.hoaDonDetail.ma_hoa_don || 'N/A' }}</p>
                                 <p>Trạng thái: {{ store.hoaDonDetail.trang_thai || 'N/A' }}</p>
                                 <p>Phương thức thanh toán: {{ store.hoaDonDetail.hinh_thuc_thanh_toan || 'Chưa xác định'
-                                    }}</p>
+                                }}</p>
                             </a-col>
                             <a-col :span="12">
                                 <p>Ngày tạo: {{ formatDateTime(store.hoaDonDetail.ngay_tao) }}</p>
                                 <!-- <p>Nhân viên tiếp nhận: {{ store.hoaDonDetail.ten_nhan_vien || 'Chưa xác định' }}</p> -->
                                 <p>Hình thức nhận hàng: {{ store.hoaDonDetail.phuong_thuc_nhan_hang || 'Chưa xác định'
-                                    }}</p>
+                                }}</p>
                             </a-col>
                         </a-row>
                     </div>
@@ -317,16 +317,16 @@
                                 </template>
                                 <template v-if="column.key === 'don_gia'">
                                     <div>
-                                        <span v-if="record.gia_sau_giam && record.gia_sau_giam < record.gia_ban"
+                                        <span v-if="record.gia_sau_km && record.gia_sau_km < record.gia_goc"
                                             style="color: red;">
-                                            {{ formatCurrency(record.gia_sau_giam) }} VNĐ
+                                            {{ formatCurrency(record.gia_sau_km) }} VNĐ
                                         </span>
                                         <span v-else>
-                                            {{ formatCurrency(record.gia_ban) }} VNĐ
+                                            {{ formatCurrency(record.gia_goc) }} VNĐ
                                         </span>
-                                        <div v-if="record.gia_sau_giam && record.gia_sau_giam < record.gia_ban"
+                                        <div v-if="record.gia_sau_km && record.gia_sau_km < record.gia_goc"
                                             class="original-price">
-                                            {{ formatCurrency(record.gia_ban) }} VNĐ
+                                            {{ formatCurrency(record.gia_goc) }} VNĐ
                                         </div>
                                     </div>
                                 </template>
@@ -375,8 +375,7 @@
                                 </a-col>
                                 <a-col :md="4" style="text-align: right;color: red;">
                                     <p>- {{
-                                        formatCurrency((store.hoaDonDetail.tong_tien_truoc_giam || 0) +
-                                            (store.hoaDonDetail.phi_van_chuyen || 0) -
+                                        formatCurrency((store.hoaDonDetail.tong_tien_truoc_giam || 0) -
                                             (store.hoaDonDetail.tong_tien_sau_giam ||
                                                 0)) }} VNĐ</p>
                                 </a-col>
@@ -398,7 +397,9 @@
                                     <p>Thành tiền:</p>
                                 </a-col>
                                 <a-col :md="4" style="text-align: right;">
-                                    <h6>{{ formatCurrency(store.hoaDonDetail.tong_tien_sau_giam) }} VNĐ</h6>
+                                    <h6>{{ formatCurrency(store.hoaDonDetail.tong_tien_sau_giam +
+                                        store.hoaDonDetail.phi_van_chuyen)
+                                        }} VNĐ</h6>
                                 </a-col>
                             </a-row>
                             <!-- Dòng text thanh toán thêm -->

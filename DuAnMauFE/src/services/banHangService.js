@@ -209,30 +209,31 @@ const updatePhiVanChuyen = (idHoaDon, phiVanChuyen) => {
 
 const tinhPhiShip = async (pickProvince, pickDistrict, province, district, weight, tongTienHoaDon) => {
     try {
-        // ✅ FIX: Use correct BanHangWebController endpoint
-        const response = await axiosInstance.post('api/v1/ban-hang-web/tinh-phi-ship', {
+        // Properly encode Vietnamese parameters using URLSearchParams
+        const params = new URLSearchParams({
             pickProvince,
             pickDistrict,
             province,
             district,
-            weight,
-            tongTienHoaDon
+            weight: weight.toString(),
+            value: tongTienHoaDon.toString()
         });
 
-        console.log('GHTK Response:', response.data);
+        const { data } = await axiosInstance.get(`api/ghtk/fee?${params.toString()}`);
 
-        // Response có thể là string JSON hoặc object
-        const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+        // Backend trả về string JSON từ GHTK
+        // Response format: {"success":true,"message":"...","fee":{"name":"...","fee":35000,"ship_fee_only":35000,...}}
+        const ghtkResponse = typeof data === 'string' ? JSON.parse(data) : data;
 
-        if (data.success && data.fee) {
-            return { fee: data.fee.ship_fee_only || data.fee.fee || 0 };
+        if (ghtkResponse.success && ghtkResponse.fee && ghtkResponse.fee.ship_fee_only) {
+            return ghtkResponse.fee.ship_fee_only; // Trả về số tiền
         }
 
-        console.error('GHTK response không hợp lệ:', data);
-        return { error: true, message: data.message || 'Không tính được phí', fee: 0 };
+        console.error('GHTK response không hợp lệ:', ghtkResponse);
+        return { error: true, message: ghtkResponse.message || 'Không tính được phí' };
     } catch (error) {
         console.error('Lỗi API tính phí ship:', error);
-        return { error: true, fee: 0 };
+        return { error: true };
     }
 }
 

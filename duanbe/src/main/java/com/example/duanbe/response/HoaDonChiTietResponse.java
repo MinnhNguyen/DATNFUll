@@ -105,4 +105,15 @@ public interface HoaDonChiTietResponse {
 
     String getLy_do_tra_hang();
 
+    // ✨ NEW: Price calculation fields
+    BigDecimal getGia_don_vi_luu(); // Unit price from DB
+
+    BigDecimal getGia_goc(); // Original price (before discount)
+
+    BigDecimal getGia_sau_km(); // Price after discount
+
+    Boolean getCo_khuyen_mai(); // Has promotion flag
+
+    String getTen_khuyen_mai(); // Promotion name
+
 }
