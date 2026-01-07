@@ -26,17 +26,17 @@
       </template>
     </a-list>
 </template>
-  
+
 <script setup>
   import { computed } from 'vue';
-  
+
   const props = defineProps({
     orders: Array,
     statusFilter: String
   });
-  
+
   const emit = defineEmits(['view-detail']);
-  
+
   const filteredOrders = computed(() => {
     if (!props.orders) return [];
     if (props.statusFilter === 'all') return props.orders;
@@ -44,16 +44,16 @@
       o => o.trang_thai?.toLowerCase().trim() === props.statusFilter.toLowerCase().trim()
     );
   });
-  
+
   const formatDate = (date) => {
     const d = new Date(date);
     return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
   };
-  
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
-  
+
   const getOrderStatusColor = (status) => {
     const colors = {
       'Chờ xác nhận': 'orange',

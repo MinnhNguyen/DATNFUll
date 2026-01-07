@@ -22,18 +22,15 @@
 
         <!-- Hero Carousel -->
         <div class="carousel-elegant" @mouseenter="showArrows = true" @mouseleave="showArrows = false">
-            <a-carousel arrows autoplay :autoplaySpeed="5000" class="carousel" ref="carousel">
-                <template #prevArrow>
-                    <div class="carousel-arrow carousel-prev" :class="{ 'visible': showArrows }">
-                        <left-outlined />
-                    </div>
-                </template>
-                <template #nextArrow>
-                    <div class="carousel-arrow carousel-next" :class="{ 'visible': showArrows }">
-                        <right-outlined />
-                    </div>
-                </template>
-                
+            <!-- Manual Navigation Arrows -->
+            <button class="carousel-arrow carousel-prev" :class="{ 'visible': showArrows }" @click="prevSlide">
+                <LeftOutlined />
+            </button>
+            <button class="carousel-arrow carousel-next" :class="{ 'visible': showArrows }" @click="nextSlide">
+                <RightOutlined />
+            </button>
+
+            <a-carousel autoplay :autoplaySpeed="5000" class="carousel" ref="carousel">
                 <div class="carousel-slide">
                     <img src="../../src/images/banerSale/anhBanerWear.png" alt="Banner chính">
                     <div class="slide-overlay"></div>
@@ -61,6 +58,19 @@ const showArrows = ref(false);
 const sectionRef = ref(null);
 const isVisible = ref(false);
 const carousel = ref(null);
+
+// Navigation methods
+const prevSlide = () => {
+    if (carousel.value) {
+        carousel.value.prev();
+    }
+};
+
+const nextSlide = () => {
+    if (carousel.value) {
+        carousel.value.next();
+    }
+};
 
 // Sử dụng Intersection Observer để theo dõi khi phần tử xuất hiện trong viewport
 onMounted(() => {
@@ -170,13 +180,11 @@ onMounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.05) 0%,
-        rgba(0, 0, 0, 0) 20%,
-        rgba(0, 0, 0, 0) 80%,
-        rgba(0, 0, 0, 0.1) 100%
-    );
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.05) 0%,
+            rgba(0, 0, 0, 0) 20%,
+            rgba(0, 0, 0, 0) 80%,
+            rgba(0, 0, 0, 0.1) 100%);
     pointer-events: none;
 }
 
@@ -224,6 +232,19 @@ onMounted(() => {
     right: var(--space-lg);
 }
 
+.carousel-arrow :deep(.anticon) {
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-arrow :deep(svg) {
+    width: 24px;
+    height: 24px;
+}
+
 /* ========== Ant Design Carousel Overrides ========== */
 :deep(.slick-slide) {
     text-align: center;
@@ -258,7 +279,7 @@ onMounted(() => {
     .carousel-slide {
         height: 450px;
     }
-    
+
     :deep(.slick-slide) {
         height: 450px;
     }
@@ -268,11 +289,11 @@ onMounted(() => {
     .carousel-slide {
         height: 400px;
     }
-    
+
     :deep(.slick-slide) {
         height: 400px;
     }
-    
+
     .promo-content {
         font-size: var(--text-xs);
         gap: var(--space-md);
@@ -283,35 +304,35 @@ onMounted(() => {
     .carousel-slide {
         height: 350px;
     }
-    
+
     :deep(.slick-slide) {
         height: 350px;
     }
-    
+
     .promo-banner {
         padding: var(--space-sm) var(--space-md);
     }
-    
+
     .promo-content {
         flex-direction: column;
         gap: var(--space-sm);
         text-align: center;
     }
-    
+
     .promo-divider {
         display: none;
     }
-    
+
     .carousel-arrow {
         width: 40px;
         height: 40px;
         font-size: var(--text-lg);
     }
-    
+
     .carousel-prev {
         left: var(--space-sm);
     }
-    
+
     .carousel-next {
         right: var(--space-sm);
     }
@@ -321,15 +342,15 @@ onMounted(() => {
     .carousel-slide {
         height: 280px;
     }
-    
+
     :deep(.slick-slide) {
         height: 280px;
     }
-    
+
     .banner-elegant {
         margin-top: var(--space-sm);
     }
-    
+
     .carousel-elegant {
         border-radius: var(--radius-md);
     }

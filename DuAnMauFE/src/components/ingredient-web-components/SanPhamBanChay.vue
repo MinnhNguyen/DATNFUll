@@ -6,64 +6,49 @@
                 <div class="section-divider"></div>
             </div>
 
-            <div class="carousel-container" @mouseenter="showArrows = true" @mouseleave="showArrows = false">
-                <button class="custom-arrow prev-arrow" @click="prevSlide" :class="{ 'visible': showArrows }">
-                    <left-outlined />
-                </button>
-                <button class="custom-arrow next-arrow" @click="nextSlide" :class="{ 'visible': showArrows }">
-                    <right-outlined />
-                </button>
-
-                <a-carousel ref="carousel" autoplay dots-class="custom-dots">
-                    <div v-for="(slideGroup, groupIndex) in productSlides" :key="groupIndex">
-                        <div class="row products-grid">
-                            <div class="col product-card" v-for="(product, index) in slideGroup" :key="index"
-                                @mouseenter="activeProduct = product.id" @mouseleave="activeProduct = null">
-                                <div class="product-image-container">
-                                    <img class="product-image" :src="product.image" alt="Product image">
-                                    <div class="discount-badge" v-if="product.discountPercent">
-                                        -{{ product.discountPercent }}%
-                                    </div>
-                                    <div class="product-overlay" :class="{ 'active': activeProduct === product.id }">
-                                        <div class="overlay-buttons">
-                                            <router-link
-                                                :to="{ name: 'sanPhamDetail-BanHang', params: { id: product.id } }"
-                                                class="overlay-btn view-btn">
-                                                <eye-outlined />
-                                                <span>Xem</span>
-                                            </router-link>
-                                            <button class="overlay-btn cart-btn" @click="showProductDetail(product)">
-                                                <shopping-cart-outlined />
-                                                <span>Thêm</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="product-price-row">
-                                        <span class="product-price">{{ product.price }}</span>
-                                        <span class="product-old-price" v-if="product.oldPrice">{{ product.oldPrice
-                                            }}</span>
-                                        <span class="product-discount" v-if="product.discount">{{ product.discount
-                                            }}</span>
-                                    </div>
-                                    <h6 class="product-name">{{ product.name }}</h6>
-                                    <div class="product-meta">
-                                        <span class="product-brand">{{ product.brand }}</span>
-                                        <div class="product-rating">
-                                            <star-filled />
-                                            <span>{{ product.rating }} ({{ product.reviews }})</span>
-                                        </div>
-                                    </div>
-                                </div>
+            <!-- Static Grid Layout -->
+            <div class="products-grid">
+                <div class="product-card" v-for="(product, index) in displayProducts" :key="product.id"
+                    @mouseenter="activeProduct = product.id" @mouseleave="activeProduct = null">
+                    <div class="product-image-container">
+                        <img class="product-image" :src="product.image" alt="Product image">
+                        <div class="discount-badge" v-if="product.discountPercent">
+                            -{{ product.discountPercent }}%
+                        </div>
+                        <div class="product-overlay" :class="{ 'active': activeProduct === product.id }">
+                            <div class="overlay-buttons">
+                                <router-link :to="{ name: 'sanPhamDetail-BanHang', params: { id: product.id } }"
+                                    class="overlay-btn view-btn">
+                                    <eye-outlined />
+                                    <span>Xem</span>
+                                </router-link>
+                                <button class="overlay-btn cart-btn" @click="showProductDetail(product)">
+                                    <shopping-cart-outlined />
+                                    <span>Thêm</span>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </a-carousel>
+                    <div class="product-info">
+                        <div class="product-price-row">
+                            <span class="product-price">{{ product.price }}</span>
+                            <span class="product-old-price" v-if="product.oldPrice">{{ product.oldPrice }}</span>
+                            <span class="product-discount" v-if="product.discount">{{ product.discount }}</span>
+                        </div>
+                        <h6 class="product-name">{{ product.name }}</h6>
+                        <div class="product-meta">
+                            <span class="product-brand">{{ product.brand }}</span>
+                            <div class="product-rating">
+                                <star-filled />
+                                <span>{{ product.rating }} ({{ product.reviews }})</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Product Detail Modal -->
     <a-modal v-model:visible="modalVisible" :title="selectedProduct?.name" width="800px" :footer="null"
         @cancel="handleModalCancel" :zIndex="9999" :maskStyle="{ zIndex: 9998 }" :wrapStyle="{ zIndex: 9999 }" centered
@@ -150,25 +135,21 @@ import {
     EyeOutlined,
     ShoppingCartOutlined,
     StarFilled,
-    LeftOutlined,
-    RightOutlined,
     MinusOutlined,
     PlusOutlined
 } from '@ant-design/icons-vue';
 import { useGbStore } from '@/stores/gbStore';
 import { message } from 'ant-design-vue';
 
-// Tham chiếu đến carousel
+// Store and refs
 const store = useGbStore();
-const carousel = ref(null);
 const sectionRef = ref(null);
 const isVisible = ref(false);
-const showArrows = ref(false);
 
 // Sử dụng Intersection Observer để theo dõi khi phần tử xuất hiện trong viewport
 onMounted(async () => {
     await store.getSanPhamBanChayNhat();
-    
+
     // Chuyển đổi dữ liệu từ API sang định dạng phù hợp với template
     if (store.listSanPhamBanChayNhat && store.listSanPhamBanChayNhat.length > 0) {
         bestSellingProducts.value = store.listSanPhamBanChayNhat.map(item => ({
@@ -201,48 +182,15 @@ onMounted(async () => {
     );
 });
 
-// Hàm điều khiển carousel
-const nextSlide = () => {
-    if (carousel.value) {
-        carousel.value.next();
-    }
-};
-
-const prevSlide = () => {
-    if (carousel.value) {
-        carousel.value.prev();
-    }
-};
-
-// Sản phẩm mẫu
+// Danh sách sản phẩm
 const bestSellingProducts = ref([]);
 
-// Chia sản phẩm thành các slide, mỗi slide 5 sản phẩm
-// Nếu slide cuối không đủ 5 sản phẩm, lấy thêm từ đầu danh sách
-const productSlides = computed(() => {
-    const slides = [];
-    const productsPerSlide = 5;
-    const products = [...bestSellingProducts.value];
-
-    // Nếu slide cuối không đủ 5 sản phẩm, lấy thêm từ đầu danh sách
-    const totalNeeded = Math.ceil(products.length / productsPerSlide) * productsPerSlide;
-    if (totalNeeded > products.length) {
-        const extraNeeded = totalNeeded - products.length;
-        // Lấy thêm sản phẩm từ đầu danh sách
-        const extraProducts = products.slice(0, extraNeeded).map(product => ({
-            ...product,
-            id: product.id // Thêm id mới để tránh trùng lặp
-        }));
-        products.push(...extraProducts);
-    }
-
-    // Chia thành các slide
-    for (let i = 0; i < products.length; i += productsPerSlide) {
-        slides.push(products.slice(i, i + productsPerSlide));
-    }
-
-    return slides;
+// Hiển thị tất cả sản phẩm (không limit)
+const displayProducts = computed(() => {
+    return bestSellingProducts.value.slice(0, 20); // Hiển thị 20 sp để dàn tra đầy
 });
+
+
 
 const activeProduct = ref(null);
 
@@ -319,9 +267,9 @@ const addToCart = () => {
    =================================================== */
 
 .san-pham-ban-chay {
-    padding: var(--space-3xl) 0;
-    font-family: var(--font-primary);
-    background-color: var(--color-bg-section);
+    padding: 32px 0;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #FFFFFF;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.5s ease, transform 0.5s ease;
@@ -338,45 +286,55 @@ const addToCart = () => {
     padding: 0 var(--space-md);
 }
 
-/* ========== Section Header ========== */
+/* ========== Section Header - Premium Style ========== */
 .section-header {
-    text-align: center;
-    margin-bottom: var(--space-2xl);
+    text-align: left;
+    margin-bottom: 48px;
 }
 
 .section-title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-semibold);
-    color: var(--color-primary);
-    margin-bottom: var(--space-sm);
+    font-size: 32px;
+    font-weight: 600;
+    color: #1F1F1F;
+    margin-bottom: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: -0.5px;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: #2C3E50;
 }
 
 .section-divider {
-    height: 2px;
-    width: 60px;
-    background-color: var(--color-accent);
-    margin: 0 auto;
+    display: none;
 }
 
-/* ========== Products Grid ========== */
+/* ========== Products Grid - Wide Spacing ========== */
 .products-grid {
-    padding: var(--space-md);
+    padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-md);
+    gap: 16px;
+    margin-bottom: 48px;
 }
 
 .product-card {
     position: relative;
-    flex: 0 0 calc(20% - var(--space-md));
-    background-color: var(--color-white);
-    border-radius: var(--radius-lg);
+    flex: 0 0 calc(20% - 13px);
+    background-color: #FFFFFF;
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    transition: all var(--transition-base);
-    border: 1px solid var(--color-border);
+    transition: all 0.3s ease;
+    border: 1px solid #F0F0F0;
 }
 
 .visible .product-card {
@@ -385,23 +343,24 @@ const addToCart = () => {
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
+    transform: translateY(-6px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: #E5E5E5;
 }
 
-/* ========== Product Image ========== */
+/* ========== Product Image - 3:4 Ratio ========== */
 .product-image-container {
     position: relative;
     overflow: hidden;
-    aspect-ratio: 1/1;
+    aspect-ratio: 3/4;
+    background: #F5F5F5;
 }
 
 .product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--transition-slow);
+    transition: transform 0.4s ease;
 }
 
 .product-card:hover .product-image {
@@ -410,14 +369,17 @@ const addToCart = () => {
 
 .discount-badge {
     position: absolute;
-    top: var(--space-sm);
-    right: var(--space-sm);
-    background-color: var(--color-error);
-    color: var(--color-white);
-    font-weight: var(--weight-semibold);
-    font-size: var(--text-xs);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-md);
+    top: 12px;
+    right: 12px;
+    background-color: #2C3E50;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     z-index: 2;
 }
 
@@ -468,9 +430,9 @@ const addToCart = () => {
     transform: translateY(-1px);
 }
 
-/* ========== Product Info ========== */
+/* ========== Product Info - More Padding ========== */
 .product-info {
-    padding: var(--space-md);
+    padding: 20px;
 }
 
 .product-price-row {
@@ -869,7 +831,7 @@ const addToCart = () => {
     .product-card {
         flex: 0 0 calc(33.333% - var(--space-md));
     }
-    
+
     .product-detail-content {
         grid-template-columns: 1fr;
     }
@@ -879,7 +841,7 @@ const addToCart = () => {
     .product-card {
         flex: 0 0 calc(50% - var(--space-md));
     }
-    
+
     .san-pham-ban-chay {
         padding: var(--space-2xl) 0;
     }
@@ -889,17 +851,17 @@ const addToCart = () => {
     .product-card {
         flex: 0 0 100%;
     }
-    
+
     .custom-arrow {
         width: 36px;
         height: 36px;
         font-size: var(--text-base);
     }
-    
+
     .prev-arrow {
         left: var(--space-xs);
     }
-    
+
     .next-arrow {
         right: var(--space-xs);
     }

@@ -1448,14 +1448,42 @@ const addToCartFromDetail = async () => {
             cancelText: 'Hủy',
             zIndex: 9999, // Đặt z-index cao hơn
             onOk: async () => {
-                // Kiểm tra xem người dùng đã đăng nhập chưa
-                const userDetailsStr = sessionStorage.getItem('userDetails');
+                // ✅ FIXED: Kiểm tra CẢ 2 loại đăng nhập
+                console.log("=== DEBUG: Thực thi addToCartFromDetail ===");
 
-                if (userDetailsStr) {
+                // Check customer login (từ login() trong gbStore.js line 1750-1754)
+                const customerDataStr = sessionStorage.getItem('khachHang') || localStorage.getItem('khachHang');
+
+                // Check admin/staff login (từ loginNV() trong gbStore.js line 1819-1821)
+                const adminDataStr = sessionStorage.getItem('userDetails') || localStorage.getItem('userDetails');
+
+                let idKhachHang = null;
+                let userType = '';
+
+                if (customerDataStr) {
                     try {
-                        // Người dùng đã đăng nhập
-                        const userDetails = JSON.parse(userDetailsStr);
-                        const idKhachHang = userDetails.idKhachHang;
+                        const customerData = JSON.parse(customerDataStr);
+                        idKhachHang = customerData.idKhachHang;
+                        userType = 'CUSTOMER';
+                    } catch (e) {
+                        console.error('Error parsing khachHang:', e);
+                    }
+                } else if (adminDataStr) {
+                    try {
+                        const adminData = JSON.parse(adminDataStr);
+                        idKhachHang = adminData.idKhachHang;
+                        userType = 'ADMIN';
+                    } catch (e) {
+                        console.error('Error parsing userDetails:', e);
+                    }
+                }
+
+                console.log(`User type: ${userType}, ID khách hàng: ${idKhachHang}`);
+
+                if (idKhachHang) {
+                    try {
+                        // ✅ Đã đăng nhập - Thêm vào database
+                        console.log(`✅ [${userType}] Thêm vào giỏ hàng database:`, { idKhachHang, idChiTietSanPham, quantity: quantity.value });
 
                         // Lấy giỏ hàng hiện tại của khách hàng
                         const cartResponse = await banHangOnlineService.getGioHang(idKhachHang);
@@ -1488,16 +1516,25 @@ const addToCartFromDetail = async () => {
                             quantity.value
                         );
 
-                        // Cập nhật số lượng
-                        await updateCartCount();
+                        // ✅ THÊM: Dispatch event để sync header cart count
+                        window.dispatchEvent(new CustomEvent('cart-updated', {
+                            detail: {
+                                action: 'item_added_from_detail',
+                                userType: userType,
+                                itemId: idChiTietSanPham,
+                                quantity: quantity.value
+                            }
+                        }));
 
                         notification.success({
                             message: 'Thêm vào giỏ hàng',
-                            description: 'Đã thêm sản phẩm vào giỏ hàng',
+                            description: `Đã thêm sản phẩm vào giỏ hàng tài khoản`,
                             placement: 'topRight',
                         });
+
+                        console.log(`✅ [${userType}] Thêm vào giỏ thành công!`);
                     } catch (error) {
-                        console.error('Lỗi khi thêm vào giỏ hàng:', error);
+                        console.error('❌ Lỗi khi thêm vào giỏ hàng:', error);
                         notification.error({
                             message: 'Lỗi',
                             description: 'Có lỗi xảy ra khi thêm vào giỏ hàng',
@@ -2762,14 +2799,40 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
         console.log("ID chi tiết sản phẩm:", idChiTietSanPham);
         console.log("Số lượng thêm vào:", quantityToAdd);
 
-        // Lấy thông tin người dùng từ sessionStorage
-        const userInfo = sessionStorage.getItem('userInfo');
-        const idKhachHang = userInfo ? JSON.parse(userInfo).id_khach_hang : null;
-        console.log("ID khách hàng:", idKhachHang);
+        // ✅ FIXED: Kiểm tra CẢ 2 loại đăng nhập
+        // Check customer login (từ login() trong gbStore.js line 1750-1754)
+        const customerDataStr = sessionStorage.getItem('khachHang') || localStorage.getItem('khachHang');
+
+        // Check admin/staff login (từ loginNV() trong gbStore.js line 1819-1821)  
+        const adminDataStr = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+
+        let idKhachHang = null;
+        let userType = '';
+
+        if (customerDataStr) {
+            try {
+                const customerData = JSON.parse(customerDataStr);
+                idKhachHang = customerData.idKhachHang;
+                userType = 'CUSTOMER';
+            } catch (e) {
+                console.error('Error parsing khachHang:', e);
+            }
+        } else if (adminDataStr) {
+            try {
+                const adminData = JSON.parse(adminDataStr);
+                idKhachHang = adminData.id_khach_hang;
+                userType = 'ADMIN';
+            } catch (e) {
+                console.error('Error parsing userInfo:', e);
+            }
+        }
+
+        console.log(`User type: ${userType}, ID khách hàng: ${idKhachHang}`);
 
         if (idKhachHang) {
-            // Người dùng đã đăng nhập - Sử dụng API
-            console.log("Thêm vào giỏ hàng với API, tham số:", idKhachHang, idChiTietSanPham, quantityToAdd);
+            // ✅ Đã đăng nhập - Thêm vào database qua API
+            console.log(`✅ [${userType}] Thêm vào giỏ hàng database:`, { idKhachHang, idChiTietSanPham, quantityToAdd });
+
             const result = await store.getGioHangByIdKH(
                 idKhachHang,
                 idChiTietSanPham,
@@ -2777,14 +2840,14 @@ const addToCartDetail = async (idChiTietSanPham, quantityToAdd) => {
             );
             console.log("Kết quả thêm vào giỏ hàng qua API:", result);
 
-            // Cập nhật số lượng sản phẩm trong giỏ hàng
+            // Cập nhật số lượng sản phẩm trong giỏ hàng (header)
             await updateCartCount();
             console.log("Đã cập nhật số lượng giỏ hàng");
 
             // Hiển thị thông báo thành công
             notification.success({
                 message: 'Thêm vào giỏ hàng thành công',
-                description: `Đã thêm ${quantityToAdd} sản phẩm vào giỏ hàng`,
+                description: `Đã thêm ${quantityToAdd} sản phẩm vào giỏ hàng tài khoản`,
                 placement: 'topRight',
                 duration: 3
             });
@@ -3165,6 +3228,12 @@ const displayStockStatus = computed(() => {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+}
+
+.control-btn svg,
+.control-btn .anticon {
+    font-size: 18px;
+    color: #333;
 }
 
 .thumbnails-container {

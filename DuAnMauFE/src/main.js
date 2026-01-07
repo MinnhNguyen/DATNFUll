@@ -14,10 +14,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle';
 import 'ant-design-vue/dist/reset.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';  // ✅ Import FontAwesome
 import 'vue3-toastify/dist/index.css';
 import 'bootstrap';
 import VueApexCharts from 'vue3-apexcharts'
 import { useGbStore } from '@/stores/gbStore';
+import './assets/premium-theme.css';  // ✅ Import Premium Theme
 
 
 

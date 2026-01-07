@@ -1,0 +1,363 @@
+/**
+ * Premium Men's Shirt Theme - Design System
+ * Phong cách: Lịch lãm - Thanh lịch - Tối giản - Nam tính
+ */
+
+/* ==================== COLOR PALETTE ==================== */
+:root {
+    /* PRIMARY COLORS - Navy Trầm */
+    --color-primary: #2C3E50;
+    --color-primary-light: #34495E;
+    --color-primary-dark: #1A252F;
+    
+    /* BACKGROUNDS */
+    --bg-white: #FFFFFF;
+    --bg-off-white: #F9F9F9;
+    --bg-light-gray: #F5F5F5;
+    --bg-section: #FAFAFA;
+    
+    /* TEXT COLORS */
+    --text-primary: #1F1F1F;
+    --text-secondary: #8C8C8C;
+    --text-light: #B8B8B8;
+    
+    /* ACCENT COLORS - Sử dụng tiết chế */
+    --accent-brown: #8B7355;
+    --accent-champagne: #F5E6D3;
+    --accent-sage: #5F7161;
+    
+    /* BORDERS */
+    --border-color: #E5E5E5;
+    --border-light: #F0F0F0;
+    
+    /* SPACING SCALE */
+    --space-xs: 8px;
+    --space-sm: 12px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+    
+    /* BORDER RADIUS */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-full: 50%;
+    
+    /* SHADOWS - Nhẹ và tinh tế */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.12);
+    
+    /* TRANSITIONS */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.4s ease;
+}
+
+/* ==================== GLOBAL OVERRIDES ==================== */
+* {
+    box-sizing: border-box;
+}
+
+/* Container max-width cho premium look */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ==================== TYPOGRAPHY REFINEMENTS ==================== */
+/* Giữ nguyên font Montserrat, chỉ tinh chỉnh */
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* ==================== SECTION PATTERNS ==================== */
+.section-premium {
+    padding: 80px 0;
+}
+
+.section-header-premium {
+    margin-bottom: 48px;
+}
+
+.section-title-premium {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.8px;
+    margin-bottom: 12px;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title-premium::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--color-primary);
+}
+
+.section-subtitle-premium {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+/* ==================== BUTTON PATTERNS ==================== */
+.btn-premium {
+    padding: 12px 28px;
+    background: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    letter-spacing: 0.3px;
+}
+
+.btn-premium:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-premium-primary {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.btn-premium-primary:hover {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+
+/* ==================== CARD PATTERNS ==================== */
+.card-premium {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.card-premium:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-color);
+}
+
+/* ==================== PRODUCT CARD - PREMIUM STYLE ==================== */
+.product-card-premium {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.product-card-premium:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-color);
+}
+
+/* Product Image */
+.product-image-premium {
+    position: relative;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    background: var(--bg-light-gray);
+}
+
+.product-image-premium img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.product-card-premium:hover .product-image-premium img {
+    transform: scale(1.05);
+}
+
+/* Product Badge */
+.product-badge-premium {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: white;
+    color: var(--text-primary);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    text-transform: uppercase;
+}
+
+.product-badge-premium.sale {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* Product Overlay */
+.product-overlay-premium {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding: 20px;
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all var(--transition-base);
+}
+
+.product-card-premium:hover .product-overlay-premium {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.overlay-btn-premium {
+    flex: 1;
+    padding: 10px 16px;
+    background: white;
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.overlay-btn-premium:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Product Info */
+.product-info-premium {
+    padding: 20px;
+}
+
+.product-brand-premium {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.product-name-premium {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-price-premium {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.price-current-premium {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.price-original-premium {
+    font-size: 14px;
+    color: var(--text-light);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.price-discount-premium {
+    font-size: 13px;
+    color: var(--accent-brown);
+    font-weight: 500;
+}
+
+/* ==================== GRID SYSTEM ==================== */
+.grid-premium {
+    display: grid;
+    gap: 32px;
+}
+
+.grid-premium.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-premium.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-premium.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1200px) {
+    .grid-premium.cols-4 {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-premium.cols-4,
+    .grid-premium.cols-3 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .section-premium {
+        padding: 60px 0;
+    }
+    
+    .section-title-premium {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 0 16px;
+    }
+    
+    .product-info-premium {
+        padding: 16px;
+    }
+}

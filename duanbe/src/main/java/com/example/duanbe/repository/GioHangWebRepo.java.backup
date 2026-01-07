@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 //sưa ngay 20/10
 public interface GioHangWebRepo extends JpaRepository<ChiTietGioHang, ChiTietGioHangId> {
         @Query(nativeQuery = true, value = """
-                        select gh.id_gio_hang,ctsp.id_chi_tiet_san_pham ,gh.id_khach_hang, sp.anh_dai_dien as hinh_anh, sp.ten_san_pham, ms.ten_mau_sac, kt.gia_tri, kt.don_vi, ctgh.so_luong, ctsp.gia_ban from gio_hang gh
+                        select gh.id_gio_hang,ctsp.id_chi_tiet_san_pham ,gh.id_khach_hang, sp.hinh_anh, sp.ten_san_pham, ms.ten_mau_sac, kt.gia_tri, kt.don_vi, ctgh.so_luong, ctsp.gia_ban from gio_hang gh
                         join chi_tiet_gio_hang ctgh on ctgh.id_gio_hang = gh.id_gio_hang
                         join chi_tiet_san_pham ctsp on ctsp.id_chi_tiet_san_pham = ctgh.id_chi_tiet_san_pham
                         join khach_hang kh on kh.id_khach_hang = gh.id_khach_hang

@@ -206,59 +206,59 @@ const closeMenuOnOutsideClick = (event) => {
 // Hàm tải giỏ hàng và cập nhật số lượng
 const updateCartCount = async () => {
     try {
-        // ✅ FIXED: Kiểm tra CẢ 2 loại đăng nhập
-        // Check customer login (từ login() trong gbStore.js line 1750-1754)
-        const customerDataStr = sessionStorage.getItem('khachHang') || localStorage.getItem('khachHang');
+        console.log('🔍 [HEADER DEBUG] Bắt đầu updateCartCount');
 
-        // Check admin/staff login (từ loginNV() trong gbStore.js line 1819-1821)
-        const adminDataStr = sessionStorage.getItem('userDetails') || localStorage.getItem('userDetails');
+        // ✅ FIX: Kiểm tra CẢ 2 loại authentication
+        // - khachHang: Customer login
+        // - userDetails: Admin/Staff login  
+        const customerDataStr = sessionStorage.getItem('khachHang') ||
+            localStorage.getItem('khachHang');
+        const adminDataStr = sessionStorage.getItem('userDetails') ||
+            localStorage.getItem('userDetails');
 
+        let userData = null;
         let userId = null;
         let userType = '';
 
+        // Priority: Customer first, then Admin
         if (customerDataStr) {
-            try {
-                const customerData = JSON.parse(customerDataStr);
-                userId = customerData.idKhachHang;
-                userType = 'CUSTOMER';
-            } catch (e) {
-                console.error('Error parsing khachHang:', e);
-            }
+            userData = JSON.parse(customerDataStr);
+            userId = userData.idKhachHang;
+            userType = 'CUSTOMER';
+            console.log('✅ [HEADER CUSTOMER] Tìm thấy khách hàng, ID:', userId);
         } else if (adminDataStr) {
-            try {
-                const adminData = JSON.parse(adminDataStr);
-                userId = adminData.idKhachHang;
-                userType = 'ADMIN';
-            } catch (e) {
-                console.error('Error parsing userDetails:', e);
-            }
+            userData = JSON.parse(adminDataStr);
+            userId = userData.idKhachHang;
+            userType = 'ADMIN';
+            console.log('✅ [HEADER ADMIN] Tìm thấy admin/staff, ID:', userId);
         }
 
-        if (userId) {
-            // ✅ Đã đăng nhập - Load từ database
-            console.log(`✅ [HEADER ${userType}] Loading cart from database for ID:`, userId);
+        if (userData && userId) {
+            console.log(`📡 [HEADER ${userType}] Tải giỏ hàng từ database`);
 
+            // Lấy giỏ hàng từ API
             const response = await banHangOnlineService.getGioHang(userId);
 
             if (response && Array.isArray(response)) {
+                // Tính tổng số lượng sản phẩm từ API
                 cartItemCount.value = response.reduce((total, item) => total + (item.so_luong || 1), 0);
-                console.log(`✅ [HEADER ${userType}] Database cart count:`, cartItemCount.value);
+                console.log(`✅ [HEADER ${userType}] Số lượng giỏ hàng từ database:`, cartItemCount.value);
             } else {
                 cartItemCount.value = 0;
-                console.log(`⚠️ [HEADER ${userType}] Empty cart`);
+                console.log(`⚠️ [HEADER ${userType}] API trả về giỏ hàng trống`);
             }
-        } else {
-            // ❌ Chưa đăng nhập - Load từ localStorage
-            console.log('🔄 [HEADER GUEST] Loading cart from localStorage');
+            return; // Kết thúc sau khi xử lý user đã đăng nhập
+        }
 
-            const savedCart = localStorage.getItem('gb-sport-cart');
-            if (savedCart) {
-                const cartItems = JSON.parse(savedCart);
-                cartItemCount.value = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
-                console.log('✅ [HEADER GUEST] LocalStorage cart count:', cartItemCount.value);
-            } else {
-                cartItemCount.value = 0;
-            }
+        // Fallback: Nếu không đăng nhập, lấy từ localStorage
+        console.log('🔄 [HEADER GUEST] Tải giỏ hàng từ localStorage');
+        const savedCart = localStorage.getItem('gb-sport-cart');
+        if (savedCart) {
+            const cartItems = JSON.parse(savedCart);
+            cartItemCount.value = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+            console.log('✅ [HEADER GUEST] Số lượng giỏ hàng local:', cartItemCount.value);
+        } else {
+            cartItemCount.value = 0;
         }
     } catch (error) {
         console.error('❌ [HEADER] Lỗi khi cập nhật số lượng giỏ hàng:', error);
@@ -301,17 +301,6 @@ const handleSearch = async () => {
     }
 };
 
-// ✅ THÊM: Xử lý event từ components khác (GioHang, Detail)
-const handleCartUpdateEvent = async (event) => {
-    try {
-        console.log('🔍 [HEADER] Received cart-updated event:', event.detail);
-        // Refresh cart count từ database hoặc localStorage
-        await updateCartCount();
-    } catch (error) {
-        console.error('❌ [HEADER] Error handling cart event:', error);
-    }
-};
-
 // Cập nhật lại onMounted để thêm listener document.click
 onMounted(async () => {
     // Update display name from storage on mount
@@ -320,7 +309,7 @@ onMounted(async () => {
     await updateCartCount();
 
     // Lắng nghe sự kiện 'cart-updated' nếu có
-    window.addEventListener('cart-updated', handleCartUpdateEvent);
+    window.addEventListener('cart-updated', updateCartCount);
 
     // Thêm lắng nghe click bên ngoài để đóng dropdown
     document.addEventListener('click', closeMenuOnOutsideClick);
@@ -336,7 +325,7 @@ onMounted(async () => {
 
 // Làm sạch listener khi component bị hủy
 onBeforeUnmount(() => {
-    window.removeEventListener('cart-updated', handleCartUpdateEvent);
+    window.removeEventListener('cart-updated', updateCartCount);
     document.removeEventListener('click', closeMenuOnOutsideClick);
     clearInterval(checkCartInterval);
 });

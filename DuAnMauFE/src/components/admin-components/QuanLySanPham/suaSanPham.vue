@@ -1122,7 +1122,7 @@ onMounted(async () => {
                     id_chi_tiet_san_pham: ctsp.id_chi_tiet_san_pham,
                     id_mau_sac: ctsp.id_mau_sac,
                     id_kich_thuoc: ctsp.id_kich_thuoc,
-                    so_luong: ctsp.so_luong || 1,
+                    so_luong: ctsp.so_luong || 0,
                     gia_ban: ctsp.gia_ban || 1100,
                     trang_thai: ctsp.trang_thai || 'Hoạt động',
                     // ✅ THÊM: Boolean field cho toggle switch
