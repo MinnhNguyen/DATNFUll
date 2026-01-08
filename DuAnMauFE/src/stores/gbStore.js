@@ -510,11 +510,22 @@ export const useGbStore = defineStore('gbStore', {
     // Xoá số lượng sản phẩm trong giỏ hàng
     async xoaSoLuongSPGH(idKH, idCTSP, soLuong) {
       try {
-        const response = await banHangOnlineService.xoaSoLuongSPGH(idKH, idCTSP, soLuong)
-        console.log('response: ', response)
+        console.log('[STORE] Calling delete API:', { idKH, idCTSP, soLuong });
+        const response = await banHangOnlineService.xoaSoLuongSPGH(idKH, idCTSP, soLuong);
+
+        console.log('[STORE] Delete API response:', response);
+
+        // ✅ Validate success
+        if (response.success) {
+          toast.success(response.message || 'Đã xóa sản phẩm khỏi giỏ hàng');
+          return response; // Return để frontend có thể kiểm tra
+        } else {
+          throw new Error(response.message || 'Không thể xóa sản phẩm');
+        }
       } catch (error) {
-        console.error('Lỗi trong xoaSoLuongSanPhamTrongGioHang:', error)
-        toast.error('Có lỗi xảy ra khi xoá số lượng sản phẩm trong giỏ hàng')
+        console.error('[STORE] Lỗi trong xoaSoLuongSPGH:', error);
+        toast.error(error.message || 'Có lỗi xảy ra khi xóa sản phẩm');
+        throw error; // Re-throw để frontend xử lý rollback
       }
     },
     // Danh sách địa chỉ của khách hàng

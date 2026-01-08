@@ -17,7 +17,7 @@ export class InvoiceStorage {
         LAST_ACTIVE_TAB: 'pos_last_active_tab'
       }
     };
-    
+
     this.TTL = {
       PAYMENT_STATE: 15 * 60 * 1000, // 15 minutes
       INVOICE_BACKUP: 30 * 60 * 1000, // 30 minutes
@@ -39,7 +39,7 @@ export class InvoiceStorage {
 
       // Layer 1: Session storage for current session
       this.setSessionStorage(this.STORAGE_KEYS.SESSION.ACTIVE_INVOICE, timestampedData);
-      
+
       // Layer 2: Local storage for backup (only if not in memory only mode)
       if (!options.memoryOnly) {
         this.setLocalStorage(this.STORAGE_KEYS.LOCAL.INVOICE_BACKUP, timestampedData);
@@ -65,7 +65,7 @@ export class InvoiceStorage {
     try {
       // Priority 1: Session storage (most recent)
       let invoiceData = this.getFromSessionStorage(this.STORAGE_KEYS.SESSION.ACTIVE_INVOICE);
-      
+
       if (invoiceData && this.validateInvoiceData(invoiceData)) {
         console.log('✅ Invoice recovered from session storage');
         return invoiceData;
@@ -73,7 +73,7 @@ export class InvoiceStorage {
 
       // Priority 2: Local storage (backup)
       invoiceData = this.getFromLocalStorage(this.STORAGE_KEYS.LOCAL.INVOICE_BACKUP);
-      
+
       if (invoiceData && this.validateInvoiceData(invoiceData)) {
         console.log('✅ Invoice recovered from local storage backup');
         // Restore to session storage for faster access
@@ -122,7 +122,7 @@ export class InvoiceStorage {
   getPendingPayment() {
     try {
       let paymentState = this.getFromSessionStorage(this.STORAGE_KEYS.SESSION.PAYMENT_STATE);
-      
+
       if (!paymentState) {
         paymentState = this.getFromLocalStorage(this.STORAGE_KEYS.LOCAL.RECOVERY_DATA);
       }
@@ -197,7 +197,7 @@ export class InvoiceStorage {
   cleanup() {
     try {
       const now = Date.now();
-      
+
       // Clean local storage
       Object.entries(this.STORAGE_KEYS.LOCAL).forEach(([key, storageKey]) => {
         const data = this.getFromLocalStorage(storageKey);
@@ -231,7 +231,7 @@ export class InvoiceStorage {
     }
 
     const data = invoiceData.data;
-    
+
     // Basic validation
     if (!data.id_hoa_don && !data.id) {
       console.warn('⚠️ Invoice missing ID');

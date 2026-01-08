@@ -861,6 +861,13 @@ onMounted(async () => {
 
                 // Load địa chỉ cascade
                 await handleAllAddressLevels();
+
+                // ✅ THÊM: Tính phí ship ngay khi có đủ thông tin từ DB
+                const defaultAddr = formData.diaChiList[0];
+                if (defaultAddr.tinhThanhPho && defaultAddr.quanHuyen) {
+                    console.log('🚚 [POS] Calculating shipping fee from loaded DB address');
+                    await updateShippingFee(0); // Index 0 is default address
+                }
             }
 
             return; // Đã load từ DB → STOP
@@ -888,6 +895,14 @@ onMounted(async () => {
                 }));
 
                 await handleAllAddressLevels();
+
+                // ✅ THÊM: Tính phí ship ngay khi có đủ thông tin từ localStorage
+                const defaultAddr = formData.diaChiList.find(dc => dc.diaChiMacDinh) || formData.diaChiList[0];
+                const defaultIndex = formData.diaChiList.indexOf(defaultAddr);
+                if (defaultAddr.tinhThanhPho && defaultAddr.quanHuyen) {
+                    console.log('🚚 [POS] Calculating shipping fee from loaded walk-in customer address');
+                    await updateShippingFee(defaultIndex);
+                }
             }
 
             return; // Đã load từ walkInCustomer → STOP
@@ -1010,7 +1025,20 @@ const handleAllAddressLevels = async () => {
 watch(
     () => props.triggerUpdate,
     async () => {
+        console.log('🔄 [POS] triggerUpdate changed, reloading customer data');
         await loadKhachHangTuLocalStorage();
+        await handleAllAddressLevels();
+
+        // ✅ THÊM: Tính phí ship ngay sau khi chọn khách hàng
+        const defaultAddr = formData.diaChiList.find(dc => dc.diaChiMacDinh) || formData.diaChiList[0];
+        if (defaultAddr && defaultAddr.tinhThanhPho && defaultAddr.quanHuyen) {
+            const defaultIndex = formData.diaChiList.indexOf(defaultAddr);
+            console.log('🚚 [POS] Auto-calculating shipping after customer selection');
+            await updateShippingFee(defaultIndex);
+        } else {
+            console.log('⚠️ [POS] No address info for shipping calculation');
+            calculatedShippingFee.value = 0;
+        }
     },
     { immediate: true }
 );

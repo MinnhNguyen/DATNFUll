@@ -631,26 +631,42 @@ const cartItemCount = ref(0);
 // Hàm tải giỏ hàng và cập nhật số lượng
 const updateCartCount = async () => {
     try {
-        // Kiểm tra trạng thái đăng nhập
-        const userInfo = sessionStorage.getItem('userInfo');
-        const idKhachHang = userInfo ? JSON.parse(userInfo).id_khach_hang : null;
+        // ✅ FIXED: Kiểm tra CẢ 2 loại đăng nhập
+        const customerDataStr = sessionStorage.getItem('khachHang') || localStorage.getItem('khachHang');
+        const adminDataStr = sessionStorage.getItem('userDetails') || localStorage.getItem('userDetails');
+
+        let idKhachHang = null;
+        let userType = '';
+
+        if (customerDataStr) {
+            const customerData = JSON.parse(customerDataStr);
+            idKhachHang = customerData.idKhachHang;
+            userType = 'CUSTOMER';
+        } else if (adminDataStr) {
+            const adminData = JSON.parse(adminDataStr);
+            idKhachHang = adminData.idKhachHang;
+            userType = 'ADMIN';
+        }
 
         if (idKhachHang) {
-            // Người dùng đã đăng nhập: lấy số lượng từ API
+            // ✅ Đã đăng nhập: lấy số lượng từ database
+            console.log(`✅ [DETAIL ${userType}] Loading cart count from database for ID:`, idKhachHang);
             try {
                 const response = await banHangOnlineService.getGioHang(idKhachHang);
                 const cartItems = Array.isArray(response) ? response : (response.data || []);
                 const totalItems = cartItems.reduce((total, item) => total + (Number(item.so_luong) || 0), 0);
-                console.log('Tổng số sản phẩm trong giỏ hàng từ API:', totalItems);
+                console.log(`✅ [DETAIL ${userType}] Database cart count:`, totalItems);
                 cartItemCount.value = totalItems;
 
                 // Phát sự kiện cập nhật giỏ hàng
                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
             } catch (error) {
-                console.error('Lỗi khi lấy số lượng giỏ hàng từ API:', error);
+                console.error('❌ [DETAIL] Lỗi khi lấy số lượng giỏ hàng từ API:', error);
+                cartItemCount.value = 0;
             }
         } else {
-            // Khách: lấy số lượng từ localStorage
+            // ❌ Chưa đăng nhập: lấy số lượng từ localStorage
+            console.log('🔄 [DETAIL GUEST] Loading cart count from localStorage');
             const localCart = localStorage.getItem('gb-sport-cart');
             let totalItems = 0;
 
@@ -663,14 +679,15 @@ const updateCartCount = async () => {
                 }
             }
 
-            console.log('Tổng số sản phẩm trong giỏ hàng từ localStorage:', totalItems);
+            console.log('🔄 [DETAIL GUEST] LocalStorage cart count:', totalItems);
             cartItemCount.value = totalItems;
 
             // Phát sự kiện cập nhật giỏ hàng
             window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
         }
     } catch (error) {
-        console.error('Lỗi khi cập nhật số lượng giỏ hàng:', error);
+        console.error('❌ [DETAIL] Lỗi khi cập nhật số lượng giỏ hàng:', error);
+        cartItemCount.value = 0;
     }
 };
 // Sửa hàm initializeColorAndSizeOptions để lưu trạng thái
@@ -2736,6 +2753,13 @@ const activeRecProduct = ref(null);
 
 // Sử dụng Intersection Observer để theo dõi khi phần tử xuấn hiện trong viewport
 onMounted(async () => {
+    // ✅ NEW: Listen for cart-updated events from other components
+    window.addEventListener('cart-updated', async (event) => {
+        console.log('🔔 [DETAIL] Received cart-updated event:', event.detail);
+        // Refresh badge count from database/localStorage
+        await updateCartCount();
+    });
+
     await store.getSanPhamBySP('quần,áo');
     // Chuyển đổi dữ liệu từ API sang định dạng phù hợp với template
     if (store.listSanPhamBanHang && store.listSanPhamBanHang.length > 0) {

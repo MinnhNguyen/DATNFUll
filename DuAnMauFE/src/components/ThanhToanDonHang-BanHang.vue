@@ -201,7 +201,7 @@
                                 <div class="coupon-info">
                                     <div class="coupon-badge">
                                         <span class="coupon-type">{{ coupon.loai === 'percent' ? 'GIẢM %' : 'GIẢM GIÁ'
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <div class="coupon-details">
                                         <p class="coupon-value">{{ coupon.loai === 'percent' ? `Giảm ${coupon.gia_tri}%`
@@ -528,43 +528,72 @@ const shippingFee = ref(0);
 
 const calculateShippingFee = async () => {
     try {
-        console.log("khách hàng hahahahaha", customer.value)
-        const kh = customer.value
+        console.log('🚚 [SHIPPING] Bắt đầu tính phí vận chuyển');
+        const kh = customer.value;
 
-        // Kiểm tra điều kiện trước khi gọi API
+        // ✅ Validate customer info
         if (!kh.tinh_thanh_pho || !kh.quan_huyen) {
-            console.log("Chưa đủ thông tin địa chỉ để tính phí ship");
+            console.log("⚠️ [SHIPPING] Chưa đủ thông tin địa chỉ");
             shippingFee.value = 0;
             return;
         }
 
-        // Kiểm tra subtotal trước
+        // ✅ Check for free shipping
         if (subtotal.value >= 2000000) {
-            console.log("Đơn hàng trên 2 triệu, miễn phí vận chuyển");
+            console.log("✅ [SHIPPING] Miễn phí vận chuyển (đơn > 2 triệu)");
             shippingFee.value = 0;
             return;
         }
 
+        // ✅ Calculate real weight from cart items
+        const totalWeight = orderItems.value.reduce((total, item) => {
+            const itemWeight = item.can_nang || 500; // Default weight in grams
+            const quantity = Number(item.so_luong || item.quantity || 1);
+            return total + (quantity * itemWeight);
+        }, 0);
+
+        console.log(`📦 [SHIPPING] Total weight: ${totalWeight}g from ${orderItems.value.length} items`);
+
+        // ✅ Use dynamic pickup location (can be configured later)
+        const pickupProvince = "Hà Nội";
+        const pickupDistrict = "Nam Từ Liêm";
+
+        console.log(`📍 [SHIPPING] From: ${pickupProvince}, ${pickupDistrict} → To: ${kh.tinh_thanh_pho}, ${kh.quan_huyen}`);
+
+        // Call API with real parameters
         const result = await banHangService.tinhPhiShip(
-            "Hà Nội", // pickProvince
-            "Nam Từ Liêm", // pickDistrict
+            pickupProvince,
+            pickupDistrict,
             kh.tinh_thanh_pho,
             kh.quan_huyen,
-            500,
+            totalWeight,
             subtotal.value
         );
 
-        // Kiểm tra result và fee có tồn tại không
+        console.log('💰 [SHIPPING] API result:', result);
+
+        // ✅ Validate API response
         if (result && typeof result.fee !== 'undefined') {
-            console.log("Phi ship", result.fee);
             shippingFee.value = result.fee;
+            console.log(`✅ [SHIPPING] Phí vận chuyển: ${result.fee} VNĐ`);
         } else {
-            console.log("API không trả về phí ship hợp lệ:", result);
+            console.log('⚠️ [SHIPPING] API không trả về phí hợp lệ');
             shippingFee.value = 0;
+            message.warning('Không thể tính phí vận chuyển, vui lòng thử lại');
         }
+
     } catch (error) {
-        console.error('Lỗi khi tính phí vận chuyển:', error);
-        shippingFee.value = 0; // Gán giá trị mặc định nếu có lỗi
+        console.error('❌ [SHIPPING] Lỗi khi tính phí vận chuyển:', error);
+        shippingFee.value = 0;
+
+        // ✅ User-friendly error messages
+        if (error.response?.status === 400) {
+            message.error('Thông tin địa chỉ không hợp lệ. Vui lòng kiểm tra lại.');
+        } else if (error.code === 'NETWORK_ERROR' || !navigator.onLine) {
+            message.error('Mất kết nối. Vui lòng kiểm tra mạng và thử lại.');
+        } else {
+            message.error('Không thể tính phí vận chuyển. Vui lòng thử lại sau.');
+        }
     }
 };
 

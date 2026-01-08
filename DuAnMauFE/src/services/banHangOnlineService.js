@@ -63,9 +63,31 @@ const themGioHangByIdKH = async (idKH, idCTSP, soLuong) => {
 }
 // Xoá số lượng sản phẩm trong giỏ hàng
 const xoaSoLuongSPGH = async (idKH, idCTSP, soLuong) => {
-    const response = await axiosInstance.delete('/gioHangWeb/deleteGHByIdKH?idKH=' + idKH + '&idCTSP=' + idCTSP + '&soLuong=' + soLuong);
-    return response.data;
-}
+    try {
+        console.log('[SERVICE] Deleting cart item:', { idKH, idCTSP, soLuong });
+        const response = await axiosInstance.delete('/gioHangWeb/deleteGHByIdKH?idKH=' + idKH + '&idCTSP=' + idCTSP + '&soLuong=' + soLuong);
+
+        console.log('[SERVICE] Delete API Response:', response.data);
+
+        // ✅ Validate structured response
+        if (response.data && response.data.success) {
+            return {
+                success: true,
+                message: response.data.message || 'Đã xóa sản phẩm',
+                remainingQuantity: response.data.remainingQuantity,
+                gioHang: response.data.gioHang
+            };
+        } else {
+            throw new Error(response.data.message || 'Không thể xóa sản phẩm');
+        }
+    } catch (error) {
+        console.error('[SERVICE] Delete API error:', error);
+        throw {
+            success: false,
+            message: error.response?.data?.message || error.message || 'Lỗi khi xóa sản phẩm'
+        };
+    }
+};
 // lấy số lượng còn lại của sản phẩm theo ID
 const maxSoLuongSP = async (idCTSP) => {
     const response = await axiosInstance.get('/gioHangWeb/maxSoLuong?idCTSP=' + idCTSP);

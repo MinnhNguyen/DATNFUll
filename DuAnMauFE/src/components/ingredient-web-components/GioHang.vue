@@ -583,36 +583,54 @@ const removeItem = async (index) => {
     try {
         // ✅ FIXED: Dùng helper function để check authentication
         const auth = getAuthenticatedUser();
-
+        
         if (auth) {
-            // ✅ Đã đăng nhập - Xóa từ database
+            // ✅ Đã đăng nhập - Xóa từ database với rollback mechanism
             const item = cartItems.value[index];
             console.log(`✅ [${auth.type.toUpperCase()}] Xóa sản phẩm từ database:`, { userId: auth.id, itemId: item.id });
 
-            // Gọi API xóa với toàn bộ số lượng của sản phẩm
-            await store.xoaSoLuongSPGH(
-                auth.id,
-                item.id,
-                item.quantity
-            );
-
-            // Sau khi xóa thành công, cập nhật UI
+            // ✅ BACKUP state trước khi thao tác
+            const backupCartItems = JSON.parse(JSON.stringify(cartItems.value));
+            const backupSelectedItems = [...selectedItems.value];
+            
+            // ⚡ Optimistic UI update - Cập nhật UI ngay
             cartItems.value.splice(index, 1);
             selectedItems.value = selectedItems.value
                 .filter(i => i !== index)
                 .map(i => i > index ? i - 1 : i);
-
-            // ✅ THÊM: Dispatch event để sync với các component khác
-            window.dispatchEvent(new CustomEvent('cart-updated', {
-                detail: {
-                    action: 'item_removed',
-                    userType: auth.type,
-                    itemId: item.id,
-                    totalItems: cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
+            
+            try {
+                // Gọi API xóa
+                const result = await store.xoaSoLuongSPGH(
+                    auth.id,
+                    item.id,
+                    item.quantity
+                );
+                
+                // ✅ Chỉ dispatch event khi API thành công
+                if (result.success) {
+                    window.dispatchEvent(new CustomEvent('cart-updated', {
+                        detail: {
+                            action: 'item_removed',
+                            userType: auth.type,
+                            itemId: item.id,
+                            totalItems: cartItems.value.reduce((sum, item) => sum + item.quantity, 0),
+                            success: true
+                        }
+                    }));
+                    
+                    // Không cần message.success nữa vì store đã toast.success
+                    console.log('✅ [DB] Item deleted successfully');
                 }
-            }));
-
-            message.success('Đã xóa sản phẩm khỏi giỏ hàng');
+                
+            } catch (apiError) {
+                // ⚠️ ROLLBACK UI khi API thất bại
+                console.error('❌ [API FAILED] Rolling back UI:', apiError);
+                cartItems.value = backupCartItems;
+                selectedItems.value = backupSelectedItems;
+                
+                message.error('Không thể xóa sản phẩm, vui lòng thử lại');
+            }
         } else {
             // ❌ Chưa đăng nhập - Xóa từ localStorage
             console.log('🔄 [GUEST] Xóa sản phẩm từ localStorage');
@@ -1139,20 +1157,26 @@ const updateAllMaxQuantities = async () => {
                 // Tính số lượng cần giảm
                 const quantityToReduce = item.quantity - maxAvailable;
 
-                const userDetailsStr = sessionStorage.getItem('userDetails');
-                if (userDetailsStr) {
-                    // Khách hàng đã đăng nhập
+                // ✅ FIXED: Dùng helper function để check authentication
+                const auth = getAuthenticatedUser();
+                
+                if (auth) {
+                    // ✅ Đã đăng nhập - Call API để giảm số lượng trong database
                     try {
-                        const userDetails = JSON.parse(userDetailsStr);
+                        console.log(`✅ [${auth.type.toUpperCase()}] Auto-adjusting quantity in database:`, {
+                            userId: auth.id,
+                            itemId: item.id,
+                            quantityToReduce
+                        });
 
                         // Gọi API để giảm số lượng
                         await store.xoaSoLuongSPGH(
-                            userDetails.idKhachHang,
+                            auth.id,
                             item.id,
                             quantityToReduce
                         );
 
-                        // Cập nhật lại số lượng trong giỏ hàng
+                        // Cập nhật lại số lượng trong giỏ hàng UI
                         const oldQuantity = item.quantity;
                         item.quantity = maxAvailable;
 
@@ -1162,11 +1186,11 @@ const updateAllMaxQuantities = async () => {
                             autoClose: 4000
                         });
                     } catch (error) {
-                        console.error('Lỗi khi điều chỉnh số lượng sản phẩm:', error);
+                        console.error('❌ Lỗi khi điều chỉnh số lượng sản phẩm:', error);
                         toast.error('Có lỗi xảy ra khi điều chỉnh số lượng sản phẩm');
                     }
                 } else {
-                    // Khách hàng chưa đăng nhập
+                    // ❌ Chưa đăng nhập - Chỉ update localStorage
                     const oldQuantity = item.quantity;
                     item.quantity = maxAvailable;
                     saveCartToLocalStorage();
