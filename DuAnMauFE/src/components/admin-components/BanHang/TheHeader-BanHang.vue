@@ -620,6 +620,32 @@
                         </div>
                     </div>
                 </a-modal>
+                <a-modal v-model:open="showZaloPayModal" title="Thanh toán ZaloPay" :footer="null" :width="450" centered
+                    @cancel="stopPaymentPolling">
+                    <div class="zalo-pay-modal">
+                        <div class="qr-container" v-if="zaloPayQRUrl">
+                            <img :src="zaloPayQRUrl" alt="ZaloPay QR Code" class="qr-code" />
+                            <p class="mt-3 text-center">
+                                Mở ứng dụng ZaloPay và quét mã QR này để thanh toán
+                            </p>
+                            <div class="payment-amount text-center mt-3">
+                                <p class="amount-label">Số tiền:</p>
+                                <p class="amount-value">{{ formatCurrency(fe_tongThanhToan) }}</p>
+                            </div>
+                        </div>
+
+                        <div v-else class="text-center">
+                            <a-spin size="large" />
+                            <p class="mt-3">Đang tạo mã QR...</p>
+                        </div>
+
+                        <div class="payment-status mt-4" v-if="paymentStatus">
+                            <a-alert
+                                :message="paymentStatus === 'success' ? 'Thanh toán thành công!' : 'Đang chờ thanh toán...'"
+                                :type="paymentStatus === 'success' ? 'success' : 'info'" show-icon />
+                        </div>
+                    </div>
+                </a-modal>
             </div>
         </div>
     </div>
@@ -697,7 +723,109 @@ let checkPaymentInterval = null;
 
 // ✅ PAYMENT PROCESSING FLAG - Ngăn auto-apply voucher khi đang thanh toán
 const isProcessingPayment = ref(false);
+const INVOICE_BACKUP_KEY = 'posInvoiceBackup';
+const PAYMENT_PROCESSING_KEY = 'posPaymentProcessing';
+const PAYMENT_TIMESTAMP_KEY = 'posPaymentTimestamp';
+const RESTORE_COMPLETED_KEY = 'voucherRestoreCompleted';
 
+const createInvoiceBackup = (invoiceId) => {
+    console.log('💾 Tạo backup cho hóa đơn:', invoiceId);
+
+    const currentTab = activeTabData.value;
+    if (!currentTab || !currentTab.hd || currentTab.hd.id_hoa_don !== invoiceId) {
+        console.warn('⚠️ Không tìm thấy hóa đơn để backup');
+        return false;
+    }
+
+    const backup = {
+        invoiceId: currentTab.hd.id_hoa_don,
+        voucherState: {
+            id_voucher: currentTab.hd.id_voucher,
+            ten_voucher: currentTab.hd.ten_voucher || null,
+            gia_tri_giam: currentTab.hd.gia_tri_giam || 0
+        },
+        totals: {
+            tong_tien_truoc_giam: currentTab.hd.tong_tien_truoc_giam || 0,
+            tong_tien_sau_giam: currentTab.hd.tong_tien_sau_giam || 0,
+            phi_van_chuyen: currentTab.hd.phi_van_chuyen || 0
+        },
+        paymentMethod: currentTab.hd.hinh_thuc_thanh_toan,
+        timestamp: Date.now(),
+        ma_hoa_don: currentTab.hd.ma_hoa_don
+    };
+
+    try {
+        localStorage.setItem(INVOICE_BACKUP_KEY, JSON.stringify(backup));
+        console.log('✅ Backup đã được tạo thành công');
+        return true;
+    } catch (error) {
+        console.error('❌ Lỗi khi tạo backup:', error);
+        return false;
+    }
+};
+// Khôi phục trạng thái hóa đơn từ backup
+const restoreInvoiceFromBackup = async () => {
+    console.log('🔄 Bắt đầu khôi phục từ backup...');
+
+    try {
+        const backupStr = localStorage.getItem(INVOICE_BACKUP_KEY);
+        if (!backupStr) {
+            console.log('⚠️ Không tìm thấy backup');
+            return false;
+        }
+
+        const backup = JSON.parse(backupStr);
+
+        // Kiểm tra backup còn hạn (5 phút)
+        const now = Date.now();
+        const elapsed = now - backup.timestamp;
+        const isValid = elapsed < 5 * 60 * 1000;
+
+        if (!isValid) {
+            console.log('⏰ Backup đã hết hạn');
+            cleanupPaymentState();
+            return false;
+        }
+
+        let targetTab = activeTabData.value;
+        if (!targetTab || !targetTab.hd) {
+            targetTab = panes.value.find(tab => tab.hd?.id_hoa_don === backup.invoiceId);
+        }
+
+        if (!targetTab) {
+            cleanupPaymentState();
+            return false;
+        }
+
+        // Khôi phục state
+        Object.assign(targetTab.hd, {
+            id_voucher: backup.voucherState.id_voucher,
+            ten_voucher: backup.voucherState.ten_voucher,
+            gia_tri_giam: backup.voucherState.gia_tri_giam,
+            tong_tien_truoc_giam: backup.totals.tong_tien_truoc_giam,
+            tong_tien_sau_giam: backup.totals.tong_tien_sau_giam,
+            phi_van_chuyen: backup.totals.phi_van_chuyen
+        });
+
+        localStorage.setItem(RESTORE_COMPLETED_KEY, 'true');
+        console.log('✅ Restore thành công');
+        return true;
+
+    } catch (error) {
+        console.error('❌ Lỗi khi restore:', error);
+        cleanupPaymentState();
+        return false;
+    }
+};
+// Dọn dẹp payment state
+const cleanupPaymentState = () => {
+    console.log('🧹 Dọn dẹp payment state');
+    localStorage.removeItem(INVOICE_BACKUP_KEY);
+    localStorage.removeItem(PAYMENT_PROCESSING_KEY);
+    localStorage.removeItem(PAYMENT_TIMESTAMP_KEY);
+    localStorage.removeItem(RESTORE_COMPLETED_KEY);
+    isProcessingPayment.value = false;
+};
 // Hiển thị modal quét QR
 const showQrScanner = () => {
     qrScannerVisible.value = true;
@@ -2455,7 +2583,7 @@ const handlePayment = async () => {
                 message.error('Vui lòng chọn địa chỉ mặc định!');
                 return;
             }
-
+            createInvoiceBackup(invoiceId);
             if (!defaultAddress.tinhThanhPho || !defaultAddress.quanHuyen) {
                 message.error('Địa chỉ giao hàng chưa đầy đủ!');
                 console.error('❌ Missing fields:', {
@@ -2588,19 +2716,50 @@ const proceedToPayment = async () => {
                 items: activeTabData.value.items?.value || []
             }));
 
-            // Gọi ZaloPay
+            // Gọi ZaloPay API để tạo order
+            console.log('📞 Calling ZaloPay API...');
             const zaloPayResult = await thanhToanService.handleZaloPayPayment(
                 invoiceId,
                 paymentAmount
             );
 
-            if (zaloPayResult.cancelled) {
-                console.log('❌ User cancelled ZaloPay');
-                return;
-            }
+            // Kiểm tra kết quả
+            if (zaloPayResult && zaloPayResult.return_code === 1) {
+                console.log('✅ ZaloPay order created successfully');
 
-            if (zaloPayResult.success) {
-                console.log('✅ ZaloPay initiated successfully');
+                // Generate QR code từ order_url
+                if (zaloPayResult.order_url) {
+                    try {
+                        const qrDataUrl = await QRCode.toDataURL(zaloPayResult.order_url, {
+                            width: 300,
+                            margin: 2,
+                            color: {
+                                dark: '#000000',
+                                light: '#FFFFFF'
+                            }
+                        });
+
+                        // Set QR code và hiển thị modal
+                        zaloPayQRUrl.value = qrDataUrl;
+                        zaloPayQRCode.value = zaloPayResult.order_url;
+                        showZaloPayModal.value = true;
+                        paymentStatus.value = 'checking';
+
+                        // ✅ BẮT ĐẦU POLLING
+                        console.log('🔄 Starting payment polling...');
+                        startCheckingPaymentStatus();
+
+                        console.log('✅ Modal displayed, polling started');
+                    } catch (qrError) {
+                        console.error('❌ Lỗi tạo QR code:', qrError);
+                        message.error('Không thể tạo mã QR');
+                    }
+                } else {
+                    message.error('Không nhận được order URL từ ZaloPay');
+                }
+            } else {
+                console.log('❌ ZaloPay order failed:', zaloPayResult);
+                message.error(zaloPayResult?.return_message || 'Không thể tạo thanh toán ZaloPay');
             }
         }
 
@@ -2946,6 +3105,8 @@ onUnmounted(() => {
     if (intervalId) {
         clearInterval(intervalId);
     }
+    stopPaymentPolling();
+    cleanupPaymentState();
 });
 
 async function loadData() {
@@ -3412,6 +3573,80 @@ const showZaloPayQR = async () => {
         message.error('Đã xảy ra lỗi khi tạo mã thanh toán: ' + (error.message || ''));
     } finally {
         isLoadingZaloPay.value = false;
+    }
+};
+
+// ✅ ZALOPAY - Start polling payment status
+const startCheckingPaymentStatus = () => {
+    console.log('🔄 Bắt đầu polling trạng thái thanh toán ZaloPay...');
+
+    // Clear existing interval if any
+    if (checkPaymentInterval) {
+        clearInterval(checkPaymentInterval);
+    }
+
+    checkPaymentInterval = setInterval(async () => {
+        try {
+            if (!activeTabData.value?.hd?.id_hoa_don) {
+                console.warn('⚠️ Không tìm thấy ID hóa đơn, dừng polling');
+                stopPaymentPolling();
+                return;
+            }
+
+            const idHoaDon = activeTabData.value.hd.id_hoa_don;
+            console.log('📡 Checking payment status for invoice:', idHoaDon);
+
+            const response = await thanhToanService.checkZaloPayStatus(idHoaDon);
+
+            if (response && response.return_code === 1) {
+                console.log('✅ Thanh toán ZaloPay thành công!');
+                stopPaymentPolling();
+                await handleZaloPaySuccessFromModal();
+            } else {
+                console.log('⏳ Đang chờ thanh toán... return_code:', response?.return_code);
+            }
+        } catch (error) {
+            console.error('❌ Lỗi khi check payment status:', error);
+        }
+    }, 3000); // Check mỗi 3 giây
+};
+
+// ✅ ZALOPAY - Stop polling
+const stopPaymentPolling = () => {
+    if (checkPaymentInterval) {
+        clearInterval(checkPaymentInterval);
+        checkPaymentInterval = null;
+        console.log('🛑 Đã dừng polling trạng thái thanh toán');
+    }
+};
+
+// ✅ ZALOPAY - Handle successful payment (from modal polling)
+const handleZaloPaySuccessFromModal = async () => {
+    try {
+        if (!activeTabData.value?.hd?.id_hoa_don) {
+            console.error('❌ Không tìm thấy ID hóa đơn');
+            return;
+        }
+
+        const invoiceId = activeTabData.value.hd.id_hoa_don;
+        console.log('✅ Thanh toán thành công qua modal, đang cập nhật trạng thái...');
+
+        showZaloPayModal.value = false;
+        paymentStatus.value = 'success';
+
+        // Update invoice status
+        await store.trangThaiDonHang(invoiceId);
+
+        // Clean up payment state
+        cleanupPaymentState();
+
+        // Show print confirmation
+        showPrintConfirm.value = true;
+
+        toast.success('Thanh toán ZaloPay thành công!');
+    } catch (error) {
+        console.error('❌ Lỗi khi xử lý thanh toán thành công:', error);
+        message.error('Có lỗi xảy ra sau khi thanh toán thành công');
     }
 };
 
@@ -5034,6 +5269,40 @@ label.form-label {
 }
 
 /* ======================== PRODUCT DROPDOWN STYLING ======================== */
+/* ZaloPay Modal Styles */
+.zalo-pay-modal {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-code {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border: 3px solid #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.amount-label {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #8c8c8c;
+}
+
+.amount-value {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #f5222d;
+}
+
 .product-option {
     padding: 12px 16px;
     border-bottom: 1px solid #f0f0f0;

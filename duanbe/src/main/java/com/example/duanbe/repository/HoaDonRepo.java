@@ -30,7 +30,7 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
   @Query(value = """
               SELECT hd.ma_hoa_don, hd.ngay_tao, hd.ho_ten, hd.sdt,
                               hd.trang_thai AS trang_thai_thanh_toan, hd.loai_hoa_don,
-                              hd.dia_chi, v.ma_voucher, hd.tong_tien_sau_giam, tdh.trang_thai,
+                              hd.dia_chi, v.ma_voucher, (hd.tong_tien_sau_giam+hd.phi_van_chuyen) as tong_tien_sau_giam, tdh.trang_thai,
                       hd.hinh_thuc_thanh_toan, hd.phuong_thuc_nhan_hang,tdh.ngay_chuyen
               FROM hoa_don hd
               LEFT JOIN voucher v ON hd.id_voucher = v.id_voucher

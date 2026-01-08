@@ -53,10 +53,11 @@ const handleZaloPayPayment = async (idHoaDon, tongThanhToan) => {
 
         localStorage.setItem('zaloPayResponse', JSON.stringify(response.data));
 
-        // ✅ THAY ĐỔI: Mở ZaloPay trong tab mới thay vì hard redirect
-        window.open(orderUrl, '_blank');
+        // ✅ THAY ĐỔI: Return data thay vì mở tab mới
+        // Modal sẽ hiển thị QR code
+        // window.open(orderUrl, '_blank'); // ← COMMENTED OUT
 
-        return response.data;
+        return response.data; // ← RETURN DATA
     } catch (error) {
         console.error('Lỗi khi tạo thanh toán ZaloPay:', error);
         const errorMessage = error.response?.data?.return_message || error.message || 'Không thể tạo thanh toán ZaloPay. Vui lòng thử lại sau.';
