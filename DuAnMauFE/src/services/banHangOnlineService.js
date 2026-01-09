@@ -110,6 +110,20 @@ const createOrderChiTietMuaNgay = async (hoaDonChiTiet) => {
     console.log('[SERVICE] Kết quả tạo hóa đơn chi tiết mua ngay:', response.data);
     return response.data;
 }
+
+// ✅ PENDING ORDER WORKFLOW
+// Tạo hóa đơn treo (pending) với status "Đang chờ thanh toán"
+const createPendingOrder = async (hoaDon) => {
+    const response = await axiosInstance.post(banHangOnline + 'taoHoaDonWebTreo', hoaDon);
+    return response.data;
+}
+
+// Confirm và update hóa đơn treo thành "Hoàn thành" sau khi thanh toán
+const confirmOrder = async (hoaDon) => {
+    const response = await axiosInstance.post(banHangOnline + 'taoHoaDonWeb1', hoaDon);
+    return response.data;
+}
+
 export const banHangOnlineService = {
     createOrder,
     createOrderChiTiet,
@@ -125,6 +139,8 @@ export const banHangOnlineService = {
     xoaSoLuongSPGH,
     maxSoLuongSP,
     getTrangThaiCTSP,
-    createOrderChiTietMuaNgay
+    createOrderChiTietMuaNgay,
+    createPendingOrder,  // ✅ NEW
+    confirmOrder  // ✅ NEW
 }
 

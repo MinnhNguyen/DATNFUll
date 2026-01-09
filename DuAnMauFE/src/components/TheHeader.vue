@@ -527,19 +527,28 @@ onBeforeUnmount(() => {
 /* ========== User Dropdown Menu ========== */
 .user-nav-item {
     position: relative;
+    /* ✅ Để dropdown align đúng với icon */
+}
+
+.user-icon {
+    cursor: pointer;
+    transition: color var(--transition-base);
 }
 
 .user-dropdown {
     position: absolute;
-    top: calc(100% + 0.5rem);
+    top: 100%;
     right: 0;
-    min-width: 200px;
-    background-color: var(--color-bg);
+    background: var(--color-white);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+    min-width: 220px;
+    margin-top: 8px;
     overflow: hidden;
-    animation: slideDown var(--transition-base);
+    animation: slideDown 0.2s ease-out;
+    z-index: 1100;
+    /* ✅ Cao hơn header (900) và notification (1010) */
 }
 
 @keyframes slideDown {

@@ -343,6 +343,47 @@
             </div>
         </a-modal>
 
+        <!-- ✅ Phase 5: ZaloPay Payment Modal -->
+        <a-modal v-model:visible="zaloPayModalVisible" title="Thanh toán ZaloPay" :footer="null" width="480px"
+            :closable="false" :mask-closable="false" centered :zIndex="1000">
+
+            <div class="zalopay-modal">
+                <div class="qr-section" v-if="zaloPayQRUrl">
+                    <div class="qr-header">
+                        <h3>Quét mã QR bằng ZaloPay</h3>
+                        <p>Mở ứng dụng ZaloPay và quét mã QR bên dưới để thanh toán</p>
+                    </div>
+
+                    <div class="qr-container">
+                        <img :src="zaloPayQRUrl" alt="ZaloPay QR Code" class="qr-code" />
+                    </div>
+
+                    <div class="payment-info">
+                        <div class="info-row">
+                            <span class="label">Số tiền:</span>
+                            <span class="value">{{ formatCurrency(grandTotal) }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Mã đơn:</span>
+                            <span class="value">{{ createdOrderCode }}</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-status" v-if="paymentInProgress">
+                        <a-spin size="large" />
+                        <p>Đang chờ thanh toán...</p>
+                        <p class="status-note">Vui lòng không đóng cửa sổ này</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <a-button @click="cancelZaloPay" :disabled="paymentInProgress" size="large" block>
+                        Hủy thanh toán
+                    </a-button>
+                </div>
+            </div>
+        </a-modal>
+
         <!-- Payment Method Modal -->
         <payment-method-modal v-model:visible="paymentModalVisible" :invoice-id="createdInvoiceId" :amount="grandTotal"
             @payment-success="handlePaymentSuccess" @payment-cancelled="handlePaymentCancelled" />
@@ -371,6 +412,11 @@ import {
 import { useGbStore } from '@/stores/gbStore';
 import { banHangOnlineService } from '@/services/banHangOnlineService';
 import { banHangService } from '@/services/banHangService';
+// ✅ Phase 1: ZaloPay Integration - Add QRCode library
+import QRCode from 'qrcode';
+// ✅ Phase 7: Add payment polling service for auto status checking
+import { paymentPollingService } from '@/services/paymentPollingService.js';
+
 
 const router = useRouter();
 const route = useRoute();
@@ -398,7 +444,14 @@ const selectedAddressId = ref(1);
 // Payment methods
 const selectedPaymentMethod = ref('');
 const paymentModalVisible = ref(false);
+
+// ✅ Phase 2: ZaloPay State Management
+const zaloPayModalVisible = ref(false);
+const zaloPayQRUrl = ref('');
+const paymentInProgress = ref(false);
 const createdInvoiceId = ref(null);
+const createdOrderCode = ref(null);
+const isConfirming = ref(false); // ✅ Flag để tránh duplicate confirm
 // const selectedOnlineMethod = ref('vnpay');
 
 // Order note
@@ -924,6 +977,189 @@ const calculateOrderTotals = () => {
     return invoice;
 };
 
+// ✅ Phase 3: ZaloPay Payment Handler
+const handleZaloPayPayment = async () => {
+    try {
+        console.log('🚀 [ZALOPAY] Starting ZaloPay payment flow');
+
+        // Reset confirming flag for new payment
+        isConfirming.value = false;
+
+        placing.value = true;
+
+        // Step 1: Create order data
+        const orderData = calculateOrderTotals();
+        const hoaDon = {
+            ...orderData.hoaDon,
+            isChuyen: true,
+            hinh_thuc_thanh_toan: 'Chuyển khoản',
+            phuong_thuc_thanh_toan: 'ZaloPay'
+        };
+
+        // Step 2: Create order in database
+        console.log('📝 [ZALOPAY] Creating order in database');
+        const orderResponse = await banHangOnlineService.createPendingOrder(hoaDon);
+
+        if (!orderResponse || !orderResponse.id_hoa_don) {
+            throw new Error('Không thể tạo hóa đơn');
+        }
+
+        // Step 3: Create order details
+        if (store.getIsThanhToanMuaNgay()) {
+            await banHangOnlineService.createOrderChiTietMuaNgay(orderData.hoaDonChiTiet);
+        } else {
+            await banHangOnlineService.createOrderChiTiet(orderData.hoaDonChiTiet);
+        }
+
+        const idHoaDon = orderResponse.id_hoa_don;
+        const maHoaDon = orderResponse.ma_hoa_don;
+        console.log(`✅ [ZALOPAY] Order created: ${maHoaDon} (ID: ${idHoaDon})`);
+
+        // Step 4: Initiate ZaloPay payment
+        console.log('💳 [ZALOPAY] Creating ZaloPay transaction');
+        const zaloPayResult = await thanhToanService.handleZaloPayPayment(
+            idHoaDon,
+            grandTotal.value
+        );
+
+        if (!zaloPayResult || !zaloPayResult.order_url) {
+            throw new Error('Không thể tạo giao dịch ZaloPay');
+        }
+
+        // Step 5: Generate QR Code
+        console.log('🔲 [ZALOPAY] Generating QR code');
+        const qrDataUrl = await QRCode.toDataURL(zaloPayResult.order_url, {
+            width: 300,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
+
+        // Step 6: Update state and show modal
+        createdInvoiceId.value = idHoaDon;
+        createdOrderCode.value = maHoaDon;
+        zaloPayQRUrl.value = qrDataUrl;
+        zaloPayModalVisible.value = true;
+        paymentInProgress.value = true;
+        currentStatus.value = 3; // Payment in progress
+
+        // Save order code for success page
+        localStorage.setItem('lastOrderCode', maHoaDon);
+        store.setIsThanhToanMuaNgay(false);
+        //thêm
+        // store.setIsThanhToanMuaNgay(false);
+        console.log('🐛 [DEBUG] Before polling start');
+
+        // ✅ CHẠY START POLLING (handlers đã register trong onMounted)
+        console.log('🔄 [ZALOPAY] Starting payment polling');
+        await paymentPollingService.startPolling(idHoaDon, 'ZaloPay', {
+            maxRetries: 40,  // 2 minutes
+            retryDelay: 3000
+        });
+
+        console.log('✅ [ZALOPAY] Payment flow initiated successfully');
+
+    } catch (error) {
+        console.error('❌ [ZALOPAY] Payment error:', error);
+        message.error('Không thể khởi tạo thanh toán ZaloPay: ' + error.message);
+
+        // Cleanup on error
+        zaloPayModalVisible.value = false;
+        paymentInProgress.value = false;
+    } finally {
+        placing.value = false;
+    }
+};
+
+
+// ✅ Phase 4: ZaloPay Status Handlers
+const handleZaloPaySuccess = async () => {
+    console.log('✅ [ZALOPAY] Payment successful');
+
+    // ✅ IDEMPOTENCY: Check if already confirming
+    const isFirstCall = !isConfirming.value;
+
+    // ✅ UPDATE ORDER: Gọi taoHoaDonWeb1 để update thành "Hoàn thành"
+    try {
+        console.log(`📝 [ZALOPAY] Confirming order ${createdInvoiceId.value} (First call: ${isFirstCall})`);
+
+        // Tạo hoaDon object với id_hoa_don + fields cần update
+        const confirmData = {
+            id_hoa_don: createdInvoiceId.value,
+            isChuyen: isFirstCall, // ✅ Lần đầu: true, lần sau: false
+            khachHang: {
+                idKhachHang: customer.value.id || 0
+            },
+            phuong_thuc_nhan_hang: customer.value.deliveryMethod || 'Giao hàng'
+        };
+
+        // Set flag BEFORE calling API
+        if (isFirstCall) {
+            isConfirming.value = true;
+        }
+
+        await banHangOnlineService.confirmOrder(confirmData);
+        console.log(`✅ [ZALOPAY] Order confirmed (isChuyen: ${isFirstCall})`);
+    } catch (error) {
+        console.error('❌ [ZALOPAY] Failed to confirm order:', error);
+        // Continue anyway - backend callback cũng sẽ update
+    }
+
+    paymentInProgress.value = false;
+    zaloPayModalVisible.value = false;
+    currentStatus.value = 4; // Complete
+
+    // ✅ CHỈ HIỆN NOTIFICATION VÀ REDIRECT LẦN ĐẦU
+    if (isFirstCall) {
+        // ✅ Success notification với auto-redirect
+        message.success({
+            content: '🎉 Thanh toán ZaloPay thành công! Đang chuyển về trang chủ...',
+            duration: 5 // 5 seconds - đủ thời gian để đọc
+        });
+
+        // Clear cart
+        if (!store.getIsThanhToanMuaNgay()) {
+            localStorage.removeItem('gb-sport-cart');
+        }
+
+        // ✅ Redirect về trang chủ sau 5 giây
+        setTimeout(() => {
+            router.push('/home');
+        }, 5000);
+    }
+};
+
+const handleZaloPayFailure = (error) => {
+    console.error('❌ [ZALOPAY] Payment failed:', error);
+
+    paymentInProgress.value = false;
+    zaloPayModalVisible.value = false;
+
+    message.error('Thanh toán ZaloPay thất bại: ' + (error?.message || 'Vui lòng thử lại'));
+
+    // Offer retry
+    Modal.confirm({
+        title: 'Thanh toán thất bại',
+        content: 'Có lỗi xảy ra trong quá trình thanh toán. Bạn có muốn thử lại?',
+        okText: 'Thử lại',
+        cancelText: 'Hủy',
+        onOk: () => handleZaloPayPayment(),
+        onCancel: () => {
+            currentStatus.value = 2;
+        }
+    });
+};
+
+const cancelZaloPay = () => {
+    console.log('❌ [ZALOPAY] Payment cancelled by user');
+
+    zaloPayModalVisible.value = false;
+    paymentInProgress.value = false;
+
+    message.info('Đã hủy thanh toán');
+    currentStatus.value = 2; // Back to payment selection
+};
+
+
 // Place order - updated with form validation
 const placeOrder = async () => {
     try {
@@ -1050,67 +1286,8 @@ const placeOrder = async () => {
                 message.error('Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại sau.');
             }
         } else if (selectedPaymentMethod.value === 'online-qr') {
-            // Thanh toán QR (PayOS hoặc ZaloPay) - hiển thị modal chọn
-            try {
-                // Tạo hóa đơn trước
-                hoaDon.isChuyen = true;
-                hoaDon.hinh_thuc_thanh_toan = 'Chuyển khoản';
-                hoaDon.phuong_thuc_thanh_toan = {
-                    loai: 'online',
-                    chi_tiet: 'online-qr',
-                    ten: 'QR Payment'
-                };
-
-                const response = await banHangOnlineService.createOrder(hoaDon);
-                let responseChiTiet;
-                if (store.getIsThanhToanMuaNgay()) {
-                    responseChiTiet = await banHangOnlineService.createOrderChiTietMuaNgay(orderData.hoaDonChiTiet);
-                } else {
-                    responseChiTiet = await banHangOnlineService.createOrderChiTiet(orderData.hoaDonChiTiet);
-                }
-
-                console.log('Response từ server:', response);
-                console.log('Response chi tiết từ server:', responseChiTiet);
-
-                if (response && response.id_hoa_don) {
-                    // Lưu ID hóa đơn để dùng cho modal thanh toán
-                    createdInvoiceId.value = response.id_hoa_don;
-
-                    // Hiển thị modal chọn phương thức
-                    paymentModalVisible.value = true;
-
-                    // Xóa giỏ hàng
-                    if (responseChiTiet) {
-                        const paidProducts = orderData.hoaDonChiTiet.map(item => ({
-                            id: item.chiTietSanPham.id_chi_tiet_san_pham,
-                            quantity: item.so_luong
-                        }));
-
-                        const currentCart = JSON.parse(localStorage.getItem('gb-sport-cart') || '[]');
-                        const updatedCart = currentCart.filter(cartItem => {
-                            const paidItem = paidProducts.find(paid => paid.id === cartItem.id);
-                            if (paidItem) {
-                                const remainingQuantity = cartItem.quantity - paidItem.quantity;
-                                return remainingQuantity > 0 ? { ...cartItem, quantity: remainingQuantity } : null;
-                            }
-                            return cartItem;
-                        }).filter(item => item !== null);
-
-                        if (updatedCart.length > 0) {
-                            localStorage.setItem('gb-sport-cart', JSON.stringify(updatedCart));
-                        } else {
-                            localStorage.removeItem('gb-sport-cart');
-                        }
-
-                        store.setIsThanhToanMuaNgay(false);
-                    }
-                } else {
-                    message.error('Không thể tạo hóa đơn');
-                }
-            } catch (error) {
-                console.error('Lỗi khi tạo hóa đơn QR:', error);
-                message.error('Có lỗi xảy ra khi tạo hóa đơn. Vui lòng thử lại sau.');
-            }
+            // ✅ Phase 2: ZaloPay Integration - Call handler instead of old logic
+            await handleZaloPayPayment();
         } else if (selectedPaymentMethod.value === 'payos') {
             try {
                 hoaDon.isChuyen = true;
@@ -1287,6 +1464,18 @@ const formatDateVN = (dateString) => {
 
 // Initialize data on component mount
 onMounted(async () => {
+    // ✅ REGISTER POLLING HANDLERS CHỈ 1 LẦN
+    console.log('🔧 [INIT] Registering payment polling handlers');
+    paymentPollingService.on('paymentSuccess', handleZaloPaySuccess);
+    paymentPollingService.on('paymentFailure', handleZaloPayFailure);
+    paymentPollingService.on('paymentTimeout', () => {
+        console.log('⏰ [ZALOPAY] Payment timeout');
+        paymentInProgress.value = false;
+        zaloPayModalVisible.value = false;
+        message.warning('Thời gian thanh toán đã hết. Vui lòng tạo đơn hàng mới.', 5);
+        currentStatus.value = 2;
+    });
+
     // Lấy dữ liệu sản phẩm từ store
     orderItems.value = store.checkoutItems || [];
     console.log('Order items từ store:', orderItems.value);
@@ -3251,6 +3440,128 @@ const displayVouchers = computed(() => {
         width: 100%;
         min-width: 100%;
         max-width: 100%;
+    }
+}
+
+/* ✅ Phase 6: ZaloPay Modal Styles */
+.zalopay-modal {
+    padding: 24px 12px;
+    text-align: center;
+
+    .qr-section {
+        .qr-header {
+            margin-bottom: 20px;
+
+            h3 {
+                margin: 0 0 8px;
+                color: #008fe5;
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            p {
+                margin: 0;
+                color: #666;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        }
+
+        .qr-container {
+            margin: 24px 0;
+            padding: 24px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e3e7f0 100%);
+            border-radius: 16px;
+            border: 2px dashed #d0d5dd;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+            .qr-code {
+                width: 250px;
+                height: 250px;
+                border: 3px solid #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+                background: #fff;
+            }
+        }
+
+        .payment-info {
+            margin: 24px 0;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #008fe5;
+
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 8px 0;
+                font-size: 15px;
+
+                .label {
+                    color: #666;
+                    font-weight: 500;
+                }
+
+                .value {
+                    color: #008fe5;
+                    font-weight: 600;
+                    font-size: 16px;
+                }
+            }
+        }
+
+        .payment-status {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fff9e6;
+            border-radius: 8px;
+            border: 1px solid #ffc107;
+
+            p {
+                margin: 12px 0 4px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #008fe5;
+            }
+
+            .status-note {
+                font-size: 13px;
+                font-weight: 400;
+                color: #999;
+                margin-top: 4px;
+            }
+        }
+    }
+
+    .modal-actions {
+        margin-top: 24px;
+
+        button {
+            height: 44px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+    }
+}
+
+/* Responsive design for mobile */
+@media (max-width: 576px) {
+    .zalopay-modal {
+        padding: 16px 8px;
+
+        .qr-section {
+            .qr-container {
+                padding: 16px;
+
+                .qr-code {
+                    width: 200px;
+                    height: 200px;
+                }
+            }
+        }
     }
 }
 </style>

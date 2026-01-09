@@ -244,7 +244,7 @@ public class GioHangService {
         }
     }
 
-    public Integer getMaxSoLuong(@RequestParam("idCTSP") Integer idCTSP){
+    public Integer getMaxSoLuong(@RequestParam("idCTSP") Integer idCTSP) {
         return chiTietSanPhamRepository.findById(idCTSP).get().getSo_luong();
     }
 

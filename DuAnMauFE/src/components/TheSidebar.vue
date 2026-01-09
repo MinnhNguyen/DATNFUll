@@ -9,7 +9,8 @@
                 <div class="collapse navbar-collapse" id="navbarScroll">
                     <ul class="navbar-nav mx-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 70px;">
                         <li class="nav-item me-lg-5">
-                            <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSidebarClick('all')">Tất cả sản phẩm</a>
+                            <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSidebarClick('all')">Tất
+                                cả sản phẩm</a>
                         </li>
                         <li class="nav-item me-lg-5">
                             <!-- <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSidebarClick('Sport')">Môn thể thao</a> -->
@@ -21,7 +22,8 @@
                             <!-- <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSidebarClick('Nữ')">Nữ</a> -->
                         </li>
                         <li class="nav-item me-lg-5">
-                            <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSieuSaleClick">Siêu sale sập sàn</a>
+                            <a class="nav-link" style="cursor: pointer;" @click.prevent="handleSieuSaleClick">Siêu sale
+                                sập sàn</a>
                         </li>
                     </ul>
                 </div>
@@ -43,34 +45,34 @@ const isLoading = ref(false);
 
 // Giữ lại hàm handleSidebarClick cho các mục khác
 async function handleSidebarClick(keywords) {
-  isLoading.value = true;
-  if (keywords === 'all') {
-    await store.getSanPhamByTenDM('');
-  } else if (keywords === 'Sport') {
-    const sports = ['Bóng đá', 'Bóng rổ', 'Cầu lông', 'Đạp xe', 'Chạy bộ', 'Yoga'];
-    await store.getSanPhamByTenDM(sports);
-  } else {
-    await store.getSanPhamByTenDM(keywords);
-  }
-  isLoading.value = false;
-  router.push({ path: '/danhSachSanPham', query: { filter: keywords } });
+    isLoading.value = true;
+    if (keywords === 'all') {
+        await store.getSanPhamByTenDM('');
+    } else if (keywords === 'Sport') {
+        const sports = ['Bóng đá', 'Bóng rổ', 'Cầu lông', 'Đạp xe', 'Chạy bộ', 'Yoga'];
+        await store.getSanPhamByTenDM(sports);
+    } else {
+        await store.getSanPhamByTenDM(keywords);
+    }
+    isLoading.value = false;
+    router.push({ path: '/danhSachSanPham', query: { filter: keywords } });
 }
 
 // Đơn giản hóa hàm handleSieuSaleClick, chỉ lấy sản phẩm và chuyển trang
 async function handleSieuSaleClick() {
-  try {
-    isLoading.value = true;
-    await store.getSanPhamSieuSale();
-    console.log('Đã lấy sản phẩm siêu sale'); // Log để kiểm tra
-    router.push({ 
-      path: '/danhSachSanPham', 
-      query: { filter: 'supersale' } 
-    });
-  } catch (error) {
-    console.error('Lỗi khi lấy sản phẩm siêu sale:', error);
-  } finally {
-    isLoading.value = false;
-  }
+    try {
+        isLoading.value = true;
+        await store.getSanPhamSieuSale();
+        console.log('Đã lấy sản phẩm siêu sale'); // Log để kiểm tra
+        router.push({
+            path: '/danhSachSanPham',
+            query: { filter: 'supersale' }
+        });
+    } catch (error) {
+        console.error('Lỗi khi lấy sản phẩm siêu sale:', error);
+    } finally {
+        isLoading.value = false;
+    }
 }
 </script>
 
@@ -81,7 +83,8 @@ async function handleSieuSaleClick() {
     /* Chiều cao của header */
     left: 0;
     right: 0;
-    z-index: 1020;
+    z-index: 800;
+    /* Thấp hơn dropdown menu (1100) */
     background: white;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
@@ -128,11 +131,11 @@ async function handleSieuSaleClick() {
         border-radius: 0.25rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     .navbar-nav {
         width: 100%;
     }
-    
+
     .nav-item {
         margin-bottom: 0.5rem;
     }
@@ -140,8 +143,9 @@ async function handleSieuSaleClick() {
 
 /* Đảm bảo các menu con không hiển thị khi sidebar đã collapse */
 @media (max-width: 991.98px) {
-    .sidebar-fixed > nav {
-        z-index: 1030;
+    .sidebar-fixed>nav {
+        z-index: 800;
+        /* Thấp hơn dropdown menu (1100) */
     }
 }
 </style>

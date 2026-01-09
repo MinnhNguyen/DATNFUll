@@ -597,7 +597,7 @@ const removeItem = async (index) => {
     try {
         // ✅ FIXED: Dùng helper function để check authentication
         const auth = getAuthenticatedUser();
-        
+
         if (auth) {
             // ✅ Đã đăng nhập - Xóa từ database với rollback mechanism
             const item = cartItems.value[index];
@@ -606,13 +606,13 @@ const removeItem = async (index) => {
             // ✅ BACKUP state trước khi thao tác
             const backupCartItems = JSON.parse(JSON.stringify(cartItems.value));
             const backupSelectedItems = [...selectedItems.value];
-            
+
             // ⚡ Optimistic UI update - Cập nhật UI ngay
             cartItems.value.splice(index, 1);
             selectedItems.value = selectedItems.value
                 .filter(i => i !== index)
                 .map(i => i > index ? i - 1 : i);
-            
+
             try {
                 // Gọi API xóa
                 const result = await store.xoaSoLuongSPGH(
@@ -620,19 +620,19 @@ const removeItem = async (index) => {
                     item.id,
                     item.quantity
                 );
-                
+
                 // ✅ OPTIMIZED: Use debounced event on success
                 if (result.success) {
                     debouncedCartUpdate();
                     console.log('✅ [DB] Item deleted successfully');
                 }
-                
+
             } catch (apiError) {
                 // ⚠️ ROLLBACK UI khi API thất bại
                 console.error('❌ [API FAILED] Rolling back UI:', apiError);
                 cartItems.value = backupCartItems;
                 selectedItems.value = backupSelectedItems;
-                
+
                 message.error('Không thể xóa sản phẩm, vui lòng thử lại');
             }
         } else {
@@ -1061,18 +1061,23 @@ const getGioHang = async () => {
                         formattedSize = item.gia_tri;
                     }
 
-                    // ✅ FIXED: Sử dụng đúng field names từ backend
+                    // ✅ FIXED: Sử dụng đúng field names từ backend + KHUYẾN MÃI
                     const cartItem = {
                         id: item.id_chi_tiet_san_pham || item.id,
                         name: item.ten_san_pham || item.name,
                         image: item.hinh_anh || item.image,
-                        price: item.gia_ban || item.price || 0,
-                        originalPrice: item.gia_goc || item.originalPrice || 0,
+                        // ✅ FIX: Dùng gia_khuyen_mai nếu có, fallback gia_ban
+                        price: item.gia_khuyen_mai || item.gia_ban || item.price || 0,
+                        // ✅ FIX: originalPrice luôn là gia_ban (để show strikethrough)
+                        originalPrice: item.gia_ban || item.gia_goc || item.originalPrice || 0,
                         quantity: item.so_luong || item.quantity || 1,
                         maxQuantity: item.so_luong_ton || item.maxQuantity || 0,
                         color: item.ten_mau_sac || item.color,
                         size: formattedSize,
-                        trang_thai: item.trang_thai
+                        trang_thai: item.trang_thai,
+                        // ✅ NEW: Lưu thêm promotion info
+                        phan_tram_giam: item.phan_tram_giam || null,
+                        ten_khuyen_mai: item.ten_khuyen_mai || null
                     };
 
                     // 🔍 DEBUG: Xem item sau khi map
@@ -1114,7 +1119,7 @@ const updateAllMaxQuantities = async () => {
 
     try {
         console.log(`🚀 [STOCK UPDATE] Starting batch update for ${cartItems.value.length} items`);
-        
+
         // ✅ Step 1: Collect all valid product IDs
         const productIds = cartItems.value
             .filter(item => item.id)
@@ -1128,7 +1133,7 @@ const updateAllMaxQuantities = async () => {
         // ✅ Step 2: Single batch API call instead of N+1 calls
         const { getBatchStock } = await import('@/services/batchStockService');
         const stockDataArray = await getBatchStock(productIds);
-        
+
         console.log(`✅ [STOCK UPDATE] Received batch data for ${stockDataArray.length} products`);
 
         // ✅ Step 3: Map stock data to cart items efficiently
@@ -1169,9 +1174,9 @@ const updateAllMaxQuantities = async () => {
         // ✅ Step 4: Process adjustments if needed
         if (hasAdjustedQuantity && adjustments.length > 0) {
             console.log(`⚙️ [ADJUSTMENT] Processing ${adjustments.length} quantity adjustments`);
-            
+
             const auth = getAuthenticatedUser();
-            
+
             if (auth) {
                 // ✅ Đã đăng nhập - Call API để giảm số lượng trong database
                 for (const adj of adjustments) {
@@ -1209,7 +1214,7 @@ const updateAllMaxQuantities = async () => {
             }
 
             console.log(`✅ [ADJUSTMENT COMPLETE] Adjusted ${adjustments.length} items`);
-            
+
             // Dispatch single update event after all adjustments
             debouncedCartUpdate();
         } else {

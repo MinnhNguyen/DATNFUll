@@ -151,7 +151,7 @@
 :root {
     --z-dropdown: 1000;
     --z-sticky: 1020;
-    --z-fixed: 1030;
+    --z-fixed: 900; /* Giảm để không che notification (1010) */
     --z-modal-backdrop: 1040;
     --z-modal: 1050;
     --z-popover: 1060;

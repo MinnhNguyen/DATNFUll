@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.duanbe.config.TimezoneConfig;
 import com.example.duanbe.entity.ChiTietSanPham;
 import com.example.duanbe.entity.HoaDon;
 import com.example.duanbe.entity.HoaDonChiTiet;
@@ -148,7 +149,82 @@ public class BanHangWebController {
       theoDoiDonHang1.setNgay_chuyen(LocalDateTime.now());
       theoDoiDonHangRepo.save(theoDoiDonHang1);
     }
-    return ResponseEntity.ok(hoaDonAdd);
+
+    // ✅ FIXED: Return simple Map instead of entity to avoid Jackson lazy-loading
+    // issues
+    return ResponseEntity.ok(Map.of(
+        "id_hoa_don", hoaDonAdd.getId_hoa_don(),
+        "ma_hoa_don", hoaDonAdd.getMa_hoa_don(),
+        "trang_thai", hoaDonAdd.getTrang_thai(),
+        "id_khach_hang", idKhachHang,
+        "tong_tien_sau_giam",
+        hoaDonAdd.getTong_tien_sau_giam() != null ? hoaDonAdd.getTong_tien_sau_giam() : BigDecimal.ZERO));
+  }
+
+  @PostMapping("/taoHoaDonWebTreo")
+  public ResponseEntity<?> taoHoaDonWebTreo(@RequestBody HoaDonRequest hoaDon) {
+    HoaDon hoaDonAdd = new HoaDon();
+    BeanUtils.copyProperties(hoaDon, hoaDonAdd);
+    hoaDonAdd.setMa_hoa_don(generateUniqueMaHoaDon());
+    hoaDonAdd.setLoai_hoa_don("Online");
+    hoaDonAdd.setPhuong_thuc_nhan_hang("Giao hàng");
+    hoaDonAdd.setNgay_tao(LocalDateTime.now(TimezoneConfig.VIETNAM_ZONE));
+    hoaDonAdd.setNgay_sua(LocalDateTime.now(TimezoneConfig.VIETNAM_ZONE));
+
+    // 🔍 DEBUG LOGGING - STEP 1: Check delivery method from request
+    System.out.println("🔍 [DEBUG] BanHangWebController.createOrder() - Checking delivery method");
+    System.out.println("  - Delivery method from request: '" + hoaDon.getPhuong_thuc_nhan_hang() + "'");
+
+    // ❌ REMOVED HARDCODE - Use FE value instead
+    // OLD: hoaDonAdd.setPhuong_thuc_nhan_hang("Giao hàng");
+    hoaDonAdd.setPhuong_thuc_nhan_hang(hoaDon.getPhuong_thuc_nhan_hang());
+
+    System.out.println("  - Setting delivery method to: '" + hoaDonAdd.getPhuong_thuc_nhan_hang() + "'");
+
+    hoaDonAdd.setVoucher(
+        hoaDon.getVoucher().getId() != 0 ? voucherRepository.findById(hoaDon.getVoucher().getId()).get()
+            : null);
+    hoaDonAdd.setKhachHang(
+        hoaDon.getId_khach_hang() == 0 ? null : khachHangRepo.findById(hoaDon.getId_khach_hang()).get());
+    hoaDonAdd.setTrang_thai("Đang chờ thanh toán");
+    hoaDonRepo.save(hoaDonAdd);
+
+    // 🔍 DEBUG LOGGING - STEP 2: After Save Verification
+    System.out.println("🔍 [DEBUG] BanHangWebController - State after save:");
+    System.out.println("  - Saved Invoice ID: " + hoaDonAdd.getId_hoa_don());
+    System.out.println("  - Saved Delivery Method: '" + hoaDonAdd.getPhuong_thuc_nhan_hang() + "'");
+    System.out.println("  - Saved Order Type: '" + hoaDonAdd.getLoai_hoa_don() + "'");
+
+    idHoaDon = hoaDonAdd.getId_hoa_don();
+    idKhachHang = hoaDonAdd.getKhachHang() == null || hoaDonAdd.getKhachHang().getIdKhachHang() == null ? 0
+        : hoaDonAdd.getKhachHang().getIdKhachHang();
+    xacNhan = hoaDon.getIsChuyen();
+    TheoDoiDonHang theoDoiDonHang = new TheoDoiDonHang();
+    theoDoiDonHang.setHoaDon(hoaDonAdd);
+    theoDoiDonHang.setTrang_thai("Chờ xác nhận");
+    theoDoiDonHang.setNgay_chuyen(LocalDateTime.now());
+    theoDoiDonHangRepo.save(theoDoiDonHang);
+    if (hoaDon.getVoucher().getId() != 0) {
+      updateVoucherSoLuong(hoaDonAdd.getVoucher().getId());
+    }
+    // sendEmail(hoaDonAdd.getEmail(), hoaDonAdd.getMa_hoa_don());
+    // if (hoaDon.getIsChuyen()) {
+    // TheoDoiDonHang theoDoiDonHang1 = new TheoDoiDonHang();
+    // theoDoiDonHang1.setHoaDon(hoaDonAdd);
+    // theoDoiDonHang1.setTrang_thai("Đã xác nhận");
+    // theoDoiDonHang1.setNgay_chuyen(LocalDateTime.now(TimezoneConfig.VIETNAM_ZONE));
+    // theoDoiDonHangRepo.save(theoDoiDonHang1);
+    // }
+
+    // ✅ FIXED: Return simple Map instead of entity to avoid Jackson lazy-loading
+    // issues--
+    return ResponseEntity.ok(Map.of(
+        "id_hoa_don", hoaDonAdd.getId_hoa_don(),
+        "ma_hoa_don", hoaDonAdd.getMa_hoa_don(),
+        "trang_thai", hoaDonAdd.getTrang_thai(),
+        "id_khach_hang", idKhachHang,
+        "tong_tien_sau_giam",
+        hoaDonAdd.getTong_tien_sau_giam() != null ? hoaDonAdd.getTong_tien_sau_giam() : BigDecimal.ZERO));
   }
 
   private void updateVoucherSoLuong(Integer idVoucher) {
@@ -174,13 +250,17 @@ public class BanHangWebController {
   }
 
   @PostMapping("/taoHoaDonWeb1")
-  public ResponseEntity<?> taoHoaDonWeb1(@RequestBody HoaDon hoaDon) {
-    HoaDon hoaDonAdd = new HoaDon();
-    BeanUtils.copyProperties(hoaDon, hoaDonAdd);
-    hoaDonAdd.setMa_hoa_don(generateUniqueMaHoaDon());
+  public ResponseEntity<?> taoHoaDonWeb1(@RequestBody HoaDonRequest hoaDon) {
+    // HoaDon hoaDonAdd = new HoaDon();
+    // BeanUtils.copyProperties(hoaDon, hoaDonAdd);
+    if (hoaDon.getId_hoa_don() == null || hoaDon.getId_hoa_don() == 0) {
+      return ResponseEntity.badRequest().build();
+    }
+    HoaDon hoaDonAdd = hoaDonRepo.findById(hoaDon.getId_hoa_don()).get();
+    // hoaDonAdd.setMa_hoa_don(generateUniqueMaHoaDon());
     hoaDonAdd.setLoai_hoa_don("Online");
-    hoaDonAdd.setNgay_tao(LocalDateTime.now());
-    hoaDonAdd.setNgay_sua(LocalDateTime.now());
+    // hoaDonAdd.setNgay_tao(LocalDateTime.now());
+    hoaDonAdd.setNgay_sua(LocalDateTime.now(TimezoneConfig.VIETNAM_ZONE));
     // 🔍 DEBUG LOGGING - Check delivery method from request
     System.out.println("🔍 [DEBUG] BanHangWebController - Checking delivery method");
     System.out.println("  - Delivery method from request: '" + hoaDon.getPhuong_thuc_nhan_hang() + "'");
@@ -190,11 +270,13 @@ public class BanHangWebController {
     hoaDonAdd.setPhuong_thuc_nhan_hang(hoaDon.getPhuong_thuc_nhan_hang());
 
     System.out.println("  - Setting delivery method to: '" + hoaDonAdd.getPhuong_thuc_nhan_hang() + "'");
-    hoaDonAdd.setVoucher(
-        hoaDon.getVoucher().getId() != null ? voucherRepository.findById(hoaDon.getVoucher().getId()).get()
-            : null);
+    // hoaDonAdd.setVoucher(
+    // hoaDon.getVoucher().getId() != null ?
+    // voucherRepository.findById(hoaDon.getVoucher().getId()).get()
+    // : null);
     hoaDonAdd.setKhachHang(hoaDon.getKhachHang().getIdKhachHang() == 0 ? null
         : khachHangRepo.findById(hoaDon.getKhachHang().getIdKhachHang()).get());
+    hoaDonAdd.setTrang_thai("Hoàn thành");
     hoaDonRepo.save(hoaDonAdd);
 
     // 🔍 DEBUG LOGGING - STEP 2: After Save Verification (suaHoaDon)
@@ -204,12 +286,15 @@ public class BanHangWebController {
     System.out.println("  - Saved Order Type: '" + hoaDonAdd.getLoai_hoa_don() + "'");
 
     idHoaDon = hoaDonAdd.getId_hoa_don();
-    TheoDoiDonHang theoDoiDonHang = new TheoDoiDonHang();
-    theoDoiDonHang.setHoaDon(hoaDonAdd);
-    theoDoiDonHang.setTrang_thai("Đã xác nhận");
-    theoDoiDonHang.setNgay_chuyen(LocalDateTime.now());
-    theoDoiDonHangRepo.save(theoDoiDonHang);
-    sendEmail(hoaDonAdd.getEmail(), hoaDonAdd.getMa_hoa_don());
+    if (hoaDon.getIsChuyen()) {
+      TheoDoiDonHang theoDoiDonHang = new TheoDoiDonHang();
+      theoDoiDonHang.setHoaDon(hoaDonAdd);
+      theoDoiDonHang.setTrang_thai("Đã xác nhận");
+      theoDoiDonHang.setNgay_chuyen(LocalDateTime.now(TimezoneConfig.VIETNAM_ZONE));
+      theoDoiDonHangRepo.save(theoDoiDonHang);
+      sendEmail(hoaDonAdd.getEmail(), hoaDonAdd.getMa_hoa_don());
+
+    }
     return ResponseEntity.ok(hoaDonAdd);
   }
 
