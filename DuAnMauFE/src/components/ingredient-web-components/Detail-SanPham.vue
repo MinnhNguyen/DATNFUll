@@ -145,7 +145,7 @@
                     <button class="btn-add-to-cart" @click="addToCartFromDetail">
                         <shopping-cart-outlined />
                         Thêm vào giỏ hàng
-                        <span v-if="cartItemCount > 0" class="cart-count-badge">{{ cartItemCount }}</span>
+                        <span v-if="cartItemCount > 0" class="cart-count-badge">{{ formattedCartCount }}</span>
                     </button>
                     <button class="btn-buy-now" @click="buyNow">
                         <thunderbolt-outlined />
@@ -628,6 +628,11 @@ const fetchProductDetail = async (id, route) => {
 };
 
 const cartItemCount = ref(0);
+
+// ✅ Format cart count: hiển thị "99+" nếu > 99
+const formattedCartCount = computed(() => {
+    return cartItemCount.value > 99 ? '99+' : cartItemCount.value.toString();
+});
 // Hàm tải giỏ hàng và cập nhật số lượng
 const updateCartCount = async () => {
     try {
@@ -658,8 +663,8 @@ const updateCartCount = async () => {
                 console.log(`✅ [DETAIL ${userType}] Database cart count:`, totalItems);
                 cartItemCount.value = totalItems;
 
-                // Phát sự kiện cập nhật giỏ hàng
-                window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
+                // ✅ REMOVED: Redundant event dispatch
+                // GioHang.vue handles cart-updated events
             } catch (error) {
                 console.error('❌ [DETAIL] Lỗi khi lấy số lượng giỏ hàng từ API:', error);
                 cartItemCount.value = 0;
@@ -682,8 +687,8 @@ const updateCartCount = async () => {
             console.log('🔄 [DETAIL GUEST] LocalStorage cart count:', totalItems);
             cartItemCount.value = totalItems;
 
-            // Phát sự kiện cập nhật giỏ hàng
-            window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: totalItems } }));
+            // ✅ REMOVED: Redundant event dispatch
+            // GioHang.vue handles cart-updated events
         }
     } catch (error) {
         console.error('❌ [DETAIL] Lỗi khi cập nhật số lượng giỏ hàng:', error);
@@ -1620,7 +1625,17 @@ const addToCartFromDetail = async () => {
                     // Lưu giỏ hàng vào localStorage
                     localStorage.setItem('gb-sport-cart', JSON.stringify(cartItems));
 
-                    // Cập nhật số lượng sau khi thêm vào localStorage
+                    // ✅ THÊM: Dispatch event để TheHeader update cart count
+                    window.dispatchEvent(new CustomEvent('cart-updated', {
+                        detail: {
+                            action: 'item_added_from_detail',
+                            userType: 'GUEST',
+                            quantity: quantity.value,
+                            totalItems: cartItems.reduce((sum, item) => sum + item.quantity, 0)
+                        }
+                    }));
+
+                    // Cập nhật số lượng hiển thị local
                     await updateCartCount();
 
                     notification.success({

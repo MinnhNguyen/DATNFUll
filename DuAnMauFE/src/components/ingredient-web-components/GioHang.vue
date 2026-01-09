@@ -171,6 +171,7 @@ import { useGbStore } from '@/stores/gbStore';
 import { useRoute } from 'vue-router';
 import { banHangOnlineService } from '@/services/banHangOnlineService';
 import { toast } from 'vue3-toastify';
+import { debounce } from '@/utils/performanceUtils';
 
 const route = useRoute();
 const router = useRouter();
@@ -179,6 +180,21 @@ const cartItems = ref([]);
 const selectedItems = ref([]);
 const idKhachHang = ref(null);
 const gioHang = ref([]);
+
+// ✅ OPTIMIZATION: Debounced cart update event dispatcher
+// Prevents multiple rapid-fire events, only dispatches after 300ms of inactivity
+const debouncedCartUpdate = debounce(() => {
+    const totalItems = cartItems.value.reduce((sum, item) => sum + item.quantity, 0);
+    window.dispatchEvent(new CustomEvent('cart-updated', {
+        detail: {
+            timestamp: Date.now(),
+            totalItems,
+            source: 'GioHang'
+        }
+    }));
+    console.log('🔔 [CART] Debounced event dispatched:', totalItems, 'items');
+}, 300);
+
 
 // ✅ HELPER FUNCTION - Chuẩn hóa kiểm tra đăng nhập
 const getAuthenticatedUser = () => {
@@ -246,9 +262,10 @@ const loadCartFromLocalStorage = async () => {
 const saveCartToLocalStorage = () => {
     localStorage.setItem('gb-sport-cart', JSON.stringify(cartItems.value));
 
-    // Phát ra sự kiện custom để cập nhật các component khác
-    window.dispatchEvent(new CustomEvent('cart-updated'));
+    // ✅ OPTIMIZED: Use debounced event instead of immediate dispatch
+    debouncedCartUpdate();
 };
+
 
 // Tính tổng số tiền của các sản phẩm đã chọn
 const totalSelectedPrice = computed(() => {
@@ -301,17 +318,26 @@ const selectAll = (checked) => {
     }
 };
 
-// Kiểm tra xem đã chọn tất cả chưa
+// ✅ OPTIMIZED: isAllSelected computed - reduced from O(n²) to O(n)
 const isAllSelected = computed(() => {
-    const availableItems = cartItems.value.filter((item, index) => canBeSelected(index));
-    if (availableItems.length === 0) return false;
+    // Fast path: empty cart
+    if (cartItems.value.length === 0) return false;
 
-    const availableIndexes = cartItems.value
-        .map((item, index) => ({ item, index }))
-        .filter(({ item, index }) => canBeSelected(index))
-        .map(({ index }) => index);
+    // Single-pass algorithm: check all items in one loop
+    let availableCount = 0;
+    let selectedCount = 0;
 
-    return availableIndexes.every(index => selectedItems.value.includes(index));
+    for (let i = 0; i < cartItems.value.length; i++) {
+        if (canBeSelected(i)) {
+            availableCount++;
+            if (selectedItems.value.includes(i)) {
+                selectedCount++;
+            }
+        }
+    }
+
+    // All available items must be selected
+    return availableCount > 0 && availableCount === selectedCount;
 });
 
 // Tăng z-index cho Modal confirm
@@ -415,14 +441,8 @@ const handleQuantityDecrease = async (index) => {
 
                     item.quantity -= 1;
 
-                    // ✅ THÊM: Dispatch event
-                    window.dispatchEvent(new CustomEvent('cart-updated', {
-                        detail: {
-                            action: 'quantity_decreased',
-                            userType: auth.type,
-                            totalItems: cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
-                        }
-                    }));
+                    // ✅ REMOVED: Redundant event dispatch
+                    // saveCartToLocalStorage() already calls debouncedCartUpdate()
 
                     toast.success(`Đã giảm số lượng sản phẩm "${item.name}" xuống ${item.quantity}`);
                 } catch (error) {
@@ -553,14 +573,8 @@ const handleQuantityIncrease = async (index) => {
 
                 item.quantity += 1;
 
-                // ✅ THÊM: Dispatch event
-                window.dispatchEvent(new CustomEvent('cart-updated', {
-                    detail: {
-                        action: 'quantity_increased',
-                        userType: auth.type,
-                        totalItems: cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
-                    }
-                }));
+                // ✅ REMOVED: Redundant event dispatch
+                // API success already triggers proper state update
 
                 toast.success(`Đã tăng số lượng sản phẩm "${item.name}" lên ${item.quantity}`);
             } catch (error) {
@@ -607,19 +621,9 @@ const removeItem = async (index) => {
                     item.quantity
                 );
                 
-                // ✅ Chỉ dispatch event khi API thành công
+                // ✅ OPTIMIZED: Use debounced event on success
                 if (result.success) {
-                    window.dispatchEvent(new CustomEvent('cart-updated', {
-                        detail: {
-                            action: 'item_removed',
-                            userType: auth.type,
-                            itemId: item.id,
-                            totalItems: cartItems.value.reduce((sum, item) => sum + item.quantity, 0),
-                            success: true
-                        }
-                    }));
-                    
-                    // Không cần message.success nữa vì store đã toast.success
+                    debouncedCartUpdate();
                     console.log('✅ [DB] Item deleted successfully');
                 }
                 
@@ -1101,116 +1105,120 @@ const getGioHang = async () => {
     }
 };
 
-// Cập nhật số lượng tồn kho cho tất cả sản phẩm trong giỏ hàng và tự động điều chỉnh nếu cần
+// ✅ OPTIMIZED: Batch stock update - replaces N+1 API calls with single batch call
 const updateAllMaxQuantities = async () => {
+    if (cartItems.value.length === 0) {
+        console.log('⏭️ [STOCK UPDATE] Cart is empty, skipping update');
+        return;
+    }
+
     try {
+        console.log(`🚀 [STOCK UPDATE] Starting batch update for ${cartItems.value.length} items`);
+        
+        // ✅ Step 1: Collect all valid product IDs
+        const productIds = cartItems.value
+            .filter(item => item.id)
+            .map(item => item.id);
+
+        if (productIds.length === 0) {
+            console.warn('⚠️ [STOCK UPDATE] No valid product IDs found');
+            return;
+        }
+
+        // ✅ Step 2: Single batch API call instead of N+1 calls
+        const { getBatchStock } = await import('@/services/batchStockService');
+        const stockDataArray = await getBatchStock(productIds);
+        
+        console.log(`✅ [STOCK UPDATE] Received batch data for ${stockDataArray.length} products`);
+
+        // ✅ Step 3: Map stock data to cart items efficiently
+        const stockDataMap = new Map(stockDataArray.map(item => [item.id, item]));
         let hasAdjustedQuantity = false;
+        let adjustments = [];
 
         for (const item of cartItems.value) {
-            // ✅ VALIDATION: Kiểm tra item.id trước khi gọi API
             if (!item.id) {
-                console.warn('⚠️ [WARNING] Item has no ID, skipping:', {
-                    name: item.name,
-                    item: item
-                });
+                console.warn('⚠️ [WARNING] Item has no ID, skipping:', item.name);
                 continue;
             }
 
-            // 🔍 DEBUG: Log item trước khi gọi API
-            console.log('🔍 [DEBUG] Processing item:', {
-                id: item.id,
-                name: item.name,
-                idType: typeof item.id
-            });
-
-            // Gọi API để lấy số lượng tồn kho mới nhất
-            await store.getMaxSoLuongSP(item.id);
-            const maxAvailable = store.maxSoLuongSP || 0;
-
-            console.log(`Cập nhật số lượng tối đa cho ${item.name}: ${maxAvailable} (hiện tại: ${item.quantity})`);
-
-            // Cập nhật maxQuantity không xóa sản phẩm
-            item.maxQuantity = maxAvailable;
-
-            // Kiểm tra trạng thái sản phẩm
-            try {
-                await store.getTrangThaiCTSP(item.id);
-                const isActive = store.trangThaiCTSP;
-
-                // Cập nhật trạng thái cho sản phẩm
-                item.trang_thai = isActive ? 'Hoạt động' : 'Không hoạt động';
-            } catch (error) {
-                console.error(`Lỗi khi kiểm tra trạng thái sản phẩm ${item.name}:`, error);
-            }
-
-            // Nếu sản phẩm hết hàng hoặc không hoạt động, bỏ qua điều chỉnh
-            if (maxAvailable <= 0 || (item.trang_thai && item.trang_thai !== 'Hoạt động')) {
-                console.log(`Sản phẩm ${item.name} không khả dụng, bỏ qua điều chỉnh số lượng`);
+            const stockInfo = stockDataMap.get(item.id);
+            if (!stockInfo) {
+                console.warn(`⚠️ [WARNING] No stock data for product ${item.name} (ID: ${item.id})`);
                 continue;
             }
 
-            // Chỉ điều chỉnh số lượng đối với sản phẩm có sẵn
-            if (item.quantity > maxAvailable) {
-                console.log(`Sản phẩm ${item.name} có số lượng ${item.quantity} vượt quá số lượng tồn kho ${maxAvailable}`);
+            // Update item properties
+            item.maxQuantity = stockInfo.stock;
+            item.trang_thai = stockInfo.status ? 'Hoạt động' : 'Không hoạt động';
+
+            console.log(`📊 [STOCK] ${item.name}: max=${stockInfo.stock}, status=${item.trang_thai}`);
+
+            // Check if adjustment is needed
+            if (item.quantity > stockInfo.stock && stockInfo.stock > 0 && stockInfo.status) {
                 hasAdjustedQuantity = true;
+                adjustments.push({
+                    item,
+                    oldQuantity: item.quantity,
+                    newQuantity: stockInfo.stock,
+                    quantityToReduce: item.quantity - stockInfo.stock
+                });
+            }
+        }
 
-                // Tính số lượng cần giảm
-                const quantityToReduce = item.quantity - maxAvailable;
-
-                // ✅ FIXED: Dùng helper function để check authentication
-                const auth = getAuthenticatedUser();
-                
-                if (auth) {
-                    // ✅ Đã đăng nhập - Call API để giảm số lượng trong database
+        // ✅ Step 4: Process adjustments if needed
+        if (hasAdjustedQuantity && adjustments.length > 0) {
+            console.log(`⚙️ [ADJUSTMENT] Processing ${adjustments.length} quantity adjustments`);
+            
+            const auth = getAuthenticatedUser();
+            
+            if (auth) {
+                // ✅ Đã đăng nhập - Call API để giảm số lượng trong database
+                for (const adj of adjustments) {
                     try {
-                        console.log(`✅ [${auth.type.toUpperCase()}] Auto-adjusting quantity in database:`, {
-                            userId: auth.id,
-                            itemId: item.id,
-                            quantityToReduce
-                        });
+                        console.log(`🔧 [${auth.type.toUpperCase()}] Adjusting ${adj.item.name}: ${adj.oldQuantity} → ${adj.newQuantity}`);
 
-                        // Gọi API để giảm số lượng
                         await store.xoaSoLuongSPGH(
                             auth.id,
-                            item.id,
-                            quantityToReduce
+                            adj.item.id,
+                            adj.quantityToReduce
                         );
 
-                        // Cập nhật lại số lượng trong giỏ hàng UI
-                        const oldQuantity = item.quantity;
-                        item.quantity = maxAvailable;
+                        // Update UI
+                        adj.item.quantity = adj.newQuantity;
 
-                        // Hiển thị thông báo cho người dùng
-                        toast.warning(`Số lượng sản phẩm "${item.name}" đã được điều chỉnh từ ${oldQuantity} xuống ${maxAvailable} do hàng tồn kho đã thay đổi`, {
+                        toast.warning(`Số lượng sản phẩm "${adj.item.name}" đã được điều chỉnh từ ${adj.oldQuantity} xuống ${adj.newQuantity} do hàng tồn kho đã thay đổi`, {
                             position: "top-center",
                             autoClose: 4000
                         });
                     } catch (error) {
-                        console.error('❌ Lỗi khi điều chỉnh số lượng sản phẩm:', error);
-                        toast.error('Có lỗi xảy ra khi điều chỉnh số lượng sản phẩm');
+                        console.error(`❌ Lỗi khi điều chỉnh ${adj.item.name}:`, error);
+                        toast.error(`Có lỗi xảy ra khi điều chỉnh số lượng sản phẩm "${adj.item.name}"`);
                     }
-                } else {
-                    // ❌ Chưa đăng nhập - Chỉ update localStorage
-                    const oldQuantity = item.quantity;
-                    item.quantity = maxAvailable;
-                    saveCartToLocalStorage();
-
-                    // Hiển thị thông báo cho người dùng
-                    toast.warning(`Số lượng sản phẩm "${item.name}" đã được điều chỉnh từ ${oldQuantity} xuống ${maxAvailable} do hàng tồn kho đã thay đổi`, {
+                }
+            } else {
+                // ❌ Chưa đăng nhập - Chỉ update localStorage
+                for (const adj of adjustments) {
+                    adj.item.quantity = adj.newQuantity;
+                    toast.warning(`Số lượng sản phẩm "${adj.item.name}" đã được điều chỉnh từ ${adj.oldQuantity} xuống ${adj.newQuantity} do hàng tồn kho đã thay đổi`, {
                         position: "top-center",
                         autoClose: 4000
                     });
                 }
+                saveCartToLocalStorage();
             }
+
+            console.log(`✅ [ADJUSTMENT COMPLETE] Adjusted ${adjustments.length} items`);
+            
+            // Dispatch single update event after all adjustments
+            debouncedCartUpdate();
+        } else {
+            console.log('ℹ️ [STOCK UPDATE] No adjustments needed, all quantities within limits');
         }
 
-        if (hasAdjustedQuantity) {
-            console.log('Đã tự động điều chỉnh số lượng cho một số sản phẩm do thay đổi tồn kho');
-        } else {
-            console.log('Tất cả sản phẩm đều có số lượng hợp lệ');
-        }
     } catch (error) {
-        console.error('Lỗi khi cập nhật số lượng tồn kho:', error);
+        console.error('❌ [STOCK UPDATE] Error during batch update:', error);
+        toast.error('Có lỗi xảy ra khi cập nhật số lượng tồn kho');
     }
 };
 

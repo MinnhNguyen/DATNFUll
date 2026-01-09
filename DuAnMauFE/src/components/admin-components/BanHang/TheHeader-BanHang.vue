@@ -1175,13 +1175,33 @@ const updateInvoiceFromResponse = (response, tabKey = null) => {
         ma_voucher: response.ma_voucher,
         ten_voucher: response.ten_voucher,
 
-        // Customer info - ✅ PHASE 2: Force clear cả 2 fields
-        id_khach_hang: response.id_khach_hang || null,
-        ten_khach_hang: response.id_khach_hang ? response.ten_khach_hang : 'Khách lẻ',
-        ho_ten: response.id_khach_hang ? (response.ho_ten || response.ten_khach_hang) : 'Khách lẻ',
-        email: response.id_khach_hang ? response.email : null,
-        sdt: response.id_khach_hang ? response.sdt : null,
-        dia_chi: response.id_khach_hang ? response.dia_chi : null,
+        // ✅ FIXED V2: Check each customer field individually
+        // Preserve existing value if API response doesn't include that specific field
+        // This handles all cases: ZaloPay callback, delivery method changes, etc.
+        id_khach_hang: response.id_khach_hang !== undefined
+            ? response.id_khach_hang
+            : targetTab.hd.id_khach_hang,
+
+        ten_khach_hang: response.ten_khach_hang !== undefined
+            ? response.ten_khach_hang
+            : targetTab.hd.ten_khach_hang,
+
+        ho_ten: response.ho_ten !== undefined
+            ? response.ho_ten
+            : targetTab.hd.ho_ten,
+
+        email: response.email !== undefined
+            ? response.email
+            : targetTab.hd.email,
+
+        sdt: response.sdt !== undefined
+            ? response.sdt
+            : targetTab.hd.sdt,
+
+        dia_chi: response.dia_chi !== undefined
+            ? response.dia_chi
+            : targetTab.hd.dia_chi,
+
 
         // Status
         trang_thai: response.trang_thai
@@ -3466,8 +3486,16 @@ const handlePhuongThucChange = async () => {
             localStorage.removeItem('shippingFeeUpdated');
             localStorage.removeItem('calculatedShippingFee');
 
+            // ✅ API call: Update to "Nhận tại cửa hàng" with 0 shipping fee
             response = await store.setTrangThaiNhanHang(idHoaDon, phuongThuc, 0);
             console.log('✅ Đã cập nhật: Nhận tại cửa hàng');
+
+            // ❌ CRITICAL: DO NOT call triggerUpdate.value = Date.now() here!
+            // Root cause of customer reset bug:
+            // - triggerUpdate triggers form component watcher
+            // - Form watcher reloads customer data from localStorage  
+            // - This overrides the customer info just preserved by updateInvoiceFromResponse()
+            // - For "Nhận tại cửa hàng", form update is NOT needed (no shipping calculation)
 
         } else if (phuongThuc === 'Giao hàng') {
             console.log('🎯 Vào nhánh: Giao hàng');
@@ -3479,6 +3507,7 @@ const handlePhuongThucChange = async () => {
             response = await store.setTrangThaiNhanHang(idHoaDon, phuongThuc, phiVanChuyen);
             console.log('✅ Đã cập nhật: Giao hàng, phí =', phiVanChuyen);
 
+            // ✅ KEEP: Trigger form update for shipping fee calculation
             triggerUpdate.value = Date.now();
         } else {
             console.warn('⚠️ Không khớp if-else! phuongThuc =', phuongThuc);

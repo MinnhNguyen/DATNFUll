@@ -34,7 +34,7 @@
                         @mouseenter="animateIcon('cart')">
                         <div class="icon-container">
                             <ShoppingCart class="nav-icon" :class="{ 'icon-animated': animatedIcon === 'cart' }" />
-                            <span v-if="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
+                            <span v-if="cartItemCount > 0" class="cart-badge">{{ formattedCartCount }}</span>
                         </div>
                         <span class="nav-text">Giỏ hàng</span>
                     </div>
@@ -88,6 +88,7 @@ import TheHeaderSearchModal from './TheHeaderSearchModal.vue';
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { banHangOnlineService } from '@/services/banHangOnlineService';
+import { debounce } from '@/utils/performanceUtils';
 
 const store = useGbStore();
 const animatedIcon = ref(null);
@@ -96,6 +97,11 @@ const router = useRouter();
 const showMenu = ref(false);
 const searchKeyword = ref('');
 const displayName = ref('Đăng nhập'); // Use ref instead of computed for reactivity
+
+// ✅ Format cart count: hiển thị "99+" nếu > 99
+const formattedCartCount = computed(() => {
+    return cartItemCount.value > 99 ? '99+' : cartItemCount.value.toString();
+});
 
 // Function to update display name from storage
 const updateDisplayName = () => {
@@ -301,16 +307,17 @@ const handleSearch = async () => {
     }
 };
 
-// ✅ THÊM: Xử lý event từ components khác (GioHang, Detail)
-const handleCartUpdateEvent = async (event) => {
+// ✅ OPTIMIZED: Debounced event handler to prevent excessive API calls
+// Reduced to 200ms for faster perceived responsiveness
+const handleCartUpdateEvent = debounce(async (event) => {
     try {
-        console.log('🔍 [HEADER] Received cart-updated event:', event.detail);
+        console.log('🔍 [HEADER] Received cart-updated event (debounced):', event.detail);
         // Refresh cart count từ database hoặc localStorage
         await updateCartCount();
     } catch (error) {
         console.error('❌ [HEADER] Error handling cart event:', error);
     }
-};
+}, 200); // Debounce 200ms - balance between performance and responsiveness
 
 // Cập nhật lại onMounted để thêm listener document.click
 onMounted(async () => {
@@ -334,15 +341,13 @@ onMounted(async () => {
     });
 });
 
-// Làm sạch listener khi component bị hủy
+// ✅ OPTIMIZED: Cleanup listeners without interval
 onBeforeUnmount(() => {
     window.removeEventListener('cart-updated', handleCartUpdateEvent);
     document.removeEventListener('click', closeMenuOnOutsideClick);
-    clearInterval(checkCartInterval);
+    // ❌ REMOVED: Auto-refresh interval (setInterval)
+    // Cart updates are now event-driven only
 });
-
-// Kiểm tra giỏ hàng định kỳ để đảm bảo hiển thị chính xác
-const checkCartInterval = setInterval(updateCartCount, 5000);
 </script>
 
 <style scoped>
