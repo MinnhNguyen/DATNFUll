@@ -2,6 +2,7 @@ package com.example.duanbe.entity;
 
 import com.example.duanbe.config.TimezoneConfig;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
@@ -17,6 +18,7 @@ import org.springframework.format.annotation.DateTimeFormat;
  */
 @Entity
 @Table(name = "hoa_don")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // ✅ Fix Hibernate proxy serialization
 public class HoaDon {
 
   @Id
@@ -77,10 +79,12 @@ public class HoaDon {
   // Relationships
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_khach_hang")
+  @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // ✅ Fix proxy
   private KhachHang khachHang;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_voucher")
+  @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // ✅ Fix proxy
   private Voucher voucher;
 
   @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
