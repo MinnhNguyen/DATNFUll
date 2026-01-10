@@ -48,7 +48,7 @@
               <h2>Thông tin đơn hàng #{{ thongTinHoaDon.ma_hoa_don }}</h2>
               <p v-if="thongTinHoaDon.ma_hoa_don">Ngày đặt hàng: {{
                 dinhDangNgayGio(thongTinHoaDon.ngay_tao)
-              }}
+                }}
               </p>
             </div>
             <div :class="['order-status', `status-${currentStatus?.code || 'pending'}`]">
@@ -112,7 +112,7 @@
               </div>
               <div class="total-row grand-total">
                 <span>Tổng cộng:</span>
-                <span>{{ dinhDangTien(thongTinHoaDon.tong_tien_sau_giam) }}</span>
+                <span>{{ dinhDangTien(thongTinHoaDon.tong_tien_sau_giam + thongTinHoaDon.phi_van_chuyen) }}</span>
               </div>
             </div>
 

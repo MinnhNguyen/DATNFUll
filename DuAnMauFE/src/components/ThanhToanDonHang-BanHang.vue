@@ -196,7 +196,7 @@
                 <div class="coupon-info">
                   <div class="coupon-badge">
                     <span class="coupon-type">{{ coupon.loai === 'percent' ? 'GIẢM %' : 'GIẢM GIÁ'
-                    }}</span>
+                      }}</span>
                   </div>
                   <div class="coupon-details">
                     <p class="coupon-value">{{ coupon.loai === 'percent' ? `Giảm ${coupon.gia_tri}%`
@@ -1241,9 +1241,103 @@ const handleZaloPaySuccess = async () => {
   zaloPayModalVisible.value = false;
   currentStatus.value = 4; // Complete
 
-  // Clear cart
+  // ✅ Clear cart for both logged-in and guest users
   if (!store.getIsThanhToanMuaNgay()) {
-    localStorage.removeItem('gb-sport-cart');
+    console.log('🛒 [CART] Clearing purchased items from cart...');
+
+    // For guest users: Remove only purchased items from localStorage
+    try {
+      const cartData = localStorage.getItem('gb-sport-cart');
+      if (cartData) {
+        const cart = JSON.parse(cartData);
+        console.log('📦 [CART] Current cart:', cart);
+        console.log('🛍️ [CART] Items purchased:', orderItems.value);
+
+        // Create a Set of purchased product IDs for fast lookup
+        const purchasedProductIds = new Set(
+          orderItems.value.map(item => item.id_chi_tiet_san_pham || item.productId || item.id)
+        );
+
+        // Filter out purchased items from cart
+        const updatedCart = cart.filter(cartItem => {
+          const cartProductId = cartItem.id_chi_tiet_san_pham || cartItem.productId || cartItem.id;
+          const isPurchased = purchasedProductIds.has(cartProductId);
+
+          if (isPurchased) {
+            console.log(`🗑️ [CART] Removing purchased item: ${cartItem.ten_san_pham || cartItem.name}`);
+          }
+
+          return !isPurchased; // Keep items that were NOT purchased
+        });
+
+        // Save updated cart back to localStorage
+        if (updatedCart.length > 0) {
+          localStorage.setItem('gb-sport-cart', JSON.stringify(updatedCart));
+          console.log(`✅ [CART] Updated localStorage cart (${updatedCart.length} items remaining)`);
+        } else {
+          localStorage.removeItem('gb-sport-cart');
+          console.log('✅ [CART] All items purchased, removed localStorage cart');
+        }
+      }
+    } catch (error) {
+      console.error('❌ [CART] Failed to update localStorage cart:', error);
+      // Fallback: just remove the entire cart
+      localStorage.removeItem('gb-sport-cart');
+    }
+
+    // For logged-in users: Refresh cart from backend
+    try {
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        const customerData = JSON.parse(userInfo);
+        const customerId = customerData?.idKhachHang || customerData?.id_khach_hang;
+
+        if (customerId) {
+          console.log('👤 [CART] Logged-in user detected, refreshing cart...');
+          await store.getGioHang(customerId);
+          console.log('✅ [CART] Refreshed cart from backend');
+        }
+      }
+    } catch (error) {
+      console.error('❌ [CART] Failed to refresh cart:', error);
+    }
+
+    // Dispatch event to force header cart badge update with actual count
+    try {
+      // Wait for Vue to finish DOM updates
+      await nextTick();
+
+      // Small delay to ensure localStorage writes complete
+      setTimeout(async () => {
+        const cartData = localStorage.getItem('gb-sport-cart');
+        let remainingCount = 0;
+
+        if (cartData) {
+          const cart = JSON.parse(cartData);
+          remainingCount = cart.reduce((total, item) => {
+            return total + (item.quantity || item.so_luong || 1);
+          }, 0);
+        }
+
+        // Check if user is logged in for backend count
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          // For logged-in users, get count from store
+          const storeCart = store.gioHang || [];
+          remainingCount = storeCart.reduce((total, item) => {
+            return total + (item.quantity || item.so_luong || 1);
+          }, 0);
+        }
+
+        window.dispatchEvent(new CustomEvent('cart-updated', {
+          detail: { count: remainingCount }
+        }));
+        console.log(`📢 [CART] Dispatched cart-updated event (count: ${remainingCount})`);
+      }, 150); // 150ms delay to ensure all updates complete
+    } catch (error) {
+      console.error('❌ [CART] Failed to calculate cart count:', error);
+      window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: 0 } }));
+    }
   }
 
   // ✅ Show success modal
@@ -1382,8 +1476,11 @@ const placeOrder = async () => {
 
           // Xử lý từng sản phẩm trong giỏ hàng
           currentCart.forEach(cartItem => {
+            // Get cart item ID (support multiple field names)
+            const cartItemId = cartItem.id_chi_tiet_san_pham || cartItem.id || cartItem.productId;
+
             // Tìm sản phẩm tương ứng trong danh sách đã thanh toán
-            const paidItem = paidProducts.find(paid => paid.id === cartItem.id);
+            const paidItem = paidProducts.find(paid => paid.id === cartItemId);
 
             if (paidItem) {
               // Nếu sản phẩm có trong đơn hàng, trừ số lượng
@@ -1411,6 +1508,18 @@ const placeOrder = async () => {
             // Nếu không còn sản phẩm nào, xóa giỏ hàng
             localStorage.removeItem('gb-sport-cart');
           }
+
+          // Dispatch event to update header cart badge
+          await nextTick();
+          setTimeout(() => {
+            const remainingCount = updatedCart.reduce((total, item) => {
+              return total + (item.quantity || item.so_luong || 1);
+            }, 0);
+            window.dispatchEvent(new CustomEvent('cart-updated', {
+              detail: { count: remainingCount }
+            }));
+            console.log(`📢 [CART] Dispatched cart-updated event (count: ${remainingCount})`);
+          }, 100);
         }
       } catch (error) {
         console.error('Lỗi khi tạo đơn hàng COD:', error);
