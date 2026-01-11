@@ -529,23 +529,34 @@ public class BanHangController {
             .body("Sản phẩm đã hết hàng hoặc đã đạt giới hạn trong giỏ!");
       }
 
-      // ✅ 3. TÌM sản phẩm với CÙNG ID **VÀ** CÙNG ĐƠN GIÁ
-      Optional<HoaDonChiTiet> existingItemWithSamePrice = hoaDonChiTietRepo
-          .findByHoaDonAndChiTietSanPhamAndDonGia(idHD, idCTSP, donGiaPerUnit);
+      // ✅ 3. TÌM sản phẩm với CÙNG ID (BỎ QUA GIÁ - LUÔN UPDATE GIÁ MỚI)
+      List<HoaDonChiTiet> existingItems = hoaDonChiTietRepo
+          .findByHoaDonAndChiTietSanPham(idHD, idCTSP);
 
       HoaDonChiTiet chiTiet;
 
-      // ✅ 4. NẾU ĐÃ TỒN TẠI CÙNG GIÁ -> CỘNG SỐ LƯỢNG
-      if (existingItemWithSamePrice.isPresent()) {
-        chiTiet = existingItemWithSamePrice.get();
+      // ✅ 4. NẾU ĐÃ TỒN TẠI -> CỘNG SỐ LƯỢNG + UPDATE GIÁ MỚI
+      if (!existingItems.isEmpty()) {
+        // Lấy dòng đầu tiên (nếu có nhiều dòng duplicate, merge vào dòng đầu)
+        chiTiet = existingItems.get(0);
+
+        // ✅ Lấy giá cũ để log
+        BigDecimal giaCu = chiTiet.getDon_gia().divide(BigDecimal.valueOf(chiTiet.getSo_luong()), 2,
+            RoundingMode.HALF_UP);
+
+        // ✅ Cộng số lượng
         int soLuongMoi = chiTiet.getSo_luong() + soLuong;
         chiTiet.setSo_luong(soLuongMoi);
-        // ✅ don_gia = đơn giá * số lượng
+
+        // ✅ LUÔN CẬP NHẬT GIÁ MỚI (don_gia = đơn giá mới * số lượng)
         chiTiet.setDon_gia(donGiaPerUnit.multiply(BigDecimal.valueOf(soLuongMoi)));
 
-        System.out.println("✅ Cộng số lượng vào dòng có cùng giá: " + donGiaPerUnit);
+        if (!giaCu.equals(donGiaPerUnit)) {
+          System.out.println("🔄 Giá thay đổi: " + giaCu + " → " + donGiaPerUnit);
+        }
+        System.out.println("✅ Merge vào dòng cũ, tổng SL: " + soLuongMoi + ", giá mới: " + donGiaPerUnit);
       }
-      // ✅ 5. NẾU CHƯA TỒN TẠI HOẶC KHÁC GIÁ -> TẠO DÒNG MỚI
+      // ✅ 5. NẾU CHƯA TỒN TẠI -> TẠO DÒNG MỚI
       else {
         chiTiet = new HoaDonChiTiet();
         chiTiet.setHoaDon(hoaDon);
