@@ -412,10 +412,14 @@ const updateShippingFee = async (index) => {
     console.log(`📦 Đang tính phí vận chuyển qua GHTK API...`);
 
     try {
-      // Lấy tổng tiền hóa đơn hiện tại (nếu có)
-      const idHoaDon = gbStore.getCurrentHoaDonId();
-      const hoaDonHienTai = idHoaDon ? gbStore.getAllHoaDonCTTArr.find(hd => hd.id_hoa_don === idHoaDon) : null;
-      const tongTienHoaDon = Math.round(hoaDonHienTai?.tong_tien_truoc_giam || 150000); // Convert to integer
+      // ✅ FIX: Lấy tổng tiền từ props (parent truyền vào) hoặc fallback store
+      const idHoaDon = props.idHoaDon || gbStore.getCurrentHoaDonId();
+      const tongTienHoaDon = Math.round(props.tongTien || 150000); // Use prop or default
+
+      // ✅ DEBUG: Log giá trị để check freeship
+      console.log(`💰 [FREESHIP CHECK] Tổng tiền hóa đơn: ${tongTienHoaDon.toLocaleString()}đ`);
+      console.log(`💰 [FREESHIP CHECK] ID Hóa đơn: ${idHoaDon}`);
+      console.log(`💰 [FREESHIP CHECK] From props:`, { idHoaDon: props.idHoaDon, tongTien: props.tongTien });
 
       // ✅ Chuẩn bị tham số cho GHTK API
       // GHTK yêu cầu tên tỉnh/quận KHÔNG có tiền tố "Tỉnh"/"Quận"
@@ -429,7 +433,38 @@ const updateShippingFee = async (index) => {
         value: tongTienHoaDon
       });
 
-      // ✅ LUÔN gọi API GHTK để tính phí (không cần idHoaDon)
+      // ✅ CHECK FREESHIP: Đơn >= 2 triệu → miễn phí vận chuyển
+      if (tongTienHoaDon >= 2000000) {
+        calculatedShippingFee.value = 0;
+        console.log(`🎉 FREESHIP: Đơn hàng >= 2 triệu → Miễn phí vận chuyển`);
+
+        // Emit event để parent cập nhật ngay
+        emit('shippingFeeCalculated', 0);
+
+        // Cập nhật vào backend NẾU có hóa đơn
+        if (idHoaDon) {
+          await gbStore.setTrangThaiNhanHang(idHoaDon, 'Giao hàng', 0);
+
+          localStorage.setItem('shippingFeeUpdated', JSON.stringify({
+            idHoaDon,
+            phiVanChuyen: 0,
+            timestamp: Date.now()
+          }));
+
+          // ✅ ONLY TOAST if fee changed
+          if (lastShippingFee !== 0) {
+            toast.success(`🎉 Miễn phí vận chuyển (đơn >= 2 triệu)`, {
+              autoClose: 2000,
+              position: 'top-right',
+            });
+            lastShippingFee = 0; // Track new fee
+          }
+        }
+
+        return; // ✅ Dừng tại đây, không gọi API GHTK
+      }
+
+      // ✅ Gọi API GHTK nếu chưa đủ điều kiện freeship
       const result = await gbStore.tinhPhiShip(
         'Hà Nội',              // GHTK yêu cầu bỏ "Tỉnh"
         'Đống Đa',             // GHTK yêu cầu bỏ "Quận"
@@ -456,10 +491,14 @@ const updateShippingFee = async (index) => {
             timestamp: Date.now()
           }));
 
-          toast.success(`Phí vận chuyển GHTK: ${formatVND(calculatedShippingFee.value)}`, {
-            autoClose: 2000,
-            position: 'top-right'
-          });
+          // ✅ ONLY TOAST if fee changed
+          if (lastShippingFee !== calculatedShippingFee.value) {
+            toast.success(`Phí vận chuyển GHTK: ${formatVND(calculatedShippingFee.value)}`, {
+              autoClose: 2000,
+              position: 'top-right'
+            });
+            lastShippingFee = calculatedShippingFee.value; // Track new fee
+          }
         } else {
           // Chưa có hóa đơn - vẫn lưu vào localStorage để khi tạo hóa đơn sẽ dùng
           localStorage.setItem('calculatedShippingFee', calculatedShippingFee.value);
@@ -840,7 +879,48 @@ const timTenGanDung = (tenTuClient, cap, index = 0) => {
 
 const props = defineProps({
   triggerUpdate: Number,
+  idHoaDon: Number,        // ✅ NEW: ID hóa đơn hiện tại
+  tongTien: Number,        // ✅ NEW: Tổng tiền hóa đơn (trước giảm)
 });
+
+// ✅ Track last shipping fee to prevent duplicate notifications
+let lastShippingFee = null;
+let debounceTimer = null;
+
+// ✅ AUTO-RECALCULATE: Watch tongTien changes with DEBOUNCE
+watch(() => props.tongTien, (newTotal, oldTotal) => {
+  // Clear previous timer
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+
+  // Chỉ recalculate nếu giá thực sự thay đổi
+  if (oldTotal !== undefined && newTotal !== oldTotal) {
+    console.log(`💰 [AUTO-RECALC] Tổng tiền thay đổi: ${oldTotal?.toLocaleString()} → ${newTotal?.toLocaleString()}`);
+
+    // ✅ DEBOUNCE: Đợi 500ms để giá ổn định
+    debounceTimer = setTimeout(() => {
+      // Check xem có địa chỉ giao hàng chưa
+      const hasAddress = formData.diaChiList.some(dc =>
+        dc.tinhThanhPho && dc.quanHuyen
+      );
+
+      if (hasAddress) {
+        // Tìm địa chỉ đầu tiên có đủ thông tin
+        const addressIndex = formData.diaChiList.findIndex(dc =>
+          dc.tinhThanhPho && dc.quanHuyen
+        );
+
+        if (addressIndex !== -1) {
+          console.log(`🔄 [AUTO-RECALC] Đang tính lại phí vận chuyển...`);
+          updateShippingFee(addressIndex);
+        }
+      } else {
+        console.log(`⏭️ [AUTO-RECALC] Chưa có địa chỉ, bỏ qua recalculate`);
+      }
+    }, 500); // Debounce 500ms
+  }
+}, { immediate: false });
 
 
 onMounted(async () => {

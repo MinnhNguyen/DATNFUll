@@ -233,7 +233,8 @@
                 </div>
 
                 <div v-if="ptnh === 'Giao hàng'">
-                    <FormKhachHangBH :triggerUpdate="triggerUpdate" @shippingFeeCalculated="handleShippingFeeCalculated"
+                    <FormKhachHangBH :triggerUpdate="triggerUpdate" :idHoaDon="activeTabData?.hd?.id_hoa_don"
+                        :tongTien="fe_tongTienHang" @shippingFeeCalculated="handleShippingFeeCalculated"
                         @customerDataSaved="handleCustomerDataSaved" />
                 </div>
             </div>
@@ -478,7 +479,7 @@
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                     <span style="color: #666;">Tổng tiền:</span>
                                     <strong style="color: #ff6600; font-size: 16px;">{{ formatCurrency(fe_tongThanhToan)
-                                    }}</strong>
+                                        }}</strong>
                                 </div>
                                 <div v-if="activeTabData?.hd?.hinh_thuc_thanh_toan === 'Tiền mặt'"
                                     style="display: flex; justify-content: space-between;">
