@@ -478,7 +478,7 @@
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                     <span style="color: #666;">Tổng tiền:</span>
                                     <strong style="color: #ff6600; font-size: 16px;">{{ formatCurrency(fe_tongThanhToan)
-                                    }}</strong>
+                                        }}</strong>
                                 </div>
                                 <div v-if="activeTabData?.hd?.hinh_thuc_thanh_toan === 'Tiền mặt'"
                                     style="display: flex; justify-content: space-between;">
@@ -1194,9 +1194,14 @@ const updateInvoiceFromResponse = (response, tabKey = null) => {
             ? response.email
             : targetTab.hd.email,
 
-        sdt: response.sdt !== undefined
-            ? response.sdt
+        // ✅ FIX: Map both sdt fields from backend
+        sdt: response.so_dien_thoai !== undefined
+            ? response.so_dien_thoai
             : targetTab.hd.sdt,
+
+        sdt_nguoi_nhan: response.sdt_nguoi_nhan !== undefined
+            ? response.sdt_nguoi_nhan
+            : targetTab.hd.sdt_nguoi_nhan,
 
         dia_chi: response.dia_chi !== undefined
             ? response.dia_chi
@@ -2564,64 +2569,92 @@ const handlePayment = async () => {
     if (isWalkInCustomer && phuongThucNhanHang === 'Giao hàng') {
         console.log('📦 Khách lẻ chọn GIAO HÀNG → Cần validate thông tin');
 
-        // Kiểm tra localStorage có thông tin khách lẻ không
-        const walkInData = localStorage.getItem('walkInCustomer');
-        console.log('💾 walkInCustomer từ localStorage:', walkInData);
+        // ✅ FIX: Kiểm tra thông tin từ BACKEND (current tab data) TRƯỚC
+        // Vì localStorage có thể bị xóa khi switch giữa "Giao hàng" ↔ "Nhận tại cửa hàng"
+        const hasBackendData = currentTab.hd.ho_ten &&
+            currentTab.hd.sdt_nguoi_nhan &&  // ✅ FIX: Backend field name
+            currentTab.hd.dia_chi;
 
-        if (!walkInData) {
-            console.error('❌ RETURN: Không có walkInCustomer trong localStorage');
-            message.error('Vui lòng nhập và lưu thông tin khách hàng + địa chỉ giao hàng trước khi thanh toán!');
-            return;
-        }
+        console.log('🔍 Backend data check:', {
+            ho_ten: currentTab.hd.ho_ten,
+            sdt_nguoi_nhan: currentTab.hd.sdt_nguoi_nhan,  // ✅ FIX: Correct field name
+            dia_chi: currentTab.hd.dia_chi,
+            hasBackendData
+        });
 
-        try {
-            const customerData = JSON.parse(walkInData);
-            console.log('✅ Parse customer data thành công:', customerData);
+        if (hasBackendData) {
+            // ✅ Có dữ liệu từ backend → CHO PHÉP thanh toán
+            console.log('✅ Thông tin khách hàng đã có trên backend → Cho phép thanh toán');
+            // Validate địa chỉ có đầy đủ không
+            const diaChiParts = currentTab.hd.dia_chi.split(',').map(s => s.trim());
+            if (diaChiParts.length < 4) {
+                console.error('❌ Địa chỉ không đầy đủ:', currentTab.hd.dia_chi);
+                message.error('Địa chỉ giao hàng chưa đầy đủ. Vui lòng cập nhật!');
+                return;
+            }
+            // Tiếp tục thanh toán
+        } else {
+            // ❌ Backend CHƯA có dữ liệu → Kiểm tra localStorage
+            console.log('⚠️ Backend chưa có dữ liệu → Kiểm tra localStorage');
 
-            // Validate thông tin cơ bản
-            if (!customerData.ten_khach_hang || !customerData.sdt) {
-                console.error('❌ RETURN: Thông tin khách hàng không đầy đủ');
-                message.error('Thông tin khách hàng chưa đầy đủ. Vui lòng nhập lại!');
+            const walkInData = localStorage.getItem('walkInCustomer');
+            console.log('💾 walkInCustomer từ localStorage:', walkInData);
+
+            if (!walkInData) {
+                console.error('❌ RETURN: Không có walkInCustomer trong localStorage');
+                message.error('Vui lòng nhập và lưu thông tin khách hàng + địa chỉ giao hàng trước khi thanh toán!');
+                return;
+            }
+
+            try {
+                const customerData = JSON.parse(walkInData);
+                console.log('✅ Parse customer data thành công:', customerData);
+
+                // Validate thông tin cơ bản
+                if (!customerData.ten_khach_hang || !customerData.sdt) {
+                    console.error('❌ RETURN: Thông tin khách hàng không đầy đủ');
+                    message.error('Thông tin khách hàng chưa đầy đủ. Vui lòng nhập lại!');
+                    localStorage.removeItem('walkInCustomer');
+                    return;
+                }
+
+                // Validate địa chỉ giao hàng (vì đang là "Giao hàng")
+                console.log('📍 Checking address for delivery...', customerData.dia_chi_list);
+
+                if (!customerData.dia_chi_list || customerData.dia_chi_list.length === 0) {
+                    message.error('Vui lòng nhập địa chỉ giao hàng!');
+                    return;
+                }
+
+                // ✅ FIX: Check both trangThai and diaChiMacDinh fields
+                const defaultAddress = customerData.dia_chi_list.find(dc => dc.trangThai || dc.diaChiMacDinh);
+
+                console.log('📍 Default address found:', defaultAddress);
+
+                if (!defaultAddress) {
+                    message.error('Vui lòng chọn địa chỉ mặc định!');
+                    return;
+                }
+
+                if (!defaultAddress.tinhThanhPho || !defaultAddress.quanHuyen) {
+                    message.error('Địa chỉ giao hàng chưa đầy đủ!');
+                    console.error('❌ Missing fields:', {
+                        tinhThanhPho: defaultAddress.tinhThanhPho,
+                        quanHuyen: defaultAddress.quanHuyen,
+                        xaPhuong: defaultAddress.xaPhuong,
+                        soNha: defaultAddress.soNha
+                    });
+                    return;
+                }
+
+                console.log('✅ Address validation passed!');
+                console.log('✅ Thông tin khách lẻ hợp lệ:', customerData);
+            } catch (error) {
+                console.error('Lỗi parse customer data:', error);
+                message.error('Dữ liệu khách hàng không hợp lệ!');
                 localStorage.removeItem('walkInCustomer');
                 return;
             }
-
-            // Validate địa chỉ giao hàng (vì đang là "Giao hàng")
-            console.log('📍 Checking address for delivery...', customerData.dia_chi_list);
-
-            if (!customerData.dia_chi_list || customerData.dia_chi_list.length === 0) {
-                message.error('Vui lòng nhập địa chỉ giao hàng!');
-                return;
-            }
-
-            // ✅ FIX: Check both trangThai and diaChiMacDinh fields
-            const defaultAddress = customerData.dia_chi_list.find(dc => dc.trangThai || dc.diaChiMacDinh);
-
-            console.log('📍 Default address found:', defaultAddress);
-
-            if (!defaultAddress) {
-                message.error('Vui lòng chọn địa chỉ mặc định!');
-                return;
-            }
-            createInvoiceBackup(invoiceId);
-            if (!defaultAddress.tinhThanhPho || !defaultAddress.quanHuyen) {
-                message.error('Địa chỉ giao hàng chưa đầy đủ!');
-                console.error('❌ Missing fields:', {
-                    tinhThanhPho: defaultAddress.tinhThanhPho,
-                    quanHuyen: defaultAddress.quanHuyen,
-                    xaPhuong: defaultAddress.xaPhuong,
-                    soNha: defaultAddress.soNha
-                });
-                return;
-            }
-
-            console.log('✅ Address validation passed!');
-            console.log('✅ Thông tin khách lẻ hợp lệ:', customerData);
-        } catch (error) {
-            console.error('Lỗi parse customer data:', error);
-            message.error('Dữ liệu khách hàng không hợp lệ!');
-            localStorage.removeItem('walkInCustomer');
-            return;
         }
     } else {
         // ✅ NHẬN TẠI CỬA HÀNG / NULL / UNDEFINED → CHO PHÉP thanh toán!
@@ -3444,16 +3477,22 @@ const handleShippingFeeCalculated = async (fee) => {
 
 // ✅ Nhận event khi form khách hàng thay đổi (reset hoặc lưu)
 const handleCustomerDataSaved = async (customerData) => {
-    // CHỈ refresh UI khi RESET (customerData = null)
-    // KHÔNG refresh khi LƯU (customerData có giá trị) để tránh form biến mất
     if (customerData === null) {
+        // RESET: Refresh UI to show "Khách lẻ"
         const idHoaDon = activeTabData.value?.hd?.id_hoa_don;
         if (idHoaDon) {
             await refreshHoaDon(idHoaDon);
             console.log('✅ Đã refresh UI sau khi reset form');
         }
     } else {
-        console.log('ℹ️ Form saved, skip refresh to keep form visible');
+        // ✅ FIX: SAVE: Refresh to sync backend data to currentTab.hd
+        // This ensures payment validation can see the updated dia_chi, sdt_nguoi_nhan
+        const idHoaDon = activeTabData.value?.hd?.id_hoa_don;
+        if (idHoaDon) {
+            console.log('🔄 [SAVE] Refreshing invoice to sync customer data...');
+            await refreshHoaDon(idHoaDon);
+            console.log('✅ [SAVE] Invoice data synced to frontend state');
+        }
     }
 };
 

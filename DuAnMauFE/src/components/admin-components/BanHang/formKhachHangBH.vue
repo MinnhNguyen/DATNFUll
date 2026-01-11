@@ -700,12 +700,31 @@ const luuThongTinKhachHang = async () => {
     const defaultAddress = formData.diaChiList?.find(dc => dc.diaChiMacDinh);
     let diaChiGiaoHang = '';
 
+    console.log('📍 [SAVE] All addresses:', formData.diaChiList);
+    console.log('📍 [SAVE] Default address found:', defaultAddress);
+
     if (defaultAddress) {
+      // ✅ Validate address has required fields
+      if (!defaultAddress.tinhThanhPho || !defaultAddress.quanHuyen) {
+        console.error('❌ [SAVE] Địa chỉ mặc định thiếu thông tin:', defaultAddress);
+        toast.error('Vui lòng điền đầy đủ Tỉnh/Thành phố và Quận/Huyện!');
+        return;
+      }
+
       diaChiGiaoHang = `${defaultAddress.soNha || ''}, ${defaultAddress.xaPhuong || ''}, ${defaultAddress.quanHuyen || ''}, ${defaultAddress.tinhThanhPho || ''}`.trim();
+      console.log(`📍 [SAVE] Địa chỉ giao hàng ghép: "${diaChiGiaoHang}"`);
+    } else {
+      console.warn('⚠️ [SAVE] Không tìm thấy địa chỉ mặc định!');
     }
 
     // ✅ GỌI API - updateCustomerInfo
-    console.log('📞 Gọi API updateCustomerInfoBH với idHD:', invoiceId);
+    console.log('📞 [SAVE] Gọi API updateCustomerInfoBH với:');
+    console.log('  - idHD:', invoiceId);
+    console.log('  - tenKhachHang:', formData.tenKhachHang);
+    console.log('  - soDienThoai:', formData.soDienThoai);
+    console.log('  - email:', formData.email || '');
+    console.log('  - diaChiGiaoHang:', diaChiGiaoHang);
+
     const result = await gbStore.updateCustomerInfoBH(
       invoiceId,
       formData.tenKhachHang,

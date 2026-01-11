@@ -260,13 +260,13 @@
                                 <p>Mã hóa đơn: {{ store.hoaDonDetail.ma_hoa_don || 'N/A' }}</p>
                                 <p>Trạng thái: {{ store.hoaDonDetail.trang_thai || 'N/A' }}</p>
                                 <p>Phương thức thanh toán: {{ store.hoaDonDetail.hinh_thuc_thanh_toan || 'Chưa xác định'
-                                }}</p>
+                                    }}</p>
                             </a-col>
                             <a-col :span="12">
                                 <p>Ngày tạo: {{ formatDateTime(store.hoaDonDetail.ngay_tao) }}</p>
                                 <!-- <p>Nhân viên tiếp nhận: {{ store.hoaDonDetail.ten_nhan_vien || 'Chưa xác định' }}</p> -->
                                 <p>Hình thức nhận hàng: {{ store.hoaDonDetail.phuong_thuc_nhan_hang || 'Chưa xác định'
-                                }}</p>
+                                    }}</p>
                             </a-col>
                         </a-row>
                     </div>
@@ -399,7 +399,7 @@
                                 <a-col :md="4" style="text-align: right;">
                                     <h6>{{ formatCurrency(store.hoaDonDetail.tong_tien_sau_giam +
                                         store.hoaDonDetail.phi_van_chuyen)
-                                        }} VNĐ</h6>
+                                    }} VNĐ</h6>
                                 </a-col>
                             </a-row>
                             <!-- Dòng text thanh toán thêm -->
@@ -1862,7 +1862,16 @@ const showIncreasePopup = async (index) => {
     if (!store.listCTSP_HD || store.listCTSP_HD.length === 0) {
         await store.getAllCTSP_HD(0, 5, '');
     }
-    if (currentProduct.value.so_luong_con_lai === null) {
+
+    // ✅ KIỂM TRA SỐ LƯỢNG CÒN LẠI THỰC TẾ (không chỉ kiểm tra null)
+    // Nếu trạng thái "Chờ xác nhận" -> dùng so_luong_ton_kho
+    // Các trạng thái khác -> tính số lượng còn lại = tồn kho - đã đặt
+    const soLuongConLai = shouldCalculateSoLuongTon.value
+        ? (currentProduct.value.so_luong_ton_kho || 0)
+        : calculateSoLuongTon(currentProduct.value);
+
+    // Kiểm tra sản phẩm hết hàng hoặc bị tắt
+    if (soLuongConLai <= 0 || currentProduct.value.so_luong_ton_kho === null || !currentProduct.value.trang_thai_ctsp) {
         message.error('Sản phẩm này đã hết hàng hoặc đã ngừng bán. Không thể thêm sản phẩm nữa!')
         return;
     }
@@ -1932,7 +1941,7 @@ const updateQuantity = async () => {
 
     if (popupType.value === 'increase') {
         // Tính số lượng tối đa
-        const maxQuantity = shouldCalculateSoLuongTon.value ? item.so_luong_con_lai : calculateSoLuongTon(item);
+        const maxQuantity = shouldCalculateSoLuongTon.value ? item.so_luong_ton_kho : calculateSoLuongTon(item);
         if (change > maxQuantity) {
             toast.error(`Số lượng thêm không được vượt quá ${maxQuantity}`);
             return;
@@ -2376,20 +2385,48 @@ const tachDiaChi = (diaChi) => {
         diaChiCuThe: parts.slice(0, parts.length - 3).join(', '),
     };
 };
+// ✅ Helper: Tính phí ship fallback khi GHTK API lỗi
+const calculateFallbackShippingFee = (province) => {
+    // Danh sách tỉnh/thành miền Bắc (30,000 VNĐ)
+    const mienBac = ['Hà Nội', 'Hải Phòng', 'Hải Dương', 'Hưng Yên', 'Bắc Ninh',
+        'Vĩnh Phúc', 'Thái Nguyên', 'Phú Thọ', 'Bắc Giang', 'Quảng Ninh',
+        'Lạng Sơn', 'Cao Bằng', 'Bắc Kạn', 'Ninh Bình', 'Nam Định'];
+
+    // Danh sách tỉnh miền Trung (50,000 VNĐ)
+    const mienTrung = ['Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị',
+        'Thừa Thiên Huế', 'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi',
+        'Bình Định', 'Phú Yên', 'Khánh Hòa'];
+
+    const cleanProvince = province.replace(/^(Tỉnh|Thành phố)\s+/i, '').trim();
+
+    if (cleanProvince === 'Hà Nội') return 0; // Miễn phí nội thành Hà Nội
+    if (mienBac.includes(cleanProvince)) return 30000; // Miền Bắc
+    if (mienTrung.includes(cleanProvince)) return 50000; // Miền Trung
+    return 70000; // Miền Nam (mặc định)
+};
+
 // Hàm tính phí vận chuyển
 const calculatePhiVanChuyen = async (useEditedCustomer = false) => {
+    // 🔍 DEBUG: Log giá trị tổng tiền trước giảm
+    console.log('🔍 [calculatePhiVanChuyen] Checking shipping fee...');
+    console.log('  - tong_tien_truoc_giam:', store.hoaDonDetail.tong_tien_truoc_giam);
+    console.log('  - Ngưỡng miễn phí ship: 2,000,000 VNĐ');
+
     if (store.hoaDonDetail.tong_tien_truoc_giam >= 2000000) {
+        console.log('  ✅ MIỄN PHÍ SHIP (>= 2 triệu)');
         return 0;
     }
+
+    console.log('  💰 CÓ PHÍ SHIP (< 2 triệu) - Đang tính toán...');
+
     const weight = 500; // 500g mỗi sản phẩm
     const tongTienHoaDon = store.hoaDonDetail.tong_tien_sau_giam - store.hoaDonDetail.phi_van_chuyen;
+
     // Lấy thông tin địa chỉ
     let diaChi;
     if (useEditedCustomer) {
-        // Sử dụng thông tin từ `editedCustomer` khi cập nhật thông tin khách hàng
         diaChi = editedCustomer.value;
     } else {
-        // Sử dụng thông tin từ địa chỉ đã lưu trong hóa đơn
         diaChi = tachDiaChi(store.hoaDonDetail.dia_chi);
     }
 
@@ -2403,31 +2440,43 @@ const calculatePhiVanChuyen = async (useEditedCustomer = false) => {
         const quanHuyen = diaChi.huyen || '';
 
         // ✅ Loại bỏ tiền tố trước khi gửi đến GHTK API
-        const cleanProvince = tinhThanhPho
-            .replace(/^(Tỉnh|Thành phố)\s+/i, '')
-            .trim();
+        const cleanProvince = tinhThanhPho.replace(/^(Tỉnh|Thành phố)\s+/i, '').trim();
+        const cleanDistrict = quanHuyen.replace(/^(Quận|Huyện|Thị xã|Thành phố)\s+/i, '').trim();
 
-        const cleanDistrict = quanHuyen
-            .replace(/^(Quận|Huyện|Thị xã|Thành phố)\s+/i, '')
-            .trim();
+        console.log('📍 Địa chỉ:', cleanProvince, cleanDistrict);
+        console.log('📦 Dữ liệu:', { weight, value: tongTienHoaDon });
 
-        console.log('Địa chỉ cụ thể: ', diaChi.diaChiCuThe, diaChi.xa, diaChi.huyen, diaChi.tinh)
-        console.log('Dữ liệu: ', cleanProvince, cleanDistrict, weight, tongTienHoaDon, store.hoaDonDetail.tong_tien_sau_giam, store.hoaDonDetail.phi_van_chuyen)
-
-        const phiShip = await banHangService.tinhPhiShip(
+        const response = await banHangService.tinhPhiShip(
             'Hà Nội',
             'Nam Từ Liêm',
             cleanProvince,
             cleanDistrict,
             weight,
-            Math.round(tongTienHoaDon) // ✅ Convert to integer
+            Math.round(tongTienHoaDon)
         );
-        console.log('Phí ship: ', phiShip.fee)
-        return phiShip.fee || 0;
+
+        // ✅ Kiểm tra response có lỗi không
+        if (response && response.error) {
+            console.warn('⚠️ GHTK API lỗi, dùng phí ship fallback');
+            const fallbackFee = calculateFallbackShippingFee(tinhThanhPho);
+            console.log('  💰 Phí ship fallback:', fallbackFee, 'VNĐ');
+            toast.warning(`Không thể kết nối GHTK API. Sử dụng phí ship tạm thời: ${fallbackFee.toLocaleString()} VNĐ`);
+            return fallbackFee;
+        }
+
+        // ✅ Response hợp lệ
+        const fee = response.fee || response.ship_fee_only || response;
+        console.log('  ✅ Phí ship từ GHTK:', fee, 'VNĐ');
+        return fee || 0;
+
     } catch (error) {
-        console.error('Lỗi khi tính phí vận chuyển:', error);
-        toast.error('Có lỗi xảy ra khi tính phí vận chuyển');
-        return 0;
+        console.error('❌ Lỗi khi tính phí vận chuyển:', error);
+
+        // ✅ FALLBACK: Dùng phí ship cố định khi API lỗi
+        const fallbackFee = calculateFallbackShippingFee(diaChi.tinh);
+        console.log('  💰 Phí ship fallback (API error):', fallbackFee, 'VNĐ');
+        toast.warning(`Lỗi kết nối GHTK. Sử dụng phí ship tạm thời: ${fallbackFee.toLocaleString()} VNĐ`);
+        return fallbackFee;
     }
 };
 // Computed property để lọc và sắp xếp lịch sử trạng thái (loại bỏ "Đã cập nhật")

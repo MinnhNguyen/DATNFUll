@@ -539,17 +539,34 @@ public class HoaDonController {
 
       boolean isOnlineCash = "Online".equalsIgnoreCase(hoaDon.getLoai_hoa_don())
           && "Tiền mặt".equalsIgnoreCase(hoaDon.getHinh_thuc_thanh_toan());
-      BigDecimal pvc = pvcCu; // Mặc định giữ nguyên phí cũ
-      if (pvcChange.compareTo(BigDecimal.ZERO) > 0) {
-        // Nếu phí mới cao hơn → tăng phụ thu và cập nhật phí mới
-        pvc = pvcMoi;
-        if (!isOnlineCash) {
-          phuThu = phuThu.add(pvcChange);
-          hoaDon.setPhu_thu(phuThu);
-        }
+
+      // ✅ FIX: Luôn cập nhật phí vận chuyển (dù tăng hay giảm)
+      System.out.println("🚚 Phí vận chuyển cũ: " + pvcCu + ", Phí mới: " + pvcMoi + ", Thay đổi: " + pvcChange);
+
+      // Điều chỉnh phụ thu tương ứng với thay đổi phí ship
+      if (!isOnlineCash) {
+        // Phí tăng → Tăng phụ thu
+        // Phí giảm → Giảm phụ thu (nhưng không âm)
+        BigDecimal phuThuMoi = phuThu.add(pvcChange);
+        hoaDon.setPhu_thu(phuThuMoi.max(BigDecimal.ZERO)); // Đảm bảo phụ thu không âm
+        System.out.println("💰 Phụ thu cũ: " + phuThu + ", Phụ thu mới: " + phuThuMoi);
       }
-      hoaDon.setTong_tien_sau_giam(hoaDon.getTong_tien_sau_giam().subtract(pvcCu).add(pvc));
-      hoaDon.setPhi_van_chuyen(pvc);
+
+      // ✅ Luôn cập nhật phí ship mới
+      hoaDon.setPhi_van_chuyen(pvcMoi);
+      System.out.println("✅ Đã cập nhật phí vận chuyển: " + pvcMoi);
+
+      // ✅ Tính lại tổng tiền sau giảm
+      BigDecimal tienGiam = hoaDon.getVoucher() != null ? hoaDon.getVoucher().getKieuGiamGia().equals("Phần trăm")
+          ? hoaDon.getTong_tien_truoc_giam()
+              .multiply(hoaDon.getVoucher().getGiaTriGiam().divide(new BigDecimal("100")))
+              .min(hoaDon.getVoucher().getGiaTriToiDa() != null ? hoaDon.getVoucher().getGiaTriToiDa()
+                  : BigDecimal.valueOf(Double.MAX_VALUE))
+          : hoaDon.getVoucher().getGiaTriGiam() : BigDecimal.ZERO;
+
+      hoaDon.setTong_tien_sau_giam(hoaDon.getTong_tien_truoc_giam().add(pvcMoi).subtract(tienGiam));
+      System.out.println("💵 Tổng tiền sau giảm mới: " + hoaDon.getTong_tien_sau_giam());
+
       hoaDon.setNgay_sua(LocalDateTime.now());
       hoaDonRepo.save(hoaDon);
       System.out.println("phiVanChuyen: " + request.get("phiVanChuyen") + ", type: "

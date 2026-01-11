@@ -25,6 +25,9 @@ public interface BinhLuanRepository extends JpaRepository<BinhLuan, Integer> {
     @Query("SELECT b FROM BinhLuan b WHERE b.idKhachHang = :idKhachHang AND b.idChiTietSanPham = :idChiTietSanPham")
     Optional<BinhLuan> findByIdKhachHangAndIdChiTietSanPham(Integer idKhachHang, Integer idChiTietSanPham);
 
+    @Query("SELECT b FROM BinhLuan b WHERE b.idKhachHang = :idKhachHang ORDER BY b.ngayTao DESC")
+    List<BinhLuan> findAllByIdKhachHang(Integer idKhachHang);
+
     @Modifying
     @Transactional
     @Query("DELETE FROM BinhLuan b WHERE b.idKhachHang = :idKhachHang AND b.idChiTietSanPham = :idChiTietSanPham")
