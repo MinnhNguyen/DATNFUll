@@ -6,103 +6,116 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public interface HoaDonChiTietResponse {
-    Integer getId_hoa_don();
+  Integer getId_hoa_don();
 
-    String getMa_hoa_don();
+  String getMa_hoa_don();
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime getNgay_tao();
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime getNgay_tao();
 
-    String getHo_ten();
+  String getHo_ten();
 
-    String getSdt_nguoi_nhan();
+  String getSdt_nguoi_nhan();
 
-    String getDia_chi();
+  String getDia_chi();
 
-    String getEmail();
+  String getEmail();
 
-    BigDecimal getTong_tien_truoc_giam();
+  BigDecimal getTong_tien_truoc_giam();
 
-    BigDecimal getPhi_van_chuyen();
+  BigDecimal getPhi_van_chuyen();
 
-    BigDecimal getTong_tien_sau_giam();
+  BigDecimal getTong_tien_sau_giam();
 
-    String getHinh_thuc_thanh_toan();
+  String getHinh_thuc_thanh_toan();
 
-    String getPhuong_thuc_nhan_hang();
+  String getPhuong_thuc_nhan_hang();
 
-    // Chi tiết sản phẩm
-    Integer getId_hoa_don_chi_tiet();
+  // Chi tiết sản phẩm
+  Integer getId_hoa_don_chi_tiet();
 
-    Integer getId_chi_tiet_san_pham();
+  Integer getId_chi_tiet_san_pham();
 
-    Integer getSo_luong();
+  Integer getSo_luong();
 
-    Integer getSo_luong_con_lai();
+  Integer getSo_luong_con_lai();
 
-    BigDecimal getDon_gia();
+  BigDecimal getDon_gia();
 
-    String getTen_san_pham();
+  String getTen_san_pham();
 
-    String getMa_san_pham();
+  String getMa_san_pham();
 
-    String getGia_tri();
+  String getGia_tri();
 
-    String getTen_mau_sac();
+  String getTen_mau_sac();
 
-    String getHinh_anh();
+  String getHinh_anh();
 
-    Boolean getAnh_chinh();
+  Boolean getAnh_chinh();
 
-    // ✅ NEW: Status fields for validation
-    Boolean getTrang_thai_ctsp(); // CTSP active status
+  String getTrang_thai();
 
-    Boolean getTrang_thai_san_pham(); // Product active status
+  // ✅ NEW: Status fields for validation
+  Boolean getTrang_thai_ctsp(); // CTSP active status
 
-    Integer getSo_luong_ton_kho(); // Current stock quantity
+  Boolean getTrang_thai_san_pham(); // Product active status
 
-    Integer getId_nhan_vien();
+  Integer getSo_luong_ton_kho(); // Current stock quantity
 
-    String getTen_nhan_vien();
+  Integer getId_nhan_vien();
 
-    Integer getId_khach_hang();
+  String getTen_nhan_vien();
 
-    String getTen_khach_hang();
+  Integer getId_khach_hang();
 
-    Integer getId_voucher();
+  String getTen_khach_hang();
 
-    String getTen_voucher();
+  Integer getId_voucher();
 
-    String getMa_voucher();
+  String getTen_voucher();
 
-    String getTrang_thai_hoa_don(); // Renamed to avoid conflict with trang_thai_ctsp
+  String getMa_voucher();
 
-    BigDecimal getGia_ban();
+  String getTrang_thai_hoa_don(); // Renamed to avoid conflict with trang_thai_ctsp
 
-    BigDecimal getGia_sau_giam();
+  BigDecimal getGia_ban();
 
-    BigDecimal getPhu_thu();
+  BigDecimal getGia_sau_giam();
 
-    Integer getSo_luong_ton();
+  BigDecimal getPhu_thu();
 
-    String getLoai_hoa_don();
+  Integer getSo_luong_ton();
 
-    String getTrang_thai_thanh_toan();
+  String getLoai_hoa_don();
 
-    String getGhi_chu();
+  String getTrang_thai_thanh_toan();
 
-    String getKich_thuoc();
+  String getGhi_chu();
 
-    String getDon_vi();
+  String getKich_thuoc();
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime getNgay_chuyen();
+  String getDon_vi();
 
-    // Trường mới liên quan đến trả hàng
-    Integer getSo_luong_da_tra();
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime getNgay_chuyen();
 
-    String getTrang_thai_tra_hang();
+  // Trường mới liên quan đến trả hàng
+  Integer getSo_luong_da_tra();
 
-    String getLy_do_tra_hang();
+  String getTrang_thai_tra_hang();
+
+  String getLy_do_tra_hang();
+
+  // ✨ NEW: Price calculation fields
+  BigDecimal getGia_don_vi_luu(); // Unit price from DB
+
+  BigDecimal getGia_goc(); // Original price (before discount)
+
+  BigDecimal getGia_sau_km(); // Price after discount
+
+  Boolean getCo_khuyen_mai(); // Has promotion flag
+
+  String getTen_khuyen_mai(); // Promotion name
 
 }

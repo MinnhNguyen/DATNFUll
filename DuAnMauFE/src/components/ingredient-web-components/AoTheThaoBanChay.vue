@@ -46,9 +46,9 @@
                                         <div class="product-price-row">
                                             <span class="product-price">{{ product.price }}</span>
                                             <span class="product-old-price" v-if="product.oldPrice">{{ product.oldPrice
-                                                }}</span>
+                                            }}</span>
                                             <span class="product-discount" v-if="product.discount">{{ product.discount
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <h6 class="product-name">{{ product.name }}</h6>
                                         <div class="product-meta">
@@ -88,7 +88,7 @@
                         <span class="current-price">{{ selectedProduct?.price }}</span>
                         <span class="old-price" v-if="selectedProduct?.oldPrice">{{ selectedProduct?.oldPrice }}</span>
                         <span class="discount-badge" v-if="selectedProduct?.discount">{{ selectedProduct?.discount
-                        }}</span>
+                            }}</span>
                     </div>
                     <div class="brand-section">
                         <span class="brand-label">Thương hiệu:</span>
@@ -321,12 +321,12 @@ const addToCart = () => {
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 .best-selling-products {
-    padding: 2rem 0;
+    padding: 32px 0;
     font-family: 'Montserrat', sans-serif;
-    background-color: #f8f9fa;
+    background-color: #FAFAFA;
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .best-selling-products.visible {
@@ -340,75 +340,88 @@ const addToCart = () => {
 }
 
 .section-header {
-    text-align: center;
+    text-align: left;
+    margin-bottom: 48px;
 }
 
 .section-title {
-    font-size: 1.5rem;
+    font-size: 32px;
     font-weight: 600;
-    color: #333;
+    color: #1F1F1F;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
     position: relative;
     display: inline-block;
 }
 
+.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 28px;
+    background: #8B7355;
+    margin-right: 12px;
+    vertical-align: middle;
+}
+
 .section-divider {
-    height: 3px;
-    width: 100px;
-    background-color: #3a86ff;
-    margin: 0 auto;
+    display: none;
 }
 
 .products-grid {
-    padding: 1rem;
+    padding: 0;
     display: flex;
     flex-wrap: wrap;
+    gap: 32px;
+    margin-bottom: 48px;
 }
 
 .product-card {
     position: relative;
-    flex: 0 0 20%;
-    max-width: 20%;
-    padding: 15px;
+    flex: 0 0 calc(20% - 26px);
+    background-color: #FFFFFF;
     border-radius: 8px;
-    margin-bottom: 20px;
-    background-color: #fff;
+    overflow: hidden;
     cursor: pointer;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+    transition: all 0.3s ease;
+    border: 1px solid #F0F0F0;
 }
 
 .product-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    z-index: 5;
+    transform: translateY(-6px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: #E5E5E5;
 }
 
 @media (max-width: 1200px) {
+    .products-grid {
+        gap: 24px;
+    }
+
     .product-card {
-        flex: 0 0 25%;
-        max-width: 25%;
+        flex: 0 0 calc(25% - 18px);
     }
 }
 
 @media (max-width: 992px) {
+    .products-grid {
+        gap: 20px;
+    }
+
     .product-card {
-        flex: 0 0 33.333%;
-        max-width: 33.333%;
+        flex: 0 0 calc(33.333% - 14px);
     }
 }
 
 @media (max-width: 768px) {
     .product-card {
-        flex: 0 0 50%;
-        max-width: 50%;
+        flex: 0 0 calc(50% - 10px);
     }
 }
 
 @media (max-width: 576px) {
     .product-card {
         flex: 0 0 100%;
-        max-width: 100%;
     }
 }
 
@@ -441,15 +454,16 @@ const addToCart = () => {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    margin-bottom: 12px;
+    aspect-ratio: 3/4;
+    background: #F5F5F5;
+    margin-bottom: 0;
 }
 
 .product-image {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1/1;
+    height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
+    transition: transform 0.4s ease;
 }
 
 .product-card:hover .product-image {
@@ -458,14 +472,17 @@ const addToCart = () => {
 
 .discount-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #ff3a3a;
-    color: white;
+    top: 12px;
+    right: 12px;
+    background-color: #2C3E50;
+    color: #FFFFFF;
     font-weight: 600;
-    font-size: 12px;
-    padding: 5px 10px;
+    font-size: 11px;
+    padding: 6px 12px;
     border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     z-index: 2;
 }
 
@@ -516,7 +533,7 @@ const addToCart = () => {
 }
 
 .product-info {
-    padding: 0 5px;
+    padding: 20px;
 }
 
 .product-price-row {

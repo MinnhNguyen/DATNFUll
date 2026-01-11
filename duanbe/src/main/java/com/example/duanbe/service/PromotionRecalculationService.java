@@ -28,10 +28,13 @@ public class PromotionRecalculationService {
      * 
      * @param idChiTietSanPham ID sản phẩm vừa thay đổi giá
      */
+    public BigDecimal giaMoiNhat = BigDecimal.ZERO;
+
     @Transactional
     public void recalculatePromotionPrices(Integer idChiTietSanPham) {
         try {
             // Lấy giá hiện tại của sản phẩm
+            giaMoiNhat = BigDecimal.ZERO;
             ChiTietSanPham ctsp = ctspRepo.findById(idChiTietSanPham).orElse(null);
             if (ctsp == null) {
                 System.out.println("⚠️ Không tìm thấy CTSP #" + idChiTietSanPham);
@@ -45,7 +48,7 @@ public class PromotionRecalculationService {
             }
 
             // Lấy TẤT CẢ khuyến mãi đang áp dụng cho sản phẩm này
-            List<ChiTietKhuyenMai> danhSachKM = ctkmRepo.findAllByChiTietSanPhamId(idChiTietSanPham);
+            List<ChiTietKhuyenMai> danhSachKM = ctkmRepo.findAllByChiTietSanPhamId(idChiTietSanPham, "Đang diễn ra");
 
             if (danhSachKM.isEmpty()) {
                 System.out.println("ℹ️ CTSP #" + idChiTietSanPham + " không có khuyến mãi");
@@ -64,7 +67,7 @@ public class PromotionRecalculationService {
                 }
 
                 BigDecimal giaSauGiam = calculateDiscountedPrice(giaBan, km);
-
+                giaMoiNhat = giaSauGiam;
                 // Cập nhật lại giá sau giảm
                 ctkm.setGiaSauGiam(giaSauGiam);
                 ctkmRepo.save(ctkm);
@@ -81,6 +84,10 @@ public class PromotionRecalculationService {
             System.err.println("❌ Lỗi khi tính lại giá khuyến mãi: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public BigDecimal giaMoi() {
+        return giaMoiNhat;
     }
 
     /**

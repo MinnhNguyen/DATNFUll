@@ -1,21 +1,12 @@
 <template>
-    <a-modal
-        :visible="visible"
-        title="Chọn phương thức thanh toán"
-        :footer="null"
-        :width="600"
-        @cancel="handleCancel"
-    >
+    <a-modal :visible="visible" title="Chọn phương thức thanh toán" :footer="null" :width="600" @cancel="handleCancel">
         <!-- Step 1: Chọn phương thức thanh toán -->
         <div v-if="currentStep === 'select'" class="payment-selection">
             <h3 class="text-center mb-4">Vui lòng chọn phương thức thanh toán</h3>
-            
+
             <div class="payment-options">
-                <div 
-                    class="payment-option-card" 
-                    :class="{ 'selected': selectedMethod === 'payos' }"
-                    @click="selectPaymentMethod('payos')"
-                >
+                <div class="payment-option-card" :class="{ 'selected': selectedMethod === 'payos' }"
+                    @click="selectPaymentMethod('payos')">
                     <div class="payment-icon">
                         <img src="../images/icon/logoVietQR.png" alt="PayOS" style="width: 60px; height: 60px;" />
                     </div>
@@ -28,14 +19,11 @@
                     </div>
                 </div>
 
-                <div 
-                    class="payment-option-card" 
-                    :class="{ 'selected': selectedMethod === 'zalopay' }"
-                    @click="selectPaymentMethod('zalopay')"
-                >
+                <div class="payment-option-card" :class="{ 'selected': selectedMethod === 'zalopay' }"
+                    @click="selectPaymentMethod('zalopay')">
                     <div class="payment-icon">
-                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay.png" 
-                             alt="ZaloPay" style="width: 80px; height: 40px; object-fit: contain;" />
+                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay.png" alt="ZaloPay"
+                            style="width: 80px; height: 40px; object-fit: contain;" />
                     </div>
                     <div class="payment-details">
                         <h4>ZaloPay</h4>
@@ -49,13 +37,8 @@
 
             <div class="modal-actions mt-4">
                 <a-button @click="handleCancel" size="large">Hủy</a-button>
-                <a-button 
-                    type="primary" 
-                    @click="confirmPaymentMethod" 
-                    :disabled="!selectedMethod"
-                    :loading="loading"
-                    size="large"
-                >
+                <a-button type="primary" @click="confirmPaymentMethod" :disabled="!selectedMethod" :loading="loading"
+                    size="large">
                     Tiếp tục
                 </a-button>
             </div>
@@ -66,14 +49,10 @@
             <div class="qr-header text-center mb-4">
                 <h3>Quét mã QR để thanh toán</h3>
                 <p class="payment-method-name">
-                    <img v-if="selectedMethod === 'payos'" 
-                         src="../images/icon/logoVietQR.png" 
-                         alt="PayOS" 
-                         style="width: 40px; height: 40px; margin-right: 8px;" />
-                    <img v-else 
-                         src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay.png" 
-                         alt="ZaloPay" 
-                         style="width: 60px; height: 30px; object-fit: contain; margin-right: 8px;" />
+                    <img v-if="selectedMethod === 'payos'" src="../images/icon/logoVietQR.png" alt="PayOS"
+                        style="width: 40px; height: 40px; margin-right: 8px;" />
+                    <img v-else src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay.png" alt="ZaloPay"
+                        style="width: 60px; height: 30px; object-fit: contain; margin-right: 8px;" />
                     {{ selectedMethod === 'payos' ? 'PayOS' : 'ZaloPay' }}
                 </p>
             </div>
@@ -81,7 +60,8 @@
             <div class="qr-code-container" v-if="qrCodeUrl">
                 <img :src="qrCodeUrl" alt="QR Code" class="qr-code-image" />
                 <p class="qr-description mt-3 text-center">
-                    Mở ứng dụng {{ selectedMethod === 'payos' ? 'Ngân hàng' : 'ZaloPay' }} và quét mã QR này để thanh toán
+                    Mở ứng dụng {{ selectedMethod === 'payos' ? 'Ngân hàng' : 'ZaloPay' }} và quét mã QR này để thanh
+                    toán
                 </p>
                 <div class="payment-amount text-center mt-2">
                     <p class="amount-label">Số tiền thanh toán:</p>
@@ -96,21 +76,12 @@
 
             <!-- Status Check -->
             <div class="payment-status mt-4" v-if="paymentStatus">
-                <a-alert 
-                    :message="paymentStatus.message" 
-                    :type="paymentStatus.type"
-                    show-icon
-                />
+                <a-alert :message="paymentStatus.message" :type="paymentStatus.type" show-icon />
             </div>
 
             <div class="modal-actions mt-4">
                 <a-button @click="goBack" size="large">Quay lại</a-button>
-                <a-button 
-                    type="primary" 
-                    @click="checkPaymentStatus" 
-                    :loading="checking"
-                    size="large"
-                >
+                <a-button type="primary" @click="checkPaymentStatus" :loading="checking" size="large">
                     Kiểm tra thanh toán
                 </a-button>
             </div>
@@ -172,7 +143,7 @@ const confirmPaymentMethod = async () => {
 
         // Lấy QR code URL
         qrCodeUrl.value = response.data.qrUrl || response.data.orderUrl;
-        
+
         // Chuyển sang bước hiển thị QR
         currentStep.value = 'qr';
 
@@ -212,10 +183,10 @@ const checkPaymentStatus = async () => {
                 type: 'success',
                 message: 'Thanh toán thành công!'
             };
-            
+
             // Dừng auto check
             stopStatusCheck();
-            
+
             // Thông báo thành công
             setTimeout(() => {
                 emit('payment-success', {
@@ -289,9 +260,9 @@ const handleClose = () => {
 
 // Format tiền
 const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', { 
-        style: 'currency', 
-        currency: 'VND' 
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
     }).format(value || 0);
 };
 

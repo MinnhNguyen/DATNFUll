@@ -52,8 +52,12 @@ const handleZaloPayPayment = async (idHoaDon, tongThanhToan) => {
         }
 
         localStorage.setItem('zaloPayResponse', JSON.stringify(response.data));
-        window.location.href = orderUrl;
-        return response.data;
+
+        // ✅ THAY ĐỔI: Return data thay vì mở tab mới
+        // Modal sẽ hiển thị QR code
+        // window.open(orderUrl, '_blank'); // ← COMMENTED OUT
+
+        return response.data; // ← RETURN DATA
     } catch (error) {
         console.error('Lỗi khi tạo thanh toán ZaloPay:', error);
         const errorMessage = error.response?.data?.return_message || error.message || 'Không thể tạo thanh toán ZaloPay. Vui lòng thử lại sau.';
@@ -82,6 +86,7 @@ const checkZaloPayStatus = async (idHoaDon) => {
         return null;
     }
 };
+
 
 export const thanhToanService = {
     handlePayOSPayment,

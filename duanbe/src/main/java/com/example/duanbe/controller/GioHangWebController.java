@@ -14,13 +14,15 @@ import com.example.duanbe.repository.KhachHangRepo;
 import com.example.duanbe.response.GioHangWebResponse;
 import com.example.duanbe.service.GioHangService;
 
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 @RestController
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*", methods = {RequestMethod.GET,
-        RequestMethod.DELETE, RequestMethod.POST, RequestMethod.PUT})
+@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*", methods = { RequestMethod.GET,
+        RequestMethod.DELETE, RequestMethod.POST, RequestMethod.PUT })
 @RequestMapping("/gioHangWeb")
 public class GioHangWebController {
     @Autowired
@@ -48,8 +50,8 @@ public class GioHangWebController {
 
     @PostMapping("/themGHByIdKH")
     public GioHang themGHByIdKH(@RequestParam("idKH") Integer idKH,
-                                @RequestParam("idCTSP") Integer idCTSP,
-                                @RequestParam("soLuong") Integer soLuong) {
+            @RequestParam("idCTSP") Integer idCTSP,
+            @RequestParam("soLuong") Integer soLuong) {
 
         if (idKH == null || idCTSP == null || soLuong == null || soLuong <= 0) {
             throw new IllegalArgumentException("Thông tin đầu vào không hợp lệ.");
@@ -93,47 +95,70 @@ public class GioHangWebController {
     }
 
     @DeleteMapping("/deleteGHByIdKH")
-    public GioHang deleteGHByIdKH(@RequestParam("idKH") Integer idKH,
-                                  @RequestParam("idCTSP") Integer idCTSP,
-                                  @RequestParam("soLuong") Integer soLuong) {
+    public Map<String, Object> deleteGHByIdKH(@RequestParam("idKH") Integer idKH,
+            @RequestParam("idCTSP") Integer idCTSP,
+            @RequestParam("soLuong") Integer soLuong) {
 
-        if (idKH == null || idCTSP == null || soLuong == null || soLuong <= 0) {
-            throw new IllegalArgumentException("Thông tin đầu vào không hợp lệ.");
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (idKH == null || idCTSP == null || soLuong == null || soLuong <= 0) {
+                response.put("success", false);
+                response.put("message", "Thông tin đầu vào không hợp lệ.");
+                return response;
+            }
+
+            // Tìm giỏ hàng của khách
+            GioHang gioHang = gioHangRepository.findAll().stream()
+                    .filter(gh -> gh.getKhachHang().getIdKhachHang().equals(idKH))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giỏ hàng cho khách hàng này."));
+
+            // Tạo khóa composite
+            ChiTietGioHangId chiTietGioHangId = new ChiTietGioHangId();
+            chiTietGioHangId.setIdGioHang(gioHang.getId_gio_hang());
+            chiTietGioHangId.setIdChiTietSanPham(idCTSP);
+
+            // Kiểm tra sản phẩm có trong giỏ hàng chưa
+            ChiTietGioHang ctgh = chiTietGioHangRepository.findById(chiTietGioHangId)
+                    .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không có trong giỏ hàng."));
+
+            // Xử lý giảm số lượng
+            int soLuongHienTai = ctgh.getSoLuong();
+            int remainingQuantity;
+
+            if (soLuong >= soLuongHienTai) {
+                // Nếu số lượng sau giảm <= 0, xóa luôn chi tiết
+                chiTietGioHangRepository.delete(ctgh);
+                remainingQuantity = 0;
+                response.put("message", "Đã xóa sản phẩm khỏi giỏ hàng");
+            } else {
+                // Nếu vẫn còn, cập nhật lại
+                remainingQuantity = soLuongHienTai - soLuong;
+                ctgh.setSoLuong(remainingQuantity);
+                chiTietGioHangRepository.save(ctgh);
+                response.put("message", "Đã giảm số lượng sản phẩm");
+            }
+
+            response.put("success", true);
+            response.put("remainingQuantity", remainingQuantity);
+            response.put("gioHang", gioHang);
+
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Có lỗi xảy ra: " + e.getMessage());
         }
 
-        // Tìm giỏ hàng của khách
-        GioHang gioHang = gioHangRepository.findAll().stream()
-                .filter(gh -> gh.getKhachHang().getIdKhachHang().equals(idKH))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giỏ hàng cho khách hàng này."));
-
-        // Tạo khóa composite
-        ChiTietGioHangId chiTietGioHangId = new ChiTietGioHangId();
-        chiTietGioHangId.setIdGioHang(gioHang.getId_gio_hang());
-        chiTietGioHangId.setIdChiTietSanPham(idCTSP);
-
-        // Kiểm tra sản phẩm có trong giỏ hàng chưa
-        ChiTietGioHang ctgh = chiTietGioHangRepository.findById(chiTietGioHangId)
-                .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không có trong giỏ hàng."));
-
-        // Xử lý giảm số lượng
-        int soLuongHienTai = ctgh.getSoLuong();
-        if (soLuong >= soLuongHienTai) {
-            // Nếu số lượng sau giảm <= 0, xóa luôn chi tiết
-            chiTietGioHangRepository.delete(ctgh);
-        } else {
-            // Nếu vẫn còn, cập nhật lại
-            ctgh.setSoLuong(soLuongHienTai - soLuong);
-            chiTietGioHangRepository.save(ctgh);
-        }
-
-        return gioHang;
+        return response;
     }
 
     @PostMapping("/addGHByIdKH")
     public GioHang addGHByIdKH(@RequestParam("idKH") Integer idKH,
-                               @RequestParam("idCTSP") Integer idCTSP,
-                               @RequestParam("soLuong") Integer soLuong) {
+            @RequestParam("idCTSP") Integer idCTSP,
+            @RequestParam("soLuong") Integer soLuong) {
 
         if (idKH == null || idCTSP == null || soLuong == null || soLuong <= 0) {
             throw new IllegalArgumentException("Thông tin đầu vào không hợp lệ.");

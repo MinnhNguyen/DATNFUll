@@ -68,9 +68,9 @@
                     <th scope="col">Ngày tạo</th>
                     <th scope="col">Khách hàng</th>
                     <th scope="col">Tổng tiền(VNĐ)</th>
-                    <th scope="col">Phương thức thanh toán</th>
+                    <th scope="col">Hình thức thanh toán</th>
                     <th scope="col">Trạng thái hóa đơn</th>
-                    <th scope="col">Hình thức nhận hàng</th>
+                    <th scope="col">Phương thức nhận hàng</th>
                     <th scope="col">Loại hóa đơn</th>
                     <th scope="col">Thao tác</th>
                 </tr>

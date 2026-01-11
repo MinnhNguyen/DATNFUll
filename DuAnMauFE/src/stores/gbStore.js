@@ -510,11 +510,22 @@ export const useGbStore = defineStore('gbStore', {
     // Xoá số lượng sản phẩm trong giỏ hàng
     async xoaSoLuongSPGH(idKH, idCTSP, soLuong) {
       try {
-        const response = await banHangOnlineService.xoaSoLuongSPGH(idKH, idCTSP, soLuong)
-        console.log('response: ', response)
+        console.log('[STORE] Calling delete API:', { idKH, idCTSP, soLuong });
+        const response = await banHangOnlineService.xoaSoLuongSPGH(idKH, idCTSP, soLuong);
+
+        console.log('[STORE] Delete API response:', response);
+
+        // ✅ Validate success
+        if (response.success) {
+          toast.success(response.message || 'Đã xóa sản phẩm khỏi giỏ hàng');
+          return response; // Return để frontend có thể kiểm tra
+        } else {
+          throw new Error(response.message || 'Không thể xóa sản phẩm');
+        }
       } catch (error) {
-        console.error('Lỗi trong xoaSoLuongSanPhamTrongGioHang:', error)
-        toast.error('Có lỗi xảy ra khi xoá số lượng sản phẩm trong giỏ hàng')
+        console.error('[STORE] Lỗi trong xoaSoLuongSPGH:', error);
+        toast.error(error.message || 'Có lỗi xảy ra khi xóa sản phẩm');
+        throw error; // Re-throw để frontend xử lý rollback
       }
     },
     // Danh sách địa chỉ của khách hàng
@@ -2564,7 +2575,30 @@ export const useGbStore = defineStore('gbStore', {
         throw error
       }
     },
+    //update phương thức nhận hàng
+    async updatePhuongThucNhanHang(idHoaDon, phuongThucNhanHang) {
+      try {
+        const response = await banHangService.updatePhuongThucNhanHang(idHoaDon, phuongThucNhanHang)
 
+        if (response.error) {
+          toast.error(response.message || 'Không update được phương thức nhận hàng')
+          return null
+        }
+
+        // ⚠️ Backend trả về Optional<HoaDon>, cần extract HoaDon entity
+        // Response format: { present: true, empty: false, ... }
+        // Nhưng Spring Boot thường auto-serialize nên data ở top level
+        console.log('📦 Response từ API:', response);
+
+        // Return response trực tiếp (Spring đã unwrap Optional)
+        return response
+
+      } catch (error) {
+        console.error('❌ Lỗi update phương thức:', error)
+        toast.error('Có lỗi xảy ra')
+        throw error
+      }
+    },
     async thanhToanMomo(idHoaDon) {
       try {
         const result = await banHangService.thanhToanMomo(idHoaDon)
@@ -3314,6 +3348,21 @@ export const useGbStore = defineStore('gbStore', {
         this.updateFinalProductIds()
       } catch (error) {
         console.error('Lỗi khi tìm kiếm sản phẩm:', error)
+      }
+    },
+    //check trạng thái sản phẩm bằng ctsp
+    async checkStatusSPByCTSP(idSanPham) {
+      try {
+        const result = await sanPhamService.checkStatusSPByCTSP(idSanPham)
+        if (result.error) {
+          toast.error(result.message || 'lỗi api check trạng thái sản phẩm')
+          return null
+        }
+        return result
+      } catch (error) {
+        console.error(error)
+        toast.error('Có lị xảy ra')
+        throw error
       }
     },
     getLangue(check) {

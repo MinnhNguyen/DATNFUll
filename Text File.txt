@@ -1,0 +1,260 @@
+---FE
+ZaloPay Response:
+Object { return_code: 1, return_message: "Giao dịch thành công", sub_return_code: 1, sub_return_message: "Giao dịch thành công", zp_trans_token: "ACEyueEccqD_cJhYK5jW0AlA", order_url: "https://qcgateway.zalopay.vn/openinapp?order=eyJ6cHRyYW5zdG9rZW4iOiJBQ0V5dWVFY2NxRF9jSmhZSzVqVzBBbEEiLCJhcHBpZCI6MjU1NH0=", order_token: "ACEyueEccqD_cJhYK5jW0AlA", app_trans_id: "260110_1768006152248" }
+thanhToan.js:41:17
+🔲 [ZALOPAY] Generating QR code ThanhToanDonHang-BanHang.vue:1162:13
+🐛 [DEBUG] Before polling start ThanhToanDonHang-BanHang.vue:1182:13
+🔄 [ZALOPAY] Starting payment polling ThanhToanDonHang-BanHang.vue:1185:13
+🔄 Starting payment polling for ZaloPay: 4091 paymentPollingService.js:50:15
+✅ Polling started for 4091 paymentPollingService.js:91:15
+✅ [ZALOPAY] Payment flow initiated successfully ThanhToanDonHang-BanHang.vue:1191:13
+🔄 Polling attempt 1/40 for 4091 paymentPollingService.js:119:15
+🔄 Polling attempt 2/40 for 4091 paymentPollingService.js:119:15
+⏳ Payment 4091 still pending... 2 paymentPollingService.js:192:15
+🔄 Polling attempt 3/40 for 4091 paymentPollingService.js:119:15
+🔄 Polling attempt 4/40 for 4091 paymentPollingService.js:119:15
+✅ Payment success: 4091
+Object { return_code: 1, return_message: "Giao dịch thành công", sub_return_code: 1, sub_return_message: "Giao dịch thành công", is_processing: false, amount: 342000, zp_trans_id: 260110000000130, server_time: 1768006181685, discount_amount: 0 }
+paymentPollingService.js:209:15
+✅ Payment success: 4091
+Object { return_code: 1, return_message: "Giao dịch thành công", sub_return_code: 1, sub_return_message: "Giao dịch thành công", is_processing: false, amount: 342000, zp_trans_id: 260110000000130, server_time: 1768006181685, discount_amount: 0 }
+paymentPollingService.js:209:15
+💳 Payment status updated: pending → success <empty string> paymentState.js:97:13
+✅ Payment state cleared invoiceStorage.js:155:15
+✅ [ZALOPAY] Payment successful ThanhToanDonHang-BanHang.vue:1208:11
+📝 [ZALOPAY] Confirming order 4091 (First call: true) ThanhToanDonHang-BanHang.vue:1215:13
+🛑 Stopping polling for 4091 paymentPollingService.js:289:15
+✅ Polling stopped for 4091 paymentPollingService.js:312:15
+💳 Payment status updated: success → success <empty string> paymentState.js:97:13
+✅ Payment state cleared invoiceStorage.js:155:15
+✅ [ZALOPAY] Payment successful ThanhToanDonHang-BanHang.vue:1208:11
+📝 [ZALOPAY] Confirming order 4091 (First call: false) ThanhToanDonHang-BanHang.vue:1215:13
+🛑 Stopping polling for 4091 paymentPollingService.js:289:15
+✅ Polling stopped for 4091 paymentPollingService.js:312:15
+✅ [ZALOPAY] Order confirmed (isChuyen: false) ThanhToanDonHang-BanHang.vue:1233:13
+✅ [ZALOPAY] Order confirmed (isChuyen: true) ThanhToanDonHang-BanHang.vue:1233:13
+Window focused - checking product quantities GioHang.vue:1294:17
+🚀 [STOCK UPDATE] Starting batch update for 1 items GioHang.vue:1121:17
+Window focused - checking product quantities GioHang.vue:1294:17
+⏭️ [STOCK UPDATE] Cart is empty, skipping update GioHang.vue:1116:17
+Window focused - checking product quantities GioHang.vue:1294:17
+🚀 [STOCK UPDATE] Starting batch update for 1 items GioHang.vue:1121:17
+📊 [BATCH STOCK] Cache: 0 hits, 1 misses batchStockService.js:128:13
+🚀 [BATCH API] Fetching stock for 1 products batchStockService.js:137:17
+📊 [BATCH STOCK] Cache: 0 hits, 1 misses batchStockService.js:128:13
+🚀 [BATCH API] Fetching stock for 1 products batchStockService.js:137:17
+XHRPOST
+http://localhost:8080/gioHangWeb/batchCheckStock
+[HTTP/1.1 404  7ms]
+
+XHRPOST
+http://localhost:8080/gioHangWeb/batchCheckStock
+[HTTP/1.1 404  6ms]
+
+⚠️ [BATCH API] Endpoint not found, falling back to parallel calls batchStockService.js:154:21
+🔄 [FALLBACK] Fetching 1 products in parallel batchStockService.js:160:17
+⚠️ [BATCH API] Endpoint not found, falling back to parallel calls batchStockService.js:154:21
+🔄 [FALLBACK] Fetching 1 products in parallel batchStockService.js:160:17
+✅ [STOCK UPDATE] Received batch data for 1 products GioHang.vue:1137:17
+📊 [STOCK] Áo thun Cotton: max=46, status=Hoạt động GioHang.vue:1160:21
+ℹ️ [STOCK UPDATE] No adjustments needed, all quantities within limits GioHang.vue:1221:21
+✅ [STOCK UPDATE] Received batch data for 1 products GioHang.vue:1137:17
+📊 [STOCK] Áo thun Cotton: max=46, status=Hoạt động GioHang.vue:1160:21
+ℹ️ [STOCK UPDATE] No adjustments needed, all quantities within limits GioHang.vue:1221:21
+Dữ liệu sản phẩm mới đã chuyển đổi:
+Proxy { <target>: (4) […], <handler>: {…} }
+AoTheThaoBanChay.vue:191:17
+[Vue warn]: Failed to resolve component: print-invoice
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement.
+  at <TraCuuDonHang>
+  at <TraCuuDonHangBanHang onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< null > >
+  at <RouterView>
+  at <Home onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref<
+Proxy { <target>: {…}, <handler>: {…} }
+ > >
+  at <RouterView>
+  at <App> runtime-core.esm-bundler.js:51:13
+Lỗi API tính phí ship:
+Object { message: "Request failed with status code 400", name: "AxiosError", code: "ERR_BAD_REQUEST", config: {…}, request: XMLHttpRequest, response: {…}, status: 400, stack: "", … }
+banHangService.js:235:17
+💰 [SHIPPING] API result:
+Object { error: true }
+ThanhToanDonHang-BanHang.vue:647:13
+⚠️ [SHIPPING] API không trả về phí hợp lệ ThanhToanDonHang-BanHang.vue:658:15
+Window focused - checking product quantities GioHang.vue:1294:17
+🚀 [STOCK UPDATE] Starting batch update for 1 items GioHang.vue:1121:17
+Window focused - checking product quantities GioHang.vue:1294:17
+⏭️ [STOCK UPDATE] Cart is empty, skipping update GioHang.vue:1116:17
+Window focused - checking product quantities GioHang.vue:1294:17
+🚀 [STOCK UPDATE] Starting batch update for 1 items GioHang.vue:1121:17
+📊 [BATCH STOCK] Cache: 0 hits, 1 misses batchStockService.js:128:13
+🚀 [BATCH API] Fetching stock for 1 products batchStockService.js:137:17
+📊 [BATCH STOCK] Cache: 0 hits, 1 misses batchStockService.js:128:13
+🚀 [BATCH API] Fetching stock for 1 products batchStockService.js:137:17
+XHRPOST
+http://localhost:8080/gioHangWeb/batchCheckStock
+[HTTP/1.1 404  5ms]
+
+XHRPOST
+http://localhost:8080/gioHangWeb/batchCheckStock
+[HTTP/1.1 404  4ms]
+
+⚠️ [BATCH API] Endpoint not found, falling back to parallel calls batchStockService.js:154:21
+🔄 [FALLBACK] Fetching 1 products in parallel batchStockService.js:160:17
+⚠️ [BATCH API] Endpoint not found, falling back to parallel calls batchStockService.js:154:21
+🔄 [FALLBACK] Fetching 1 products in parallel batchStockService.js:160:17
+✅ [STOCK UPDATE] Received batch data for 1 products GioHang.vue:1137:17
+📊 [STOCK] Áo thun Cotton: max=46, status=Hoạt động GioHang.vue:1160:21
+ℹ️ [STOCK UPDATE] No adjustments needed, all quantities within limits GioHang.vue:1221:21
+✅ [STOCK UPDATE] Received batch data for 1 products GioHang.vue:1137:17
+📊 [STOCK] Áo thun Cotton: max=46, status=Hoạt động GioHang.vue:1160:21
+ℹ️ [STOCK UPDATE] No adjustments needed, all quantities within limits GioHang.vue:1221:21
+
+​
+----BE
+Lấy dữ liệu từ database không phải từ cache
+chạy vào đây
+Lấy dữ liệu từ database không phải từ cache
+🔍 [DEBUG] BanHangWebController.createOrder() - Checking delivery method
+  - Delivery method from request: 'ZaloPay'
+  - Setting delivery method to: 'ZaloPay'
+🔍 [DEBUG] BanHangWebController - State after save:
+  - Saved Invoice ID: 4091
+  - Saved Delivery Method: 'ZaloPay'
+  - Saved Order Type: 'Online'
+id Hoá đơn: fdfdfd: 4091
+=== TẠO ORDER ZALOPAY ===
+ID Hóa đơn: 4091
+💰 TỔNG TỪ FE: 342000
+Mã hóa đơn: HDMPGS3P
+Trạng thái hiện tại: Đang chờ thanh toán
+=== SỬ DỤNG SỐ TIỀN TỪ FE ===
+Tổng từ FE: 342000
+(FE đã tính: SP + ship - voucher)
+=== END ===
+>>> Gọi ZaloPay Create Order API...
+💰 ZALOPAY AMOUNT: 342000 VNĐ
+ZaloPay Order Data: {"app_time":1768006152249,"callback_url":"https://fourcha-adolph-noncondescending.ngrok-free.dev /api/zalopay/callback","bank_code":"","amount":342000,"item":"[{\"itemid\":\"H
+DMPGS3P\",\"itemname\":\"Hóa đơn HDMPGS3P\",\"itemprice\":342000,\"itemquantity\":1}]","embed_data":"{\"redirecturl\":\"http://localhost:5173/admin/banhang\",\"merchantinfo\":\"GB Sport - HDMPGS3
+P\"}","app_user":"user_1768006152249","description":"Thanh toán hóa đơn HDMPGS3P","app_id":2554,"app_trans_id":"260110_1768006152248","mac":"033814656f0a0ce259dcf875e3e3c5b3b21e938b9dc6e922b0b79f
+8a92f6ac41"}
+ZaloPay MAC String: 2554|260110_1768006152248|user_1768006152249|342000|1768006152249|{"redirecturl":"http://localhost:5173/admin/banhang","merchantinfo":"GB Sport - HDMPGS3P"}|[{"itemid":"HDMPGS
+3P","itemname":"Hóa đơn HDMPGS3P","itemprice":342000,"itemquantity":1}]
+ZaloPay MAC: 033814656f0a0ce259dcf875e3e3c5b3b21e938b9dc6e922b0b79f8a92f6ac41
+ZaloPay Response: {"return_code":1,"return_message":"Giao dịch thành công","sub_return_code":1,"sub_return_message":"Giao dịch thành công","zp_trans_token":"ACEyueEccqD_cJhYK5jW0AlA","order_url":
+"https://qcgateway.zalopay.vn/openinapp?order=eyJ6cHRyYW5zdG9rZW4iOiJBQ0V5dWVFY2NxRF9jSmhZSzVqVzBBbEEiLCJhcHBpZCI6MjU1NH0=","order_token":"ACEyueEccqD_cJhYK5jW0AlA"}
+ZaloPay Response Return Code: 1.0
+✅ Đã lưu app_trans_id: 260110_1768006152248
+=== END TẠO ORDER ===
+
+=== CHECK STATUS DEBUG ===
+ID Hóa đơn: 4091
+Trạng thái hiện tại trong DB: Đang chờ thanh toán
+Ghi chú:  ZaloPay:260110_1768006152248
+App Trans ID: 260110_1768006152248
+>>> GỌI ZALOPAY QUERY API...
+
+=== ZALOPAY QUERY ORDER ===
+App Trans ID: 260110_1768006152248
+Query URL: https://sb-openapi.zalopay.vn/v2/query
+Query Params: {"app_id":"2554","app_trans_id":"260110_1768006152248","mac":"3b06117434e9db42a025c927b8d0dfcab6185210606b7b9463525f9f702e8f61"}
+=== CHECK STATUS DEBUG ===
+ID Hóa đơn: 4091
+Trạng thái hiện tại trong DB: Đang chờ thanh toán
+Ghi chú:  ZaloPay:260110_1768006152248
+App Trans ID: 260110_1768006152248
+>>> GỌI ZALOPAY QUERY API...
+
+=== ZALOPAY QUERY ORDER ===
+App Trans ID: 260110_1768006152248
+Query URL: https://sb-openapi.zalopay.vn/v2/query
+Query Params: {"app_id":"2554","app_trans_id":"260110_1768006152248","mac":"3b06117434e9db42a025c927b8d0dfcab6185210606b7b9463525f9f702e8f61"}
+ZaloPay Query Response: {"return_code":3,"return_message":"Giao dịch chưa được thực hiện","sub_return_code":0,"sub_return_message":"Giao dịch chưa được thực hiện","is_processing":true,"amount":0,
+"zp_trans_id":0,"discount_amount":0}
+Parsed Return Code: 3.0
+Parsed Return Message: Giao dịch chưa được thực hiện
+=== END ZALOPAY QUERY ===
+
+ZaloPay Response Return Code: 3.0
+ZaloPay Response Message: Giao dịch chưa được thực hiện
+>>> CHƯA THANH TOÁN - Return Code: 3.0
+=== END CHECK STATUS ===
+
+ZaloPay Query Response: {"return_code":3,"return_message":"Giao dịch chưa được thực hiện","sub_return_code":0,"sub_return_message":"Giao dịch chưa được thực hiện","is_processing":true,"amount":0,
+"zp_trans_id":0,"discount_amount":0}
+Parsed Return Code: 3.0
+Parsed Return Message: Giao dịch chưa được thực hiện
+=== END ZALOPAY QUERY ===
+
+ZaloPay Response Return Code: 3.0
+ZaloPay Response Message: Giao dịch chưa được thực hiện
+>>> CHƯA THANH TOÁN - Return Code: 3.0
+=== END CHECK STATUS ===
+
+=== CHECK STATUS DEBUG ===
+ID Hóa đơn: 4091
+Trạng thái hiện tại trong DB: Đang chờ thanh toán
+Ghi chú:  ZaloPay:260110_1768006152248
+App Trans ID: 260110_1768006152248
+>>> GỌI ZALOPAY QUERY API...
+
+=== ZALOPAY QUERY ORDER ===
+App Trans ID: 260110_1768006152248
+Query URL: https://sb-openapi.zalopay.vn/v2/query
+Query Params: {"app_id":"2554","app_trans_id":"260110_1768006152248","mac":"3b06117434e9db42a025c927b8d0dfcab6185210606b7b9463525f9f702e8f61"}
+=== CHECK STATUS DEBUG ===
+ID Hóa đơn: 4091
+Trạng thái hiện tại trong DB: Đang chờ thanh toán
+Ghi chú:  ZaloPay:260110_1768006152248
+App Trans ID: 260110_1768006152248
+>>> GỌI ZALOPAY QUERY API...
+
+=== ZALOPAY QUERY ORDER ===
+App Trans ID: 260110_1768006152248
+Query URL: https://sb-openapi.zalopay.vn/v2/query
+Query Params: {"app_id":"2554","app_trans_id":"260110_1768006152248","mac":"3b06117434e9db42a025c927b8d0dfcab6185210606b7b9463525f9f702e8f61"}
+ZaloPay Query Response: {"return_code":1,"return_message":"Giao dịch thành công","sub_return_code":1,"sub_return_message":"Giao dịch thành công","is_processing":false,"amount":342000,"zp_trans_id
+":260110000000130,"server_time":1768006181685,"discount_amount":0}
+ZaloPay Query Response: {"return_code":1,"return_message":"Giao dịch thành công","sub_return_code":1,"sub_return_message":"Giao dịch thành công","is_processing":false,"amount":342000,"zp_trans_id
+":260110000000130,"server_time":1768006181685,"discount_amount":0}
+Parsed Return Code: 1.0
+Parsed Return Message: Giao dịch thành công
+=== END ZALOPAY QUERY ===
+
+Parsed Return Code: 1.0
+Parsed Return Message: Giao dịch thành công
+=== END ZALOPAY QUERY ===
+
+ZaloPay Response Return Code: 1.0
+ZaloPay Response Message: Giao dịch thành công
+>>> ZALOPAY XÁC NHẬN THÀNH CÔNG - CẬP NHẬT DB
+ZaloPay Response Return Code: 1.0
+ZaloPay Response Message: Giao dịch thành công
+>>> ZALOPAY XÁC NHẬN THÀNH CÔNG - CẬP NHẬT DB
+=== END CHECK STATUS ===
+
+=== END CHECK STATUS ===
+
+✅ Đã tạo theo dõi đơn hàng: Đã xác nhận
+✅ Đã tạo theo dõi đơn hàng: Đã xác nhận
+🔍 [DEBUG] BanHangWebController - Checking delivery method
+🔍 [DEBUG] BanHangWebController - Checking delivery method
+  - Delivery method from request: 'Giao hàng'
+  - Delivery method from request: 'Giao hàng'
+  - Setting delivery method to: 'Giao hàng'
+  - Setting delivery method to: 'Giao hàng'
+🔍 [DEBUG] BanHangWebController.suaHoaDon() - State after save:
+  - Saved Invoice ID: 4091
+  - Saved Delivery Method: 'Giao hàng'
+  - Saved Order Type: 'Online'
+🔍 [DEBUG] BanHangWebController.suaHoaDon() - State after save:
+  - Saved Invoice ID: 4091
+  - Saved Delivery Method: 'Giao hàng'
+  - Saved Order Type: 'Online'
+⏭️ Skipped duplicate tracking - already confirmed by callback
+
+
+
+
+
+

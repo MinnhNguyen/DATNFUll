@@ -28,7 +28,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
 
     @Query("SELECT v FROM Voucher v WHERE v.ngayBatDau >= :startDate AND v.ngayHetHan <= :endDate")
     Page<Voucher> searchByDateRange(@Param("startDate") LocalDateTime startDate,
-                                    @Param("endDate") LocalDateTime endDate, Pageable pageable);
+            @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
     Page<Voucher> findByNgayBatDauGreaterThanEqual(LocalDateTime startDate, Pageable pageable);
 
@@ -36,7 +36,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
 
     @Query("SELECT v FROM Voucher v WHERE v.giaTriToiDa BETWEEN :minPrice AND :maxPrice")
     Page<Voucher> searchByPriceRange(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice,
-                                     Pageable pageable);
+            Pageable pageable);
 
     @Query("SELECT COALESCE(MIN(v.giaTriToiDa), 0) FROM Voucher v")
     BigDecimal findMinPrice();
@@ -97,8 +97,13 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
                     	FROM\s
                     		voucher vc
                     	WHERE\s
-                    		vc.trang_thai = N'Đang diễn ra'\s
-                    		AND :giaTruyen >= gia_tri_toi_thieu;
+                    		vc.ngay_bat_dau <= :ngayHienTai\s
+                    		AND :ngayHienTai <= vc.ngay_het_han\s
+                    		AND :giaTruyen >= vc.gia_tri_toi_thieu
+                    		AND vc.so_luong > 0
+                    	ORDER BY so_tien_giam DESC;
             """)
-    List<VoucherBHResponse> listVoucherHopLeTheoGia(@Param("giaTruyen") BigDecimal giaTruyen);
+    List<VoucherBHResponse> listVoucherHopLeTheoGia(
+            @Param("giaTruyen") BigDecimal giaTruyen,
+            @Param("ngayHienTai") LocalDateTime ngayHienTai);
 }

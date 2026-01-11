@@ -7,78 +7,88 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface HoaDonResponse {
-    Integer getId_hoa_don();
+  Integer getId_hoa_don();
 
-    String getMa_hoa_don();
+  String getMa_hoa_don();
 
-    Integer getId_nhan_vien();
+  Integer getId_nhan_vien();
 
-    String getTen_nhan_vien();
+  String getTen_nhan_vien();
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime getNgay_tao();
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime getNgay_tao();
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime getNgay_sua();
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime getNgay_sua();
 
-    String getTrang_thai();
+  String getTrang_thai();
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime getNgay_chuyen();
+  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  LocalDateTime getNgay_chuyen();
 
-    String getSdt_nguoi_nhan();
+  String getSdt_nguoi_nhan();
 
-    String getSo_dien_thoai();
+  String getSo_dien_thoai();
 
-    String getDia_chi();
+  String getDia_chi();
 
-    String getMa_voucher();
+  String getMa_voucher();
 
-    String getEmail();
+  String getEmail();
 
-    BigDecimal getTong_tien_truoc_giam();
+  BigDecimal getTong_tien_truoc_giam();
 
-    BigDecimal getPhi_van_chuyen();
+  BigDecimal getPhi_van_chuyen();
 
-    String getHo_ten();
+  String getHo_ten();
 
-    BigDecimal getTong_tien_sau_giam();
+  BigDecimal getTong_tien_sau_giam();
 
-    String getHinh_thuc_thanh_toan();
+  String getHinh_thuc_thanh_toan();
 
-    String getPhuong_thuc_nhan_hang();
+  String getPhuong_thuc_nhan_hang();
 
-    Integer getId_khach_hang();
+  Integer getId_khach_hang();
 
-    String getTen_khach_hang();
+  String getTen_khach_hang();
 
-    Integer getId_voucher();
+  Integer getId_voucher();
 
-    String getTen_voucher();
+  String getTen_voucher();
 
-    String getGhi_chu();
+  String getGhi_chu();
 
-    String getLoai_hoa_don();
-    String getMa_san_pham();
+  String getLoai_hoa_don();
 
-    String getTen_san_pham();
+  String getMa_san_pham();
 
-    Integer getSo_luong();
-    BigDecimal getGia_ban();
-    String getTrangThaiDonHang();
-    Float getTiLeTrangThaiDonHang();
+  String getTen_san_pham();
 
-    String getTrang_thai_thanh_toan();
+  Integer getSo_luong();
 
-    String getMo_ta();
+  BigDecimal getGia_ban();
 
-    BigDecimal getGia_tri_giam();
+  String getTrangThaiDonHang();
 
-    String getKieu_giam_gia();
-    // Trường mới liên quan đến trả hàng
-    String getTrang_thai_tra_hang();
-    // New fields for return details
-    BigDecimal getTong_tien_hoan();
+  Float getTiLeTrangThaiDonHang();
 
-    List<ChiTietTraHangResponse> getChiTietTraHangs();
+  String getTrang_thai_thanh_toan();
+
+  String getMo_ta();
+
+  BigDecimal getGia_tri_giam();
+
+  String getKieu_giam_gia();
+
+  BigDecimal getGiam_gia();
+
+  // Trường mới liên quan đến trả hàng
+  String getTrang_thai_tra_hang();
+
+  // New fields for return details
+  BigDecimal getTong_tien_hoan();
+
+  Integer getId_hoa_don_chi_tiet();
+
+  List<ChiTietTraHangResponse> getChiTietTraHangs();
 }

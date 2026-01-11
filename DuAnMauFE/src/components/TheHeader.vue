@@ -3,19 +3,14 @@
         <div class="row">
             <div class="col-12 headers d-flex align-items-center">
                 <div class="logo-section col-sm-2 align-items-center">
-                    <img src="../../src/images/logo/anhLogoMenWear.png" @click="chuyenTrang('/home')" class="logo-image img-fluid ms-2"
-                        alt="MenWear Logo">
+                    <img src="../../src/images/logo/anhLogoMenWear.png" @click="chuyenTrang('/home')"
+                        class="logo-image img-fluid ms-2" alt="MenWear Logo">
                 </div>
                 <div class="search-section col-sm-6">
                     <div class="search-container d-flex align-items-center">
                         <Search class="search-icon ms-3" />
-                        <input
-                            type="text"
-                            v-model="searchKeyword"
-                            @keyup.enter="handleSearch"
-                            class="search-input form-control"
-                            placeholder="Bạn đang muốn tìm kiếm gì?"
-                        >
+                        <input type="text" v-model="searchKeyword" @keyup.enter="handleSearch"
+                            class="search-input form-control" placeholder="Bạn đang muốn tìm kiếm gì?">
                     </div>
                     <TheHeaderSearchModal />
                 </div>
@@ -39,7 +34,7 @@
                         @mouseenter="animateIcon('cart')">
                         <div class="icon-container">
                             <ShoppingCart class="nav-icon" :class="{ 'icon-animated': animatedIcon === 'cart' }" />
-                            <span v-if="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
+                            <span v-if="cartItemCount > 0" class="cart-badge">{{ formattedCartCount }}</span>
                         </div>
                         <span class="nav-text">Giỏ hàng</span>
                     </div>
@@ -93,6 +88,7 @@ import TheHeaderSearchModal from './TheHeaderSearchModal.vue';
 import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { banHangOnlineService } from '@/services/banHangOnlineService';
+import { debounce } from '@/utils/performanceUtils';
 
 const store = useGbStore();
 const animatedIcon = ref(null);
@@ -101,6 +97,11 @@ const router = useRouter();
 const showMenu = ref(false);
 const searchKeyword = ref('');
 const displayName = ref('Đăng nhập'); // Use ref instead of computed for reactivity
+
+// ✅ Format cart count: hiển thị "99+" nếu > 99
+const formattedCartCount = computed(() => {
+    return cartItemCount.value > 99 ? '99+' : cartItemCount.value.toString();
+});
 
 // Function to update display name from storage
 const updateDisplayName = () => {
@@ -211,37 +212,62 @@ const closeMenuOnOutsideClick = (event) => {
 // Hàm tải giỏ hàng và cập nhật số lượng
 const updateCartCount = async () => {
     try {
-        // Kiểm tra xem khách hàng đã đăng nhập chưa
-        const userDetailsStr = sessionStorage.getItem('userDetails');
+        // ✅ FIXED: Kiểm tra CẢ 2 loại đăng nhập
+        // Check customer login (từ login() trong gbStore.js line 1750-1754)
+        const customerDataStr = sessionStorage.getItem('khachHang') || localStorage.getItem('khachHang');
 
-        if (userDetailsStr) {
-            const userDetails = JSON.parse(userDetailsStr);
+        // Check admin/staff login (từ loginNV() trong gbStore.js line 1819-1821)
+        const adminDataStr = sessionStorage.getItem('userDetails') || localStorage.getItem('userDetails');
 
-            if (userDetails && userDetails.idKhachHang) {
-                // Nếu đã đăng nhập, lấy giỏ hàng từ API
-                const response = await banHangOnlineService.getGioHang(userDetails.idKhachHang);
+        let userId = null;
+        let userType = '';
 
-                if (response && Array.isArray(response)) {
-                    // Tính tổng số lượng sản phẩm từ API
-                    cartItemCount.value = response.reduce((total, item) => total + (item.so_luong || 1), 0);
-                    console.log('Số lượng sản phẩm trong giỏ hàng của KH đã đăng nhập:', cartItemCount.value);
-                } else {
-                    cartItemCount.value = 0;
-                }
-                return; // Kết thúc hàm sau khi đã xử lý KH đăng nhập
+        if (customerDataStr) {
+            try {
+                const customerData = JSON.parse(customerDataStr);
+                userId = customerData.idKhachHang;
+                userType = 'CUSTOMER';
+            } catch (e) {
+                console.error('Error parsing khachHang:', e);
+            }
+        } else if (adminDataStr) {
+            try {
+                const adminData = JSON.parse(adminDataStr);
+                userId = adminData.idKhachHang;
+                userType = 'ADMIN';
+            } catch (e) {
+                console.error('Error parsing userDetails:', e);
             }
         }
 
-        // Nếu không đăng nhập hoặc không có idKhachHang, lấy từ localStorage
-        const savedCart = localStorage.getItem('gb-sport-cart');
-        if (savedCart) {
-            const cartItems = JSON.parse(savedCart);
-            cartItemCount.value = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+        if (userId) {
+            // ✅ Đã đăng nhập - Load từ database
+            console.log(`✅ [HEADER ${userType}] Loading cart from database for ID:`, userId);
+
+            const response = await banHangOnlineService.getGioHang(userId);
+
+            if (response && Array.isArray(response)) {
+                cartItemCount.value = response.reduce((total, item) => total + (item.so_luong || 1), 0);
+                console.log(`✅ [HEADER ${userType}] Database cart count:`, cartItemCount.value);
+            } else {
+                cartItemCount.value = 0;
+                console.log(`⚠️ [HEADER ${userType}] Empty cart`);
+            }
         } else {
-            cartItemCount.value = 0;
+            // ❌ Chưa đăng nhập - Load từ localStorage
+            console.log('🔄 [HEADER GUEST] Loading cart from localStorage');
+
+            const savedCart = localStorage.getItem('gb-sport-cart');
+            if (savedCart) {
+                const cartItems = JSON.parse(savedCart);
+                cartItemCount.value = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+                console.log('✅ [HEADER GUEST] LocalStorage cart count:', cartItemCount.value);
+            } else {
+                cartItemCount.value = 0;
+            }
         }
     } catch (error) {
-        console.error('Lỗi khi cập nhật số lượng giỏ hàng:', error);
+        console.error('❌ [HEADER] Lỗi khi cập nhật số lượng giỏ hàng:', error);
         cartItemCount.value = 0;
     }
 };
@@ -281,6 +307,18 @@ const handleSearch = async () => {
     }
 };
 
+// ✅ OPTIMIZED: Debounced event handler to prevent excessive API calls
+// Reduced to 200ms for faster perceived responsiveness
+const handleCartUpdateEvent = debounce(async (event) => {
+    try {
+        console.log('🔍 [HEADER] Received cart-updated event (debounced):', event.detail);
+        // Refresh cart count từ database hoặc localStorage
+        await updateCartCount();
+    } catch (error) {
+        console.error('❌ [HEADER] Error handling cart event:', error);
+    }
+}, 200); // Debounce 200ms - balance between performance and responsiveness
+
 // Cập nhật lại onMounted để thêm listener document.click
 onMounted(async () => {
     // Update display name from storage on mount
@@ -289,7 +327,7 @@ onMounted(async () => {
     await updateCartCount();
 
     // Lắng nghe sự kiện 'cart-updated' nếu có
-    window.addEventListener('cart-updated', updateCartCount);
+    window.addEventListener('cart-updated', handleCartUpdateEvent);
 
     // Thêm lắng nghe click bên ngoài để đóng dropdown
     document.addEventListener('click', closeMenuOnOutsideClick);
@@ -303,15 +341,13 @@ onMounted(async () => {
     });
 });
 
-// Làm sạch listener khi component bị hủy
+// ✅ OPTIMIZED: Cleanup listeners without interval
 onBeforeUnmount(() => {
-    window.removeEventListener('cart-updated', updateCartCount);
+    window.removeEventListener('cart-updated', handleCartUpdateEvent);
     document.removeEventListener('click', closeMenuOnOutsideClick);
-    clearInterval(checkCartInterval);
+    // ❌ REMOVED: Auto-refresh interval (setInterval)
+    // Cart updates are now event-driven only
 });
-
-// Kiểm tra giỏ hàng định kỳ để đảm bảo hiển thị chính xác
-const checkCartInterval = setInterval(updateCartCount, 5000);
 </script>
 
 <style scoped>
@@ -378,7 +414,7 @@ const checkCartInterval = setInterval(updateCartCount, 5000);
     height: 3rem;
     background-color: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-md);
     padding: 0 1.25rem;
     transition: all var(--transition-base);
 }
@@ -491,19 +527,28 @@ const checkCartInterval = setInterval(updateCartCount, 5000);
 /* ========== User Dropdown Menu ========== */
 .user-nav-item {
     position: relative;
+    /* ✅ Để dropdown align đúng với icon */
+}
+
+.user-icon {
+    cursor: pointer;
+    transition: color var(--transition-base);
 }
 
 .user-dropdown {
     position: absolute;
-    top: calc(100% + 0.5rem);
+    top: 100%;
     right: 0;
-    min-width: 200px;
-    background-color: var(--color-bg);
+    background: var(--color-white);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+    min-width: 220px;
+    margin-top: 8px;
     overflow: hidden;
-    animation: slideDown var(--transition-base);
+    animation: slideDown 0.2s ease-out;
+    z-index: 1100;
+    /* ✅ Cao hơn header (900) và notification (1010) */
 }
 
 @keyframes slideDown {
@@ -511,6 +556,7 @@ const checkCartInterval = setInterval(updateCartCount, 5000);
         opacity: 0;
         transform: translateY(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
