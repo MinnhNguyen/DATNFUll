@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onActivated, onUnmounted, watch, computed } from 'vue';
 import { ShoppingCartOutlined, DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
@@ -231,7 +231,7 @@ const getAuthenticatedUser = () => {
     return null; // Not logged in
 };
 
-// ✅ FIXED: Tải giỏ hàng từ localStorage
+// ✅ ENHANCED: Tải giỏ hàng từ localStorage VÀ sync với getAllCTSPKM
 const loadCartFromLocalStorage = async () => {
     try {
         const auth = getAuthenticatedUser();
@@ -239,16 +239,76 @@ const loadCartFromLocalStorage = async () => {
         // ❌ Chỉ load localStorage khi KHÔNG đăng nhập
         if (!auth) {
             const savedCart = localStorage.getItem('gb-sport-cart');
-            if (savedCart) {
-                cartItems.value = JSON.parse(savedCart);
-                console.log('✅ [GUEST] Đã tải giỏ hàng từ localStorage:', cartItems.value.length, 'sản phẩm');
-
-                // Cập nhật số lượng tồn kho cho tất cả sản phẩm
-                await updateAllMaxQuantities();
-            } else {
+            if (!savedCart) {
                 cartItems.value = [];
                 console.log('🔍 [GUEST] Không có sản phẩm trong giỏ hàng');
+                return;
             }
+
+            const localCart = JSON.parse(savedCart);
+            console.log('📦 [GUEST] Đã tải giỏ hàng từ localStorage:', localCart.length, 'sản phẩm');
+
+            // ✅ SYNC WITH API: Lấy danh sách sản phẩm có khuyến mãi
+            await store.getAllCTSPKM();
+            const allProducts = store.getAllCTSPKMList || [];
+            console.log('🔄 [GUEST] Syncing with product catalog (with promotions):', allProducts.length, 'products');
+
+            // ✅ UPDATE PRICES & STATUS: So sánh và cập nhật
+            const updatedCart = localCart.map(cartItem => {
+                // Tìm sản phẩm trong danh sách getAllCTSPKM (flat list)
+                const product = allProducts.find(p =>
+                    p.id_chi_tiet_san_pham === cartItem.id ||
+                    p.id === cartItem.id
+                );
+
+                if (!product) {
+                    // ❌ Sản phẩm không còn tồn tại → Đánh dấu unavailable
+                    console.warn(`⚠️ [GUEST] Product ${cartItem.name} (ID:${cartItem.id}) not found in catalog`);
+                    return {
+                        ...cartItem,
+                        trang_thai: false,
+                        maxQuantity: 0,
+                        unavailable: true
+                    };
+                }
+
+                // ✅ UPDATE: Giá, trạng thái, tồn kho
+                const updatedItem = {
+                    ...cartItem,
+                    // ✅ FIX: gia_ban = giá hiện tại (đã áp dụng KM nếu có)
+                    price: product.gia_ban || cartItem.price,
+                    // ✅ FIX: gia_goc = giá gạch (trước KM)
+                    originalPrice: product.gia_goc || product.gia_ban || cartItem.originalPrice,
+                    // Update trạng thái từ catalog
+                    trang_thai: product.trang_thai,
+                    // Update tồn kho
+                    maxQuantity: product.so_luong_ton_kho || 0,
+                    // Đánh dấu nếu hết hàng hoặc không hoạt động
+                    unavailable: !product.trang_thai || (product.so_luong_ton_kho || 0) === 0
+                };
+
+                // Log nếu có thay đổi giá
+                if (updatedItem.price !== cartItem.price) {
+                    console.log(`💰 [GUEST] Price updated for ${cartItem.name}: ${cartItem.price} → ${updatedItem.price}`);
+                }
+
+                // Log nếu có khuyến mãi
+                if (updatedItem.originalPrice > updatedItem.price) {
+                    const discount = Math.round(((updatedItem.originalPrice - updatedItem.price) / updatedItem.originalPrice) * 100);
+                    console.log(`🎉 [GUEST] Promotion applied: ${cartItem.name} - ${discount}% off`);
+                }
+
+                return updatedItem;
+            });
+
+            cartItems.value = updatedCart;
+            console.log('✅ [GUEST] Cart synced:', cartItems.value.length, 'items');
+
+            // Lưu lại cart đã update vào localStorage
+            saveCartToLocalStorage();
+
+            // Cập nhật stock (batch check)
+            await updateAllMaxQuantities();
         } else {
             console.log(`🔒 [${auth.type.toUpperCase()}] Đã đăng nhập, bỏ qua localStorage`);
         }
@@ -1294,6 +1354,105 @@ onMounted(async () => {
         console.log('Window focused - checking product quantities');
         await updateAllMaxQuantities();
     });
+});
+
+// ✅ AUTO-REFRESH: Smart refresh cart when user navigates back to cart page
+onActivated(async () => {
+    console.log('🔄 [onActivated] Cart page activated');
+
+    try {
+        // ✅ SMART REFRESH: Only refresh if needed
+        const lastRefresh = localStorage.getItem('cart_last_refresh');
+        const productsChanged = localStorage.getItem('products_changed');
+        const now = Date.now();
+        const REFRESH_COOLDOWN = 30000; // 30 seconds
+
+        let shouldRefresh = false;
+        let reason = '';
+
+        // Reason 1: Products explicitly marked as changed (from admin panel)
+        if (productsChanged === 'true') {
+            shouldRefresh = true;
+            reason = 'Products marked as changed';
+            localStorage.removeItem('products_changed');
+        }
+        // Reason 2: More than 30s since last refresh
+        else if (!lastRefresh || (now - parseInt(lastRefresh)) > REFRESH_COOLDOWN) {
+            shouldRefresh = true;
+            reason = 'Cooldown expired (>30s)';
+        }
+        // Reason 3: Cart is empty
+        else if (!cartItems.value || cartItems.value.length === 0) {
+            shouldRefresh = true;
+            reason = 'Cart is empty';
+        }
+
+        if (shouldRefresh) {
+            console.log(`🔄 [onActivated] Refreshing cart - Reason: ${reason}`);
+
+            // Refresh cart from database/localStorage
+            await getGioHangWithStockCheck();
+
+            // Update timestamp
+            localStorage.setItem('cart_last_refresh', now.toString());
+
+            console.log('✅ [onActivated] Cart refreshed:', cartItems.value.length, 'items');
+        } else {
+            const elapsed = Math.round((now - parseInt(lastRefresh)) / 1000);
+            console.log(`⏭️ [onActivated] Skip refresh - Last refresh ${elapsed}s ago`);
+        }
+
+    } catch (error) {
+        console.error('❌ [onActivated] Failed to refresh cart:', error);
+    }
+});
+
+// ✅ ROUTE WATCHER: Refresh cart khi chuyển URL/route
+watch(() => route.path, async (newPath, oldPath) => {
+    // Chỉ refresh khi THẬT SỰ đến trang giỏ hàng
+    if (newPath.includes('/gio-hang') || newPath.includes('/cart')) {
+        console.log('🔄 [ROUTE CHANGE] Navigated to cart page, refreshing...');
+
+        try {
+            // Force refresh (bỏ qua cooldown)
+            await getGioHangWithStockCheck();
+            console.log('✅ [ROUTE CHANGE] Cart refreshed');
+        } catch (error) {
+            console.error('❌ [ROUTE CHANGE] Failed to refresh:', error);
+        }
+    }
+});
+
+// ✅ WINDOW VISIBILITY: Refresh khi user quay lại browser tab
+let isFirstVisibilityChange = true;
+
+const handleVisibilityChange = async () => {
+    // Skip lần đầu (onMounted đã load rồi)
+    if (isFirstVisibilityChange) {
+        isFirstVisibilityChange = false;
+        return;
+    }
+
+    if (!document.hidden) {
+        console.log('🔄 [VISIBILITY] Tab became visible, refreshing cart...');
+
+        try {
+            // Force refresh
+            await getGioHangWithStockCheck();
+            console.log('✅ [VISIBILITY] Cart refreshed');
+        } catch (error) {
+            console.error('❌ [VISIBILITY] Failed to refresh:', error);
+        }
+    }
+};
+
+// Setup listener
+document.addEventListener('visibilitychange', handleVisibilityChange);
+
+// ✅ CLEANUP: Remove listener khi component bị destroy
+onUnmounted(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    console.log('🧹 [CLEANUP] Removed visibility change listener');
 });
 </script>
 

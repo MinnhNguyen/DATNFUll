@@ -19,21 +19,11 @@
                     :rules="[{ required: true, message: 'Vui lòng chọn danh mục!' }]">
                     <div class="d-flex gap-2">
                         <!-- Input ẩn để form binding - KHÔNG DISABLE -->
-                        <a-input 
-                            v-model:value="formState.id_danh_muc" 
-                            style="display: none;"
-                        />
-                        
-                        <a-auto-complete
-                            v-model:value="danhMucSearch"
-                            placeholder="Nhập tên danh mục"
-                            :options="filteredDanhMucOptions"
-                            @select="onSelectDanhMuc"
-                            @search="onSearchDanhMuc"
-                            class="flex-grow-1"
-                            :backfill="true"
-                            dropdown-class-name="attribute-dropdown"
-                        >
+                        <a-input v-model:value="formState.id_danh_muc" style="display: none;" />
+
+                        <a-auto-complete v-model:value="danhMucSearch" placeholder="Nhập tên danh mục"
+                            :options="filteredDanhMucOptions" @select="onSelectDanhMuc" @search="onSearchDanhMuc"
+                            class="flex-grow-1" :backfill="true" dropdown-class-name="attribute-dropdown">
                             <template #option="{ value, label }">
                                 <div class="option-item">
                                     {{ label }} (ID: {{ value }})
@@ -50,21 +40,12 @@
                     :rules="[{ required: true, message: 'Vui lòng chọn thương hiệu!' }]">
                     <div class="d-flex gap-2">
                         <!-- Input ẩn để form binding - KHÔNG DISABLE -->
-                        <a-input 
-                            v-model:value="formState.id_thuong_hieu" 
-                            style="display: none;"
-                        />
-                        
-                        <a-auto-complete
-                            v-model:value="thuongHieuSearch"
-                            placeholder="Nhập tên thương hiệu"
-                            :options="filteredThuongHieuOptions"
-                            @select="onSelectThuongHieu"
-                            @search="onSearchThuongHieu"
-                            class="flex-grow-1"
-                            :backfill="true"
-                            dropdown-class-name="attribute-dropdown"
-                        >
+                        <a-input v-model:value="formState.id_thuong_hieu" style="display: none;" />
+
+                        <a-auto-complete v-model:value="thuongHieuSearch" placeholder="Nhập tên thương hiệu"
+                            :options="filteredThuongHieuOptions" @select="onSelectThuongHieu"
+                            @search="onSearchThuongHieu" class="flex-grow-1" :backfill="true"
+                            dropdown-class-name="attribute-dropdown">
                             <template #option="{ value, label }">
                                 <div class="option-item">
                                     {{ label }} (ID: {{ value }})
@@ -81,21 +62,11 @@
                     :rules="[{ required: true, message: 'Vui lòng chọn chất liệu!' }]">
                     <div class="d-flex gap-2">
                         <!-- Input ẩn để form binding - KHÔNG DISABLE -->
-                        <a-input 
-                            v-model:value="formState.id_chat_lieu" 
-                            style="display: none;"
-                        />
-                        
-                        <a-auto-complete
-                            v-model:value="chatLieuSearch"
-                            placeholder="Nhập tên chất liệu"
-                            :options="filteredChatLieuOptions"
-                            @select="onSelectChatLieu"
-                            @search="onSearchChatLieu"
-                            class="flex-grow-1"
-                            :backfill="true"
-                            dropdown-class-name="attribute-dropdown"
-                        >
+                        <a-input v-model:value="formState.id_chat_lieu" style="display: none;" />
+
+                        <a-auto-complete v-model:value="chatLieuSearch" placeholder="Nhập tên chất liệu"
+                            :options="filteredChatLieuOptions" @select="onSelectChatLieu" @search="onSearchChatLieu"
+                            class="flex-grow-1" :backfill="true" dropdown-class-name="attribute-dropdown">
                             <template #option="{ value, label }">
                                 <div class="option-item">
                                     {{ label }} (ID: {{ value }})
@@ -119,14 +90,8 @@
                 </a-form-item>
 
                 <a-form-item label="Mô tả sản phẩm" name="mo_ta">
-                    <QuillEditor
-                        v-model:content="formState.mo_ta"
-                        contentType="html"
-                        toolbar="full" 
-                        theme="snow"
-                        placeholder="Nhập mô tả sản phẩm..."
-                        class="editor-container"
-                    />
+                    <QuillEditor v-model:content="formState.mo_ta" contentType="html" toolbar="full" theme="snow"
+                        placeholder="Nhập mô tả sản phẩm..." class="editor-container" />
                 </a-form-item>
 
                 <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
@@ -185,17 +150,15 @@
                                 <a-form-item label="Màu sắc"
                                     :rules="[{ required: true, message: 'Vui lòng chọn màu sắc!' }]">
                                     <div class="d-flex gap-2">
-                                        <a-auto-complete
-                                            v-model:value="variantType.mauSacSearch"
+                                        <a-auto-complete v-model:value="variantType.mauSacSearch"
                                             placeholder="Nhập tên màu sắc"
                                             :options="getFilteredMauSacOptions(typeIndex)"
                                             @select="value => onSelectMauSac(value, typeIndex)"
-                                            @search="text => onSearchMauSac(text, typeIndex)"
-                                            class="flex-grow-1"
-                                        >
+                                            @search="text => onSearchMauSac(text, typeIndex)" class="flex-grow-1">
                                             <template #option="{ value, label, color }">
                                                 <div class="d-flex align-items-center">
-                                                    <span class="color-preview" :style="{ backgroundColor: color }"></span>
+                                                    <span class="color-preview"
+                                                        :style="{ backgroundColor: color }"></span>
                                                     {{ label }}
                                                 </div>
                                             </template>
@@ -211,9 +174,9 @@
                                     :rules="[{ required: true, message: 'Vui lòng chọn ít nhất một kích thước!' }]">
                                     <div class="d-flex gap-2">
                                         <a-select v-model:value="variantType.selectedSizes" mode="multiple"
-                                            placeholder="Tìm và chọn kích thước (có thể chọn nhiều)..." class="flex-grow-1"
-                                            @change="(values) => handleSizeChange(values, typeIndex)"
-                                            show-search
+                                            placeholder="Tìm và chọn kích thước (có thể chọn nhiều)..."
+                                            class="flex-grow-1"
+                                            @change="(values) => handleSizeChange(values, typeIndex)" show-search
                                             :filter-option="createAdvancedFilterOption()">
                                             <a-select-option v-for="size in sortedSizeList" :key="size.id_kich_thuoc"
                                                 :value="size.id_kich_thuoc">
@@ -260,17 +223,12 @@
                             :rules="[{ required: true, message: 'Vui lòng chọn ít nhất 1 hình ảnh!' }]">
                             <div class="variant-images-container">
                                 <!-- Hiển thị cảnh báo nếu chưa chọn màu -->
-                                <a-alert 
-                                    v-if="!variantType.id_mau_sac" 
-                                    message="Vui lòng chọn màu sắc trước khi upload ảnh" 
-                                    type="warning" 
-                                    show-icon 
-                                    class="mb-3"
-                                />
-                                
+                                <a-alert v-if="!variantType.id_mau_sac"
+                                    message="Vui lòng chọn màu sắc trước khi upload ảnh" type="warning" show-icon
+                                    class="mb-3" />
+
                                 <a-upload v-model:file-list="variantType.fileList" list-type="picture-card"
-                                    :max-count="5" :multiple="true"
-                                    :disabled="!variantType.id_mau_sac"
+                                    :max-count="5" :multiple="true" :disabled="!variantType.id_mau_sac"
                                     :before-upload="(file) => beforeUpload(file, variantType.fileList ? variantType.fileList.length : 0)"
                                     :customRequest="(options) => handleCustomRequest(options, typeIndex)"
                                     @change="(info) => handleVariantTypeImageChange(info, typeIndex)"
@@ -282,20 +240,14 @@
                                         </div>
                                     </div>
                                     <template #itemRender="{ file, actions }">
-                                        <div 
-                                            class="image-item-wrapper" 
+                                        <div class="image-item-wrapper"
                                             :class="{ 'is-primary': file.uid === variantType.primaryImageUid }"
-                                            @click="() => setPrimaryImage(file.uid, typeIndex)"
-                                        >
-                                            <img :src="file.url || file.thumbUrl" alt="variant" class="uploaded-image" />
+                                            @click="() => setPrimaryImage(file.uid, typeIndex)">
+                                            <img :src="file.url || file.thumbUrl" alt="variant"
+                                                class="uploaded-image" />
                                             <div class="image-actions">
-                                                <a-button 
-                                                    type="text" 
-                                                    danger 
-                                                    size="small"
-                                                    @click.stop="actions.remove"
-                                                    class="remove-btn"
-                                                >
+                                                <a-button type="text" danger size="small" @click.stop="actions.remove"
+                                                    class="remove-btn">
                                                     <delete-outlined />
                                                 </a-button>
                                             </div>
@@ -316,93 +268,78 @@
                     </a-form>
 
                     <!-- Hiển thị danh sách biến thể đã tạo từ dạng biến thể này -->
-                    <div v-if="variantType.selectedSizes && variantType.selectedSizes.length > 0 && variantType.fileList && variantType.fileList.length > 0" class="mt-3">
+                    <div v-if="variantType.selectedSizes && variantType.selectedSizes.length > 0 && variantType.fileList && variantType.fileList.length > 0"
+                        class="mt-3">
                         <h6 class="mb-2">Chọn ảnh cho từng biến thể:</h6>
-                        <a-alert 
-                            message="Hướng dẫn chọn ảnh" 
+                        <a-alert message="Hướng dẫn chọn ảnh"
                             description="Chọn các ảnh cho từng biến thể. Mỗi ảnh chỉ có thể được sử dụng cho 1 biến thể duy nhất. Nếu chọn ít nhất 1 ảnh, bạn phải chọn 1 ảnh làm ảnh chính."
-                            type="info" 
-                            show-icon 
-                            class="mb-3"
-                        />
-                        
+                            type="info" show-icon class="mb-3" />
+
                         <div class="variants-image-selection">
-                            <div v-for="variant in getVariantsFromType(typeIndex)" 
-                                 :key="getVariantKey(variant)" 
-                                 class="variant-image-card mb-3 p-3 border rounded">
+                            <div v-for="variant in getVariantsFromType(typeIndex)" :key="getVariantKey(variant)"
+                                class="variant-image-card mb-3 p-3 border rounded">
                                 <div class="variant-info mb-2">
                                     <strong>{{ variant.mau_sac_name }} - {{ variant.kich_thuoc_name }}</strong>
-                                    <span class="text-muted ms-2">({{ variant.selectedImages?.length || 0 }} ảnh đã chọn)</span>
-                                    <span v-if="!variant.selectedImages || variant.selectedImages.length === 0" class="badge bg-secondary text-white ms-2">
+                                    <span class="text-muted ms-2">({{ variant.selectedImages?.length || 0 }} ảnh đã
+                                        chọn)</span>
+                                    <span v-if="!variant.selectedImages || variant.selectedImages.length === 0"
+                                        class="badge bg-secondary text-white ms-2">
                                         <ExclamationCircleOutlined /> Không có ảnh
                                     </span>
                                 </div>
-                                
+
                                 <div class="image-selection-grid">
-                                    <div v-for="image in variantType.fileList.filter(f => f.status === 'done')" 
-                                         :key="image.uid"
-                                         class="image-selection-item"
-                                         :class="{ 
-                                             'selected': variant.selectedImages?.includes(image.uid),
-                                             'disabled': isImageUsed(image.uid, variant),
-                                             'primary': variant.primaryImageUid === image.uid
-                                         }"
-                                    >
-                                        <div class="image-wrapper" @click="() => toggleImageForVariant(variant, image.uid)">
+                                    <div v-for="image in variantType.fileList.filter(f => f.status === 'done')"
+                                        :key="image.uid" class="image-selection-item" :class="{
+                                            'selected': variant.selectedImages?.includes(image.uid),
+                                            'disabled': isImageUsed(image.uid, variant),
+                                            'primary': variant.primaryImageUid === image.uid
+                                        }">
+                                        <div class="image-wrapper"
+                                            @click="() => toggleImageForVariant(variant, image.uid)">
                                             <img :src="image.url || image.thumbUrl" alt="variant image" />
-                                            
+
                                             <!-- Checkbox để chọn/bỏ chọn ảnh -->
                                             <div class="image-checkbox">
-                                                <a-checkbox 
-                                                    :checked="variant.selectedImages?.includes(image.uid)"
+                                                <a-checkbox :checked="variant.selectedImages?.includes(image.uid)"
                                                     :disabled="isImageUsed(image.uid, variant)"
-                                                    @click.stop="() => toggleImageForVariant(variant, image.uid)"
-                                                />
+                                                    @click.stop="() => toggleImageForVariant(variant, image.uid)" />
                                             </div>
-                                            
+
                                             <!-- Badge hiển thị trạng thái -->
                                             <div v-if="isImageUsed(image.uid, variant)" class="image-badge used-badge">
                                                 Đã dùng
                                             </div>
-                                            <div v-else-if="variant.primaryImageUid === image.uid" class="image-badge primary-badge">
+                                            <div v-else-if="variant.primaryImageUid === image.uid"
+                                                class="image-badge primary-badge">
                                                 <CheckCircleFilled /> Ảnh chính
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Radio button để chọn ảnh chính -->
-                                        <div v-if="variant.selectedImages?.includes(image.uid)" class="primary-selector">
-                                            <a-radio 
-                                                :checked="variant.primaryImageUid === image.uid"
-                                                @click="() => setPrimaryImageForVariant(variant, image.uid)"
-                                            >
+                                        <div v-if="variant.selectedImages?.includes(image.uid)"
+                                            class="primary-selector">
+                                            <a-radio :checked="variant.primaryImageUid === image.uid"
+                                                @click="() => setPrimaryImageForVariant(variant, image.uid)">
                                                 Đặt làm ảnh chính
                                             </a-radio>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Cảnh báo nếu chọn ảnh nhưng chưa chọn ảnh chính -->
-                                <a-alert 
-                                    v-if="variant.selectedImages?.length > 0 && !variant.primaryImageUid"
-                                    message="Vui lòng chọn 1 ảnh làm ảnh chính"
-                                    type="warning"
-                                    show-icon
-                                    class="mt-2"
-                                />
+                                <a-alert v-if="variant.selectedImages?.length > 0 && !variant.primaryImageUid"
+                                    message="Vui lòng chọn 1 ảnh làm ảnh chính" type="warning" show-icon class="mt-2" />
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Hiển thị bảng biến thể đơn giản khi chưa có ảnh -->
                     <div v-else-if="variantType.selectedSizes && variantType.selectedSizes.length > 0" class="mt-3">
                         <h6 class="mb-2">Biến thể đã tạo:</h6>
-                        <a-alert 
-                            v-if="!variantType.fileList || variantType.fileList.length === 0"
-                            message="Vui lòng upload ảnh cho màu này để chọn ảnh cho từng biến thể"
-                            type="info"
-                            show-icon
-                            class="mb-3"
-                        />
+                        <a-alert v-if="!variantType.fileList || variantType.fileList.length === 0"
+                            message="Vui lòng upload ảnh cho màu này để chọn ảnh cho từng biến thể" type="info"
+                            show-icon class="mb-3" />
                         <a-table :dataSource="getVariantsFromType(typeIndex)" :columns="variantColumns" size="small"
                             :pagination="false" :rowKey="record => record.id_mau_sac + '-' + record.id_kich_thuoc">
                             <template #bodyCell="{ column, record }">
@@ -449,7 +386,8 @@
                 { required: true, message: 'Vui lòng nhập tên danh mục!' },
                 { validator: validateDanhMucName }
             ]">
-                <a-input v-model:value="newDanhMuc.ten_danh_muc" :maxLength="50" show-count @keyup.enter="submitDanhMuc" />
+                <a-input v-model:value="newDanhMuc.ten_danh_muc" :maxLength="50" show-count
+                    @keyup.enter="submitDanhMuc" />
             </a-form-item>
         </a-form>
     </a-modal>
@@ -460,7 +398,8 @@
                 { required: true, message: 'Vui lòng nhập tên thương hiệu!' },
                 { validator: validateThuongHieuName }
             ]">
-                <a-input v-model:value="newThuongHieu.ten_thuong_hieu" :maxLength="50" show-count @keyup.enter="submitThuongHieu" />
+                <a-input v-model:value="newThuongHieu.ten_thuong_hieu" :maxLength="50" show-count
+                    @keyup.enter="submitThuongHieu" />
             </a-form-item>
         </a-form>
     </a-modal>
@@ -471,7 +410,8 @@
                 { required: true, message: 'Vui lòng nhập tên chất liệu!' },
                 { validator: validateChatLieuName }
             ]">
-                <a-input v-model:value="newChatLieu.ten_chat_lieu" :maxLength="50" show-count @keyup.enter="submitChatLieu" />
+                <a-input v-model:value="newChatLieu.ten_chat_lieu" :maxLength="50" show-count
+                    @keyup.enter="submitChatLieu" />
             </a-form-item>
         </a-form>
     </a-modal>
@@ -493,7 +433,8 @@
                 { required: true, message: 'Vui lòng nhập giá trị kích thước!' },
                 { validator: validateKichThuocValue }
             ]">
-                <a-input v-model:value="newKichThuoc.gia_tri" :maxLength="5" show-count @keyup.enter="submitKichThuoc" />
+                <a-input v-model:value="newKichThuoc.gia_tri" :maxLength="5" show-count
+                    @keyup.enter="submitKichThuoc" />
             </a-form-item>
             <a-form-item label="Đơn vị" name="don_vi">
                 <a-input v-model:value="newKichThuoc.don_vi" :maxLength="5" show-count @keyup.enter="submitKichThuoc" />
@@ -1345,15 +1286,15 @@ const validateForm = async () => {
             id_thuong_hieu: formState.id_thuong_hieu,
             id_chat_lieu: formState.id_chat_lieu
         });
-        
+
         // Kiểm tra trước xem các giá trị đã được gán đúng chưa
         if (!formState.id_danh_muc) {
             console.log('id_danh_muc chưa có giá trị, kiểm tra lại danhMucSearch:', danhMucSearch.value);
             // Nếu danhMucSearch có giá trị nhưng id_danh_muc chưa được gán, tìm kiếm giá trị tương ứng
             if (danhMucSearch.value) {
-                const sourceList = combinedDanhMucList.value.length > 0 ? 
+                const sourceList = combinedDanhMucList.value.length > 0 ?
                     combinedDanhMucList.value : danhMucList.value;
-                const item = sourceList.find(item => 
+                const item = sourceList.find(item =>
                     item.ten_danh_muc.toLowerCase() === danhMucSearch.value.toLowerCase());
                 if (item) {
                     console.log('Tìm thấy danh mục tương ứng, gán giá trị id_danh_muc:', item.id_danh_muc);
@@ -1363,14 +1304,14 @@ const validateForm = async () => {
                 }
             }
         }
-        
+
         if (!formState.id_thuong_hieu) {
             console.log('id_thuong_hieu chưa có giá trị, kiểm tra lại thuongHieuSearch:', thuongHieuSearch.value);
             // Nếu thuongHieuSearch có giá trị nhưng id_thuong_hieu chưa được gán, tìm kiếm giá trị tương ứng
             if (thuongHieuSearch.value) {
-                const sourceList = combinedThuongHieuList.value.length > 0 ? 
+                const sourceList = combinedThuongHieuList.value.length > 0 ?
                     combinedThuongHieuList.value : thuongHieuList.value;
-                const item = sourceList.find(item => 
+                const item = sourceList.find(item =>
                     item.ten_thuong_hieu.toLowerCase() === thuongHieuSearch.value.toLowerCase());
                 if (item) {
                     console.log('Tìm thấy thương hiệu tương ứng, gán giá trị id_thuong_hieu:', item.id_thuong_hieu);
@@ -1380,14 +1321,14 @@ const validateForm = async () => {
                 }
             }
         }
-        
+
         if (!formState.id_chat_lieu) {
             console.log('id_chat_lieu chưa có giá trị, kiểm tra lại chatLieuSearch:', chatLieuSearch.value);
             // Nếu chatLieuSearch có giá trị nhưng id_chat_lieu chưa được gán, tìm kiếm giá trị tương ứng
             if (chatLieuSearch.value) {
-                const sourceList = combinedChatLieuList.value.length > 0 ? 
+                const sourceList = combinedChatLieuList.value.length > 0 ?
                     combinedChatLieuList.value : chatLieuList.value;
-                const item = sourceList.find(item => 
+                const item = sourceList.find(item =>
                     item.ten_chat_lieu.toLowerCase() === chatLieuSearch.value.toLowerCase());
                 if (item) {
                     console.log('Tìm thấy chất liệu tương ứng, gán giá trị id_chat_lieu:', item.id_chat_lieu);
@@ -1397,14 +1338,14 @@ const validateForm = async () => {
                 }
             }
         }
-        
+
         // Kiểm tra lại sau khi đã gán các giá trị
         console.log('Giá trị của formState sau khi xử lý:', {
             id_danh_muc: formState.id_danh_muc,
             id_thuong_hieu: formState.id_thuong_hieu,
             id_chat_lieu: formState.id_chat_lieu
         });
-        
+
         // Kiểm tra nếu đang dùng giá chung thì validate giá chung
         if (useCommonPrice.value) {
             const isGiaChungValid = validateGiaChung(formState.gia_ban_chung);
@@ -1673,7 +1614,7 @@ const handleRemoveImage = async (file, variantType, typeIndex) => {
 const setPrimaryImage = (fileUid, typeIndex) => {
     const variantType = variantTypes.value[typeIndex];
     if (!variantType) return;
-    
+
     variantType.primaryImageUid = fileUid;
     console.log('Đã đặt ảnh chính:', fileUid, 'cho biến thể:', typeIndex);
     message.success('Đã chọn ảnh chính');
@@ -1847,17 +1788,17 @@ const getVariantKey = (variant) => {
 // Toggle chọn/bỏ chọn ảnh cho biến thể
 const toggleImageForVariant = (variant, imageUid) => {
     const variantKey = getVariantKey(variant);
-    
+
     // Kiểm tra xem ảnh đã được chọn cho biến thể này chưa
     const imageIndex = variant.selectedImages.indexOf(imageUid);
-    
+
     if (imageIndex > -1) {
         // Bỏ chọn ảnh
         variant.selectedImages.splice(imageIndex, 1);
-        
+
         // Xóa khỏi imageUsageMap
         imageUsageMap.value.delete(imageUid);
-        
+
         // Nếu đây là ảnh chính, reset primaryImageUid
         if (variant.primaryImageUid === imageUid) {
             variant.primaryImageUid = null;
@@ -1873,16 +1814,16 @@ const toggleImageForVariant = (variant, imageUid) => {
             message.warning('Ảnh này đã được chọn cho biến thể khác!');
             return;
         }
-        
+
         // Chọn ảnh
         variant.selectedImages.push(imageUid);
-        
+
         // Thêm vào imageUsageMap
         imageUsageMap.value.set(imageUid, {
             variantKey: variantKey,
             isPrimary: false
         });
-        
+
         // Nếu đây là ảnh đầu tiên, tự động đặt làm ảnh chính
         if (variant.selectedImages.length === 1) {
             variant.primaryImageUid = imageUid;
@@ -1897,13 +1838,13 @@ const toggleImageForVariant = (variant, imageUid) => {
 // Đặt ảnh chính cho biến thể
 const setPrimaryImageForVariant = (variant, imageUid) => {
     const variantKey = getVariantKey(variant);
-    
+
     // Kiểm tra ảnh có trong danh sách đã chọn không
     if (!variant.selectedImages.includes(imageUid)) {
         message.warning('Vui lòng chọn ảnh này trước khi đặt làm ảnh chính!');
         return;
     }
-    
+
     // Cập nhật isPrimary trong imageUsageMap
     // Reset tất cả ảnh của biến thể này
     variant.selectedImages.forEach(uid => {
@@ -1915,7 +1856,7 @@ const setPrimaryImageForVariant = (variant, imageUid) => {
             });
         }
     });
-    
+
     // Đặt ảnh chính
     variant.primaryImageUid = imageUid;
 };
@@ -1923,11 +1864,11 @@ const setPrimaryImageForVariant = (variant, imageUid) => {
 // Kiểm tra ảnh đã được sử dụng chưa
 const isImageUsed = (imageUid, currentVariant) => {
     const currentKey = getVariantKey(currentVariant);
-    
+
     if (!imageUsageMap.value.has(imageUid)) {
         return false;
     }
-    
+
     const usage = imageUsageMap.value.get(imageUid);
     // Ảnh đã dùng cho biến thể khác
     return usage.variantKey !== currentKey;
@@ -1939,7 +1880,7 @@ const getImagePoolForVariant = (variant, typeIndex) => {
     if (!variantType || !variantType.fileList) {
         return [];
     }
-    
+
     return variantType.fileList.filter(f => f.status === 'done');
 };
 
@@ -1953,7 +1894,7 @@ const removeVariantByKeys = (colorId, sizeId) => {
     if (index !== -1) {
         const variant = variants.value[index];
         const variantKey = getVariantKey(variant);
-        
+
         // Xóa các ảnh đã chọn khỏi imageUsageMap
         if (variant.selectedImages && variant.selectedImages.length > 0) {
             variant.selectedImages.forEach(imageUid => {
@@ -1963,7 +1904,7 @@ const removeVariantByKeys = (colorId, sizeId) => {
                 }
             });
         }
-        
+
         // Xóa biến thể
         variants.value.splice(index, 1);
 
@@ -2036,12 +1977,12 @@ const resetForm = () => {
     variantImageLists.value.clear(); // Xóa danh sách ảnh của các màu
     imageLoadingStates.value.clear(); // Xóa trạng thái loading
     isProductValidated.value = false;
-    
+
     // Reset search fields
     danhMucSearch.value = '';
     thuongHieuSearch.value = '';
     chatLieuSearch.value = '';
-    
+
     // Tạo lại mã sản phẩm mới
     formState.ma_san_pham = generateProductCode(store.getAllSanPham);
 };
@@ -2175,11 +2116,11 @@ const sortedSizeList = computed(() => {
         // Nếu kích thước là số, sắp xếp theo giá trị số
         const numA = parseFloat(a.gia_tri);
         const numB = parseFloat(b.gia_tri);
-        
+
         if (!isNaN(numA) && !isNaN(numB)) {
             return numA - numB;
         }
-        
+
         // Nếu không phải số, sắp xếp theo chuỗi
         return a.gia_tri.localeCompare(b.gia_tri);
     });
@@ -2630,7 +2571,7 @@ const onFinish = async () => {
         console.log('=== BẮT ĐẦU LƯU SẢN PHẨM ===');
         console.log('variantTypes:', variantTypes.value);
         console.log('variants:', variants.value);
-        
+
         // Validate variants
         if (variants.value.length === 0) {
             throw new Error('Vui lòng thêm ít nhất một biến thể');
@@ -2641,7 +2582,7 @@ const onFinish = async () => {
             if (!variant.id_mau_sac || !variant.id_kich_thuoc) {
                 throw new Error('Vui lòng điền đầy đủ thông tin cho tất cả biến thể');
             }
-            
+
             // Validate ảnh cho biến thể (OPTIONAL - không bắt buộc)
             if (variant.selectedImages && variant.selectedImages.length > 0) {
                 // Nếu có chọn ảnh thì phải có ảnh chính
@@ -2649,7 +2590,7 @@ const onFinish = async () => {
                     throw new Error(`Vui lòng chọn ảnh chính cho biến thể ${variant.mau_sac_name} - ${variant.kich_thuoc_name}`);
                 }
             }
-            
+
             // Validate giá của biến thể
             if (!useCommonPrice.value) {
                 if (!variant.gia_ban || variant.gia_ban < 1000) {
@@ -2834,10 +2775,10 @@ const onFinish = async () => {
         await Promise.all(updatedVariants.map(async (variant) => {
             // Lấy variantType tương ứng với màu này
             const variantType = variantTypes.value.find(type => type.id_mau_sac === variant.id_mau_sac);
-            
+
             // Build danh sách ảnh từ selectedImages của variant
             let variantImages = [];
-            
+
             if (variantType && variantType.fileList) {
                 // Nếu user đã chọn ảnh cụ thể cho variant này
                 if (variant.selectedImages && variant.selectedImages.length > 0) {
@@ -2846,17 +2787,17 @@ const onFinish = async () => {
                         const file = variantType.fileList.find(f => f.uid === imageUid);
                         return file ? (file.url || file.response) : null;
                     }).filter(url => url !== null);
-                } 
+                }
                 // ✅ LOGIC MỚI: Nếu chưa chọn ảnh cụ thể, tự động lấy TẤT CẢ ảnh của màu
                 else {
                     variantImages = variantType.fileList
                         .filter(f => f.status === 'done')
                         .map(f => f.url || f.response)
                         .filter(url => url !== null);
-                    
+
                     console.log(`✅ Tự động gán tất cả ảnh cho variant ${variant.mau_sac_name} - ${variant.kich_thuoc_name}`);
                 }
-                
+
                 // Sắp xếp: ảnh chính lên đầu
                 const primaryUid = variant.primaryImageUid || variantType.primaryImageUid;
                 if (primaryUid) {
@@ -3488,7 +3429,7 @@ const chatLieuSearch = ref('');
 // Thêm computed properties để lọc danh sách tùy chọn
 const filteredDanhMucOptions = computed(() => {
     console.log('Tính toán lại filteredDanhMucOptions');
-    
+
     // Bảo vệ nếu combinedDanhMucList rỗng
     if (!combinedDanhMucList.value || combinedDanhMucList.value.length === 0) {
         console.warn('combinedDanhMucList rỗng hoặc không xác định');
@@ -3500,18 +3441,18 @@ const filteredDanhMucOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Nếu searchText undefined thì gán giá trị rỗng
     const searchText = (danhMucSearch.value || '').toLowerCase();
     console.log('Từ khóa tìm kiếm danh mục:', searchText);
-    
+
     // Sử dụng danh sách hợp nhất từ combined hoặc fallback là danh sách gốc
-    const sourceList = combinedDanhMucList.value.length > 0 ? 
-        combinedDanhMucList.value : 
+    const sourceList = combinedDanhMucList.value.length > 0 ?
+        combinedDanhMucList.value :
         (danhMucList.value || []);
-    
+
     console.log('Nguồn dữ liệu danh mục có', sourceList.length, 'mục');
-    
+
     // Nếu đã có một danh mục đã chọn trong formState, hiển thị tên của nó trong ô search
     if (formState.id_danh_muc) {
         const selectedItem = sourceList.find(item => item.id_danh_muc === formState.id_danh_muc);
@@ -3519,7 +3460,7 @@ const filteredDanhMucOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Filter và map dữ liệu
     const result = sourceList
         .filter(item => {
@@ -3527,7 +3468,7 @@ const filteredDanhMucOptions = computed(() => {
             if (!item.trang_thai) {
                 return false;
             }
-            
+
             // Kiểm tra tên chứa chuỗi tìm kiếm
             const tenDanhMuc = item.ten_danh_muc || '';
             return tenDanhMuc.toLowerCase().includes(searchText);
@@ -3536,14 +3477,14 @@ const filteredDanhMucOptions = computed(() => {
             value: item.id_danh_muc,
             label: item.ten_danh_muc
         }));
-    
+
     console.log('Kết quả lọc danh mục:', result.length, 'mục khớp');
     return result;
 });
 
 const filteredThuongHieuOptions = computed(() => {
     console.log('Tính toán lại filteredThuongHieuOptions');
-    
+
     // Bảo vệ nếu combinedThuongHieuList rỗng
     if (!combinedThuongHieuList.value || combinedThuongHieuList.value.length === 0) {
         console.warn('combinedThuongHieuList rỗng hoặc không xác định');
@@ -3555,18 +3496,18 @@ const filteredThuongHieuOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Nếu searchText undefined thì gán giá trị rỗng
     const searchText = (thuongHieuSearch.value || '').toLowerCase();
     console.log('Từ khóa tìm kiếm thương hiệu:', searchText);
-    
+
     // Sử dụng danh sách hợp nhất từ combined hoặc fallback là danh sách gốc
-    const sourceList = combinedThuongHieuList.value.length > 0 ? 
-        combinedThuongHieuList.value : 
+    const sourceList = combinedThuongHieuList.value.length > 0 ?
+        combinedThuongHieuList.value :
         (thuongHieuList.value || []);
-    
+
     console.log('Nguồn dữ liệu thương hiệu có', sourceList.length, 'mục');
-    
+
     // Nếu đã có một thương hiệu đã chọn trong formState, hiển thị tên của nó trong ô search
     if (formState.id_thuong_hieu) {
         const selectedItem = sourceList.find(item => item.id_thuong_hieu === formState.id_thuong_hieu);
@@ -3574,7 +3515,7 @@ const filteredThuongHieuOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Filter và map dữ liệu
     const result = sourceList
         .filter(item => {
@@ -3582,7 +3523,7 @@ const filteredThuongHieuOptions = computed(() => {
             if (!item.trang_thai) {
                 return false;
             }
-            
+
             // Kiểm tra tên chứa chuỗi tìm kiếm
             const tenThuongHieu = item.ten_thuong_hieu || '';
             return tenThuongHieu.toLowerCase().includes(searchText);
@@ -3591,14 +3532,14 @@ const filteredThuongHieuOptions = computed(() => {
             value: item.id_thuong_hieu,
             label: item.ten_thuong_hieu
         }));
-    
+
     console.log('Kết quả lọc thương hiệu:', result.length, 'mục khớp');
     return result;
 });
 
 const filteredChatLieuOptions = computed(() => {
     console.log('Tính toán lại filteredChatLieuOptions');
-    
+
     // Bảo vệ nếu combinedChatLieuList rỗng
     if (!combinedChatLieuList.value || combinedChatLieuList.value.length === 0) {
         console.warn('combinedChatLieuList rỗng hoặc không xác định');
@@ -3610,18 +3551,18 @@ const filteredChatLieuOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Nếu searchText undefined thì gán giá trị rỗng
     const searchText = (chatLieuSearch.value || '').toLowerCase();
     console.log('Từ khóa tìm kiếm chất liệu:', searchText);
-    
+
     // Sử dụng danh sách hợp nhất từ combined hoặc fallback là danh sách gốc
-    const sourceList = combinedChatLieuList.value.length > 0 ? 
-        combinedChatLieuList.value : 
+    const sourceList = combinedChatLieuList.value.length > 0 ?
+        combinedChatLieuList.value :
         (chatLieuList.value || []);
-    
+
     console.log('Nguồn dữ liệu chất liệu có', sourceList.length, 'mục');
-    
+
     // Nếu đã có một chất liệu đã chọn trong formState, hiển thị tên của nó trong ô search
     if (formState.id_chat_lieu) {
         const selectedItem = sourceList.find(item => item.id_chat_lieu === formState.id_chat_lieu);
@@ -3629,15 +3570,15 @@ const filteredChatLieuOptions = computed(() => {
             return [];
         }
     }
-    
+
     // Filter và map dữ liệu
     const result = sourceList
         .filter(item => {
             // Kiểm tra trạng thái
-            if (!item.trang_thai ) {
+            if (!item.trang_thai) {
                 return false;
             }
-            
+
             // Kiểm tra tên chứa chuỗi tìm kiếm
             const tenChatLieu = item.ten_chat_lieu || '';
             return tenChatLieu.toLowerCase().includes(searchText);
@@ -3646,7 +3587,7 @@ const filteredChatLieuOptions = computed(() => {
             value: item.id_chat_lieu,
             label: item.ten_chat_lieu
         }));
-    
+
     console.log('Kết quả lọc chất liệu:', result.length, 'mục khớp');
     return result;
 });
@@ -3654,98 +3595,98 @@ const filteredChatLieuOptions = computed(() => {
 // Thêm handlers cho các sự kiện của AutoComplete
 const onSelectDanhMuc = (value) => {
     console.log('onSelectDanhMuc được gọi với giá trị:', value);
-    
+
     // Chuyển đổi giá trị sang số nếu cần
-    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ? 
+    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ?
         Number(value) : value;
-    
+
     // Cập nhật formState
     formState.id_danh_muc = numericValue;
-    
+
     // Tìm item trong combồ hoặc danh sách gốc
-    const sourceList = combinedDanhMucList.value.length > 0 ? 
+    const sourceList = combinedDanhMucList.value.length > 0 ?
         combinedDanhMucList.value : danhMucList.value;
-        
-    const selectedItem = sourceList.find(item => 
+
+    const selectedItem = sourceList.find(item =>
         String(item.id_danh_muc) === String(numericValue));
-    
+
     danhMucSearch.value = selectedItem?.ten_danh_muc || '';
-    
+
     // Force validation: clear rồi validate lại
     nextTick(() => {
         if (formRef.value && numericValue) {
             formRef.value.clearValidate(['id_danh_muc']);
-            formRef.value.validateFields(['id_danh_muc']).catch(() => {});
+            formRef.value.validateFields(['id_danh_muc']).catch(() => { });
         }
     });
-    
+
     console.log('formState.id_danh_muc sau khi cập nhật:', formState.id_danh_muc);
 };
 
 const onSelectThuongHieu = (value) => {
     console.log('onSelectThuongHieu được gọi với giá trị:', value);
-    
+
     // Chuyển đổi giá trị sang số nếu cần
-    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ? 
+    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ?
         Number(value) : value;
-    
+
     // Cập nhật formState
     formState.id_thuong_hieu = numericValue;
-    
+
     // Tìm item trong combồ hoặc danh sách gốc
-    const sourceList = combinedThuongHieuList.value.length > 0 ? 
+    const sourceList = combinedThuongHieuList.value.length > 0 ?
         combinedThuongHieuList.value : thuongHieuList.value;
-        
-    const selectedItem = sourceList.find(item => 
+
+    const selectedItem = sourceList.find(item =>
         String(item.id_thuong_hieu) === String(numericValue));
-    
+
     thuongHieuSearch.value = selectedItem?.ten_thuong_hieu || '';
-    
+
     // Force validation: clear rồi validate lại
     nextTick(() => {
         if (formRef.value && numericValue) {
             formRef.value.clearValidate(['id_thuong_hieu']);
-            formRef.value.validateFields(['id_thuong_hieu']).catch(() => {});
+            formRef.value.validateFields(['id_thuong_hieu']).catch(() => { });
         }
     });
-    
+
     console.log('formState.id_thuong_hieu sau khi cập nhật:', formState.id_thuong_hieu);
 };
 
 const onSelectChatLieu = (value) => {
     console.log('onSelectChatLieu được gọi với giá trị:', value);
-    
+
     // Chuyển đổi giá trị sang số nếu cần
-    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ? 
+    const numericValue = typeof value === 'string' && !isNaN(Number(value)) ?
         Number(value) : value;
-    
+
     // Cập nhật formState
     formState.id_chat_lieu = numericValue;
-    
+
     // Tìm item trong combồ hoặc danh sách gốc
-    const sourceList = combinedChatLieuList.value.length > 0 ? 
+    const sourceList = combinedChatLieuList.value.length > 0 ?
         combinedChatLieuList.value : chatLieuList.value;
-        
-    const selectedItem = sourceList.find(item => 
+
+    const selectedItem = sourceList.find(item =>
         String(item.id_chat_lieu) === String(numericValue));
-    
+
     chatLieuSearch.value = selectedItem?.ten_chat_lieu || '';
-    
+
     // Force validation: clear rồi validate lại
     nextTick(() => {
         if (formRef.value && numericValue) {
             formRef.value.clearValidate(['id_chat_lieu']);
-            formRef.value.validateFields(['id_chat_lieu']).catch(() => {});
+            formRef.value.validateFields(['id_chat_lieu']).catch(() => { });
         }
     });
-    
+
     console.log('formState.id_chat_lieu sau khi cập nhật:', formState.id_chat_lieu);
 };
 
 const onSearchDanhMuc = (searchText) => {
     console.log('onSearchDanhMuc được gọi với:', searchText);
     danhMucSearch.value = searchText;
-    
+
     // Nếu trống rỗng hoàn toàn, reset id_danh_muc
     if (!searchText.trim()) {
         formState.id_danh_muc = undefined;
@@ -3755,7 +3696,7 @@ const onSearchDanhMuc = (searchText) => {
 const onSearchThuongHieu = (searchText) => {
     console.log('onSearchThuongHieu được gọi với:', searchText);
     thuongHieuSearch.value = searchText;
-    
+
     // Nếu trống rỗng hoàn toàn, reset id_thuong_hieu
     if (!searchText.trim()) {
         formState.id_thuong_hieu = undefined;
@@ -3765,7 +3706,7 @@ const onSearchThuongHieu = (searchText) => {
 const onSearchChatLieu = (searchText) => {
     console.log('onSearchChatLieu được gọi với:', searchText);
     chatLieuSearch.value = searchText;
-    
+
     // Nếu trống rỗng hoàn toàn, reset id_chat_lieu
     if (!searchText.trim()) {
         formState.id_chat_lieu = undefined;
@@ -3775,20 +3716,20 @@ const onSearchChatLieu = (searchText) => {
 // Thêm watchers để cập nhật giá trị hiển thị khi formState thay đổi
 watch(() => formState.id_danh_muc, (newVal) => {
     console.log('Watch detected change in id_danh_muc:', newVal);
-    
+
     if (newVal) {
         // Tìm item trong combồ hoặc danh sách gốc
-        const sourceList = combinedDanhMucList.value.length > 0 ? 
+        const sourceList = combinedDanhMucList.value.length > 0 ?
             combinedDanhMucList.value : danhMucList.value;
-            
+
         if (!sourceList || sourceList.length === 0) {
             console.warn('Không có danh sách danh mục để tìm kiếm');
             return;
         }
-        
+
         console.log('Tìm kiếm trong danh sách danh mục có', sourceList.length, 'phần tử');
         const item = sourceList.find(item => String(item.id_danh_muc) === String(newVal));
-        
+
         if (item) {
             danhMucSearch.value = item.ten_danh_muc;
             console.log('Cập nhật danhMucSearch thành:', item.ten_danh_muc);
@@ -3803,20 +3744,20 @@ watch(() => formState.id_danh_muc, (newVal) => {
 
 watch(() => formState.id_thuong_hieu, (newVal) => {
     console.log('Watch detected change in id_thuong_hieu:', newVal);
-    
+
     if (newVal) {
         // Tìm item trong combồ hoặc danh sách gốc
-        const sourceList = combinedThuongHieuList.value.length > 0 ? 
+        const sourceList = combinedThuongHieuList.value.length > 0 ?
             combinedThuongHieuList.value : thuongHieuList.value;
-            
+
         if (!sourceList || sourceList.length === 0) {
             console.warn('Không có danh sách thương hiệu để tìm kiếm');
             return;
         }
-        
+
         console.log('Tìm kiếm trong danh sách thương hiệu có', sourceList.length, 'phần tử');
         const item = sourceList.find(item => String(item.id_thuong_hieu) === String(newVal));
-        
+
         if (item) {
             thuongHieuSearch.value = item.ten_thuong_hieu;
             console.log('Cập nhật thuongHieuSearch thành:', item.ten_thuong_hieu);
@@ -3831,20 +3772,20 @@ watch(() => formState.id_thuong_hieu, (newVal) => {
 
 watch(() => formState.id_chat_lieu, (newVal) => {
     console.log('Watch detected change in id_chat_lieu:', newVal);
-    
+
     if (newVal) {
         // Tìm item trong combồ hoặc danh sách gốc
-        const sourceList = combinedChatLieuList.value.length > 0 ? 
+        const sourceList = combinedChatLieuList.value.length > 0 ?
             combinedChatLieuList.value : chatLieuList.value;
-            
+
         if (!sourceList || sourceList.length === 0) {
             console.warn('Không có danh sách chất liệu để tìm kiếm');
             return;
         }
-        
+
         console.log('Tìm kiếm trong danh sách chất liệu có', sourceList.length, 'phần tử');
         const item = sourceList.find(item => String(item.id_chat_lieu) === String(newVal));
-        
+
         if (item) {
             chatLieuSearch.value = item.ten_chat_lieu;
             console.log('Cập nhật chatLieuSearch thành:', item.ten_chat_lieu);
@@ -3860,7 +3801,7 @@ watch(() => formState.id_chat_lieu, (newVal) => {
 // Thêm watchers cho danh sách gốc để cập nhật lại text khi danh sách được tải
 watch(() => danhMucList.value, (newList) => {
     console.log('danhMucList đã thay đổi, có', newList.length, 'mục');
-    
+
     // Nếu đã có ID được chọn, cập nhật lại text hiển thị
     if (formState.id_danh_muc && newList.length > 0) {
         const item = newList.find(item => String(item.id_danh_muc) === String(formState.id_danh_muc));
@@ -3873,7 +3814,7 @@ watch(() => danhMucList.value, (newList) => {
 
 watch(() => thuongHieuList.value, (newList) => {
     console.log('thuongHieuList đã thay đổi, có', newList.length, 'mục');
-    
+
     // Nếu đã có ID được chọn, cập nhật lại text hiển thị
     if (formState.id_thuong_hieu && newList.length > 0) {
         const item = newList.find(item => String(item.id_thuong_hieu) === String(formState.id_thuong_hieu));
@@ -3886,7 +3827,7 @@ watch(() => thuongHieuList.value, (newList) => {
 
 watch(() => chatLieuList.value, (newList) => {
     console.log('chatLieuList đã thay đổi, có', newList.length, 'mục');
-    
+
     // Nếu đã có ID được chọn, cập nhật lại text hiển thị
     if (formState.id_chat_lieu && newList.length > 0) {
         const item = newList.find(item => String(item.id_chat_lieu) === String(formState.id_chat_lieu));
@@ -3927,11 +3868,11 @@ onMounted(async () => {
         console.log('Đang tải danh mục...');
         await store.getDanhMucList();
         console.log('Đã tải danh mục:', store.danhMucList);
-        
+
         console.log('Đang tải thương hiệu...');
         await store.getThuongHieuList();
         console.log('Đã tải thương hiệu:', store.thuongHieuList);
-        
+
         console.log('Đang tải chất liệu...');
         await store.getChatLieuList();
         console.log('Đã tải chất liệu:', store.chatLieuList);
@@ -3945,17 +3886,17 @@ onMounted(async () => {
         console.log('Đang tải màu sắc...');
         await store.getMauSacList();
         console.log('Đã tải màu sắc:', store.mauSacList);
-        
+
         console.log('Đang tải kích thước...');
         await store.getSizeList();
         console.log('Đã tải kích thước:', store.sizeList);
-        
+
         mauSacList.value = store.mauSacList;
         sizeList.value = store.sizeList;
 
         // Khởi tạo giá trị hiển thị cho AutoComplete từ formState
         await nextTick(); // Đợi DOM cập nhật
-        
+
         // Cập nhật giá trị hiển thị cho các trường tìm kiếm
         if (formState.id_danh_muc) {
             const item = combinedDanhMucList.value.find(item => item.id_danh_muc === formState.id_danh_muc);
@@ -3964,7 +3905,7 @@ onMounted(async () => {
                 console.log('Đã cập nhật giá trị tìm kiếm danh mục:', danhMucSearch.value);
             }
         }
-        
+
         if (formState.id_thuong_hieu) {
             const item = combinedThuongHieuList.value.find(item => item.id_thuong_hieu === formState.id_thuong_hieu);
             if (item) {
@@ -3972,7 +3913,7 @@ onMounted(async () => {
                 console.log('Đã cập nhật giá trị tìm kiếm thương hiệu:', thuongHieuSearch.value);
             }
         }
-        
+
         if (formState.id_chat_lieu) {
             const item = combinedChatLieuList.value.find(item => item.id_chat_lieu === formState.id_chat_lieu);
             if (item) {
@@ -3980,7 +3921,7 @@ onMounted(async () => {
                 console.log('Đã cập nhật giá trị tìm kiếm chất liệu:', chatLieuSearch.value);
             }
         }
-        
+
         // Kiểm tra xem các danh sách có dữ liệu không
         console.log('Kiểm tra dữ liệu sau khi tải:');
         console.log('danhMucList:', danhMucList.value);
@@ -3988,12 +3929,12 @@ onMounted(async () => {
         console.log('chatLieuList:', chatLieuList.value);
         console.log('mauSacList:', mauSacList.value);
         console.log('sizeList:', sizeList.value);
-        
+
         // Cập nhật các options cho autocomplete
         console.log('filteredDanhMucOptions:', filteredDanhMucOptions.value);
         console.log('filteredThuongHieuOptions:', filteredThuongHieuOptions.value);
         console.log('filteredChatLieuOptions:', filteredChatLieuOptions.value);
-        
+
     } catch (error) {
         message.error('Có lỗi khi tải dữ liệu!');
         console.error('Chi tiết lỗi:', error);
@@ -4011,16 +3952,16 @@ const createAdvancedFilterOption = () => {
     return (input, option) => {
         const optionText = option.children.toLowerCase();
         const searchText = input.toLowerCase();
-        
+
         // Tìm kiếm thông thường
         if (optionText.indexOf(searchText) >= 0) {
             return true;
         }
-        
+
         // Tìm kiếm không dấu
         const normalizedOptionText = removeDiacriticsForSearch(optionText);
         const normalizedSearchText = removeDiacriticsForSearch(searchText);
-        
+
         return normalizedOptionText.indexOf(normalizedSearchText) >= 0;
     };
 };
@@ -4029,7 +3970,7 @@ const createAdvancedFilterOption = () => {
 const onSelectMauSac = (value, typeIndex) => {
     const variantType = variantTypes.value[typeIndex];
     if (!variantType) return;
-    
+
     variantType.id_mau_sac = value;
     // Cập nhật kích thước có sẵn khi thay đổi màu sắc
     updateAvailableSizes(typeIndex);
@@ -4044,7 +3985,7 @@ const onSearchMauSac = (searchText, typeIndex) => {
     const variantType = variantTypes.value[typeIndex];
     if (variantType) {
         variantType.mauSacSearch = searchText;
-        
+
         // Nếu tìm kiếm trống, xóa id_mau_sac
         if (!searchText.trim()) {
             variantType.id_mau_sac = null;
@@ -4056,20 +3997,20 @@ const onSearchMauSac = (searchText, typeIndex) => {
 const getFilteredMauSacOptions = (typeIndex) => {
     const variantType = variantTypes.value[typeIndex];
     if (!variantType) return [];
-    
+
     const searchText = variantType.mauSacSearch?.toLowerCase() || '';
     const normalizedSearch = removeDiacriticsForSearch(searchText);
     const availableColors = getAvailableColorsForVariant(typeIndex);
-    
+
     return availableColors
         .filter(item => {
             const tenMauSac = item.ten_mau_sac.toLowerCase();
             const normalizedTenMauSac = removeDiacriticsForSearch(tenMauSac);
             const maMauSac = item.ma_mau_sac.toLowerCase();
-            
-            return tenMauSac.includes(searchText) || 
-                   normalizedTenMauSac.includes(normalizedSearch) ||
-                   maMauSac.includes(searchText);
+
+            return tenMauSac.includes(searchText) ||
+                normalizedTenMauSac.includes(normalizedSearch) ||
+                maMauSac.includes(searchText);
         })
         .map(item => ({
             value: item.id_mau_sac,
@@ -4562,59 +4503,60 @@ watch(variantTypes, (newTypes) => {
 
 /* Style cho editor */
 .editor-container {
-  height: 300px;
-  margin-bottom: 20px;
-  border-radius: 6px;
+    height: 300px;
+    margin-bottom: 20px;
+    border-radius: 6px;
 }
 
 .ql-toolbar {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  background-color: #f6f6f6;
-  border-color: #d9d9d9;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    background-color: #f6f6f6;
+    border-color: #d9d9d9;
 }
 
 .ql-container {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  border-color: #d9d9d9;
-  min-height: 250px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-color: #d9d9d9;
+    min-height: 250px;
 }
 
 .ql-editor {
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 /* Thêm hiệu ứng hover/focus */
-.ql-container:hover, .ql-toolbar:hover {
-  border-color: #ff6600;
+.ql-container:hover,
+.ql-toolbar:hover {
+    border-color: #ff6600;
 }
 
 /* Style phù hợp với theme của ứng dụng */
 .ql-toolbar .ql-stroke {
-  stroke: #333;
+    stroke: #333;
 }
 
 .ql-toolbar .ql-fill {
-  fill: #333;
+    fill: #333;
 }
 
 .ql-toolbar button:hover .ql-stroke {
-  stroke: #ff6600;
+    stroke: #ff6600;
 }
 
 .ql-toolbar button:hover .ql-fill {
-  fill: #ff6600;
+    fill: #ff6600;
 }
 
 .ql-toolbar button.ql-active .ql-stroke {
-  stroke: #ff6600;
+    stroke: #ff6600;
 }
 
 .ql-toolbar button.ql-active .ql-fill {
-  fill: #ff6600;
+    fill: #ff6600;
 }
 
 /* ============ STYLES CHO UI CHỌN ẢNH CHO BIẾN THỂ ============ */
@@ -4674,7 +4616,8 @@ watch(variantTypes, (newTypes) => {
 .image-wrapper {
     position: relative;
     width: 100%;
-    padding-top: 100%; /* 1:1 Aspect Ratio */
+    padding-top: 100%;
+    /* 1:1 Aspect Ratio */
     cursor: pointer;
     background-color: #fff;
 }
@@ -4734,57 +4677,58 @@ watch(variantTypes, (newTypes) => {
 
 /* Rich Text Editor styles */
 .editor-container {
-  height: 300px;
-  border-radius: 6px;
-  margin-bottom: 16px;
+    height: 300px;
+    border-radius: 6px;
+    margin-bottom: 16px;
 }
 
 :deep(.ql-toolbar) {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  background-color: #f6f6f6;
-  border-color: #d9d9d9;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    background-color: #f6f6f6;
+    border-color: #d9d9d9;
 }
 
 :deep(.ql-container) {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  border-color: #d9d9d9;
-  min-height: 250px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-color: #d9d9d9;
+    min-height: 250px;
 }
 
 :deep(.ql-editor) {
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
-:deep(.ql-container:hover), :deep(.ql-toolbar:hover) {
-  border-color: #ff6600;
+:deep(.ql-container:hover),
+:deep(.ql-toolbar:hover) {
+    border-color: #ff6600;
 }
 
 :deep(.ql-toolbar .ql-stroke) {
-  stroke: #333;
+    stroke: #333;
 }
 
 :deep(.ql-toolbar .ql-fill) {
-  fill: #333;
+    fill: #333;
 }
 
 :deep(.ql-toolbar button:hover .ql-stroke) {
-  stroke: #ff6600;
+    stroke: #ff6600;
 }
 
 :deep(.ql-toolbar button:hover .ql-fill) {
-  fill: #ff6600;
+    fill: #ff6600;
 }
 
 :deep(.ql-toolbar button.ql-active .ql-stroke) {
-  stroke: #ff6600;
+    stroke: #ff6600;
 }
 
 :deep(.ql-toolbar button.ql-active .ql-fill) {
-  fill: #ff6600;
+    fill: #ff6600;
 }
 
 /* Thêm vào phần style */
@@ -4930,10 +4874,12 @@ watch(variantTypes, (newTypes) => {
     &::-webkit-scrollbar {
         width: 8px;
     }
+
     &::-webkit-scrollbar-thumb {
         background-color: #ccc;
         border-radius: 4px;
     }
+
     &::-webkit-scrollbar-track {
         background-color: #f1f1f1;
     }

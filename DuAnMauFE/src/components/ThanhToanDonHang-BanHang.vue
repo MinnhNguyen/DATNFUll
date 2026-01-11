@@ -11,7 +11,7 @@
       </nav>
     </div>
 
-    <!-- Order Status Timeline -->
+    <!-- Order Status Timeline - 3 Steps -->
     <div class="order-timeline">
       <div class="timeline-step" :class="{ active: currentStatus >= 1, completed: currentStatus > 1 }">
         <div class="step-icon">
@@ -23,23 +23,15 @@
       <div class="timeline-connector" :class="{ active: currentStatus >= 1 }"></div>
       <div class="timeline-step" :class="{ active: currentStatus >= 2, completed: currentStatus > 2 }">
         <div class="step-icon">
-          <form-outlined v-if="currentStatus < 2" />
-          <check-circle-outlined v-else />
-        </div>
-        <div class="step-label">Thanh toán</div>
-      </div>
-      <div class="timeline-connector" :class="{ active: currentStatus >= 2 }"></div>
-      <div class="timeline-step" :class="{ active: currentStatus >= 3, completed: currentStatus > 3 }">
-        <div class="step-icon">
-          <credit-card-outlined v-if="currentStatus < 3" />
+          <credit-card-outlined v-if="currentStatus < 2" />
           <check-circle-outlined v-else />
         </div>
         <div class="step-label">Đặt hàng</div>
       </div>
-      <div class="timeline-connector" :class="{ active: currentStatus >= 3 }"></div>
-      <div class="timeline-step" :class="{ active: currentStatus >= 4, completed: currentStatus > 4 }">
+      <div class="timeline-connector" :class="{ active: currentStatus >= 2 }"></div>
+      <div class="timeline-step" :class="{ active: currentStatus >= 3, completed: currentStatus > 3 }">
         <div class="step-icon">
-          <gift-outlined v-if="currentStatus < 4" />
+          <gift-outlined v-if="currentStatus < 3" />
           <check-circle-outlined v-else />
         </div>
         <div class="step-label">Hoàn tất</div>
@@ -440,8 +432,8 @@ import { paymentPollingService } from '@/services/paymentPollingService.js';
 const router = useRouter();
 const route = useRoute();
 const store = useGbStore();
-// Timeline status
-const currentStatus = ref(2); // 1: Cart, 2: Checkout, 3: Order, 4: Complete
+// Timeline status - 3 Steps
+const currentStatus = ref(2); // 1: Cart, 2: Order, 3: Complete
 
 // Customer information
 const customer = ref({
@@ -1762,13 +1754,17 @@ onMounted(async () => {
 
       console.log('Vouchers đã sắp xếp:', availableVouchers.value);
 
-      // Tự động áp dụng voucher tốt nhất nếu có voucher hợp lệ
+      // ✅ FIX: Chỉ tự động áp dụng voucher khi khách hàng đã đăng nhập
       if (availableVouchers.value.length > 0 && isVoucherValid(availableVouchers.value[0])) {
-        // Xóa các voucher đã áp dụng trước để tránh trùng lặp
-        appliedCoupons.value = [];
-        // Áp dụng voucher tốt nhất
-        appliedCoupons.value.push(availableVouchers.value[0]);
-        message.success(`Đã tự động áp dụng voucher ${availableVouchers.value[0].ma} giảm ${formatCurrency(availableVouchers.value[0].so_tien_giam)}`);
+        if (isLoggedIn.value) {
+          // Khách hàng đã đăng nhập - tự động áp dụng voucher tốt nhất
+          appliedCoupons.value = [];
+          appliedCoupons.value.push(availableVouchers.value[0]);
+          message.success(`Đã tự động áp dụng voucher ${availableVouchers.value[0].ma} giảm ${formatCurrency(availableVouchers.value[0].so_tien_giam)}`);
+        } else {
+          // Khách hàng chưa đăng nhập - thông báo khuyến mãi có sẵn
+          message.info(`Hóa đơn có thể áp dụng khuyến mãi giảm ${formatCurrency(availableVouchers.value[0].so_tien_giam)}. Vui lòng đăng nhập để nhận khuyến mãi!`, 5);
+        }
       }
     }
   } catch (error) {

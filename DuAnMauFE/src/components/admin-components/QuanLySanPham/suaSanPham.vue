@@ -1351,7 +1351,11 @@ const validateSoLuong = async (variant, index) => {
         variant.soLuongHelp = 'Số lượng không được âm!';
         return false;
     }
-
+    if (numericValue > 100000) {
+        variant.soLuongValidateStatus = 'error';
+        variant.soLuongHelp = 'Số lượng không được lớn hơn 100.000 sản phẩm vì lý do kho hàng!';
+        return false;
+    }
     // ✅ FIX: Tự động chuyển trạng thái khi số lượng = 0
     if (numericValue === 0) {
         variant.trang_thai = 'Không hoạt động';
