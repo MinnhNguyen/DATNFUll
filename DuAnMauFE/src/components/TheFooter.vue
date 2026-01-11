@@ -75,7 +75,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p class="copyright">© 2025 G&B Sports. Bản quyền thuộc về công ty.</p>
+      <p class="copyright">© 2025 MenWear. Bản quyền thuộc về công ty.</p>
     </div>
   </footer>
 </template>

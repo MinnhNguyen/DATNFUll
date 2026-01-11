@@ -328,7 +328,7 @@ public class KhachHangController {
       }
 
       // Gửi email chào mừng
-      String subject = "Chào mừng bạn đến với R!";
+      String subject = "Chào mừng bạn đến với MenWear!";
       String body = "<!DOCTYPE html>" +
           "<html lang='vi'>" +
           "<head>" +
@@ -354,11 +354,11 @@ public class KhachHangController {
           "<body>" +
           "<div class='container'>" +
           "<div class='header'>" +
-          "<h1>Chào mừng bạn đến với R</h1>" +
+          "<h1>Chào mừng bạn đến với MenWear</h1>" +
           "</div>" +
           "<div class='content'>" +
           "<h3>Xin chào " + khachHang.getHoTen() + ",</h3>" +
-          "<p>Cảm ơn bạn đã đăng ký tài khoản tại G&B SPORTS. Tài khoản của bạn đã được tạo thành công!</p>" +
+          "<p>Cảm ơn bạn đã đăng ký tài khoản tại MenWear. Tài khoản của bạn đã được tạo thành công!</p>" +
           "<div class='info-box'>" +
           "<p><strong>Thông tin đăng nhập của bạn:</strong></p>" +
           "<p><strong>Tên đăng nhập:</strong> " + khachHang.getTenDangNhap() + "</p>" +
@@ -367,7 +367,7 @@ public class KhachHangController {
           "<p>Vui lòng đăng nhập để bắt đầu sử dụng dịch vụ và khám phá các ưu đãi hấp dẫn.</p>" +
           "</div>" +
           "<div class='footer'>" +
-          "<p>Trân trọng,<br>Đội ngũ R</p>" +
+          "<p>Trân trọng,<br>Đội ngũ MenWear</p>" +
           "<p><a href='http://localhost:5173/home'>Ghé thăm website của chúng tôi</a> | <a href='mailto:support@gbsports.com'>Liên hệ hỗ trợ</a></p>"
           +
           "</div>" +
@@ -612,7 +612,7 @@ public class KhachHangController {
       khachHang = khachHangRepo.save(khachHang);
 
       // Gửi email chào mừng
-      String subject = "Chào mừng bạn đến với G&B SPORTS 🎉";
+      String subject = "Chào mừng bạn đến với MenWear 🎉";
       String body = "<!DOCTYPE html>" +
           "<html>" +
           "<head>" +
@@ -634,11 +634,11 @@ public class KhachHangController {
           "<body>" +
           "<div class='container'>" +
           "<div class='header'>" +
-          "<h2>Chào mừng bạn đến với G&B SPORTS 🎉</h2>" +
+          "<h2>Chào mừng bạn đến với MenWear 🎉</h2>" +
           "</div>" +
           "<div class='content'>" +
           "<h3>Xin chào <span class='highlight'>" + khachHang.getHoTen() + "</span>,</h3>" +
-          "<p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>G&B SPORTS</strong>. Tài khoản của bạn đã được tạo thành công!</p>"
+          "<p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>MenWear</strong>. Tài khoản của bạn đã được tạo thành công!</p>"
           +
           "<div class='info-box'>" +
           "<h4>Thông tin đăng nhập của bạn:</h4>" +
@@ -651,7 +651,7 @@ public class KhachHangController {
           +
           "</div>" +
           "<div class='footer'>" +
-          "<p>Trân trọng,<br>Đội ngũ G&B SPORTS</p>" +
+          "<p>Trân trọng,<br>Đội ngũ MenWear</p>" +
           "<p><a href='http://localhost:5173/home'>Ghé thăm website của chúng tôi</a> | <a href='mailto:support@gbsports.com'>Liên hệ hỗ trợ</a></p>"
           +
           "</div>" +
@@ -830,18 +830,18 @@ public class KhachHangController {
         "<body>" +
         "<div class='container'>" +
         "<div class='header'>" +
-        "<h1>Đặt lại mật khẩu - G&B SPORTS</h1>" +
+        "<h1>Đặt lại mật khẩu - MenWear</h1>" +
         "</div>" +
         "<div class='content'>" +
         "<h3>Xin chào " + khachHang.getHoTen() + ",</h3>" +
-        "<p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại G&B SPORTS.</p>" +
+        "<p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại MenWear.</p>" +
         "<div class='info-box'>" +
         "<p><strong>Mật khẩu mới của bạn là:</strong> " + newPassword + "</p>" +
         "</div>" +
         "<p>Vui lòng đăng nhập và đổi mật khẩu ngay sau khi nhận được email này.</p>" +
         "</div>" +
         "<div class='footer'>" +
-        "<p>Trân trọng,<br>Đội ngũ G&B SPORTS</p>" +
+        "<p>Trân trọng,<br>Đội ngũ MenWear</p>" +
         "<p><a href='http://localhost:5173/home'>Ghé thăm website</a> | <a href='mailto:support@gbsports.com'>Liên hệ hỗ trợ</a></p>"
         +
         "</div>" +
@@ -849,7 +849,7 @@ public class KhachHangController {
         "</body>" +
         "</html>";
     try {
-      emailService.sendEmail(request.getEmail(), "Đặt lại mật khẩu - G&B SPORTS", emailContent);
+      emailService.sendEmail(request.getEmail(), "Đặt lại mật khẩu - MenWear", emailContent);
       response.put("successMessage", "Mật khẩu mới đã được gửi đến email của bạn!");
     } catch (MessagingException e) {
       response.put("warning", "Đặt lại mật khẩu thành công nhưng gửi email thất bại: " + e.getMessage());
@@ -1228,7 +1228,7 @@ public class KhachHangController {
           "<p>Vui lòng xem xét và phản hồi yêu cầu của khách hàng trong thời gian sớm nhất.</p>" +
           "</div>" +
           "<div class='footer'>" +
-          "<p>Trân trọng,<br>Đội ngũ G&B SPORTS</p>" +
+          "<p>Trân trọng,<br>Đội ngũ MenWear</p>" +
           "<p><a href='http://localhost:5173/home'>Ghé thăm website</a></p>" +
           "</div>" +
           "</div>" +
