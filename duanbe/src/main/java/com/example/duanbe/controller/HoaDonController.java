@@ -491,7 +491,9 @@ public class HoaDonController {
                 : BigDecimal.valueOf(Double.MAX_VALUE))
         : hd.getVoucher().getGiaTriGiam() : BigDecimal.ZERO;
 
-    hd.setTong_tien_sau_giam(hd.getTong_tien_truoc_giam().add(phiVanChuyen).subtract(tienGiam));
+    // ✅ UNIFIED: tong_tien_sau_giam = Total - Voucher (KHÔNG có ship, giống
+    // POS/Online)
+    hd.setTong_tien_sau_giam(hd.getTong_tien_truoc_giam().subtract(tienGiam));
     hd.setNgay_sua(LocalDateTime.now());
     hoaDonRepo.save(hd);
 
@@ -564,7 +566,9 @@ public class HoaDonController {
                   : BigDecimal.valueOf(Double.MAX_VALUE))
           : hoaDon.getVoucher().getGiaTriGiam() : BigDecimal.ZERO;
 
-      hoaDon.setTong_tien_sau_giam(hoaDon.getTong_tien_truoc_giam().add(pvcMoi).subtract(tienGiam));
+      // ✅ UNIFIED: tong_tien_sau_giam = Total - Voucher (KHÔNG có ship, giống
+      // POS/Online)
+      hoaDon.setTong_tien_sau_giam(hoaDon.getTong_tien_truoc_giam().subtract(tienGiam));
       System.out.println("💵 Tổng tiền sau giảm mới: " + hoaDon.getTong_tien_sau_giam());
 
       hoaDon.setNgay_sua(LocalDateTime.now());
@@ -690,12 +694,22 @@ public class HoaDonController {
           && "Tiền mặt".equalsIgnoreCase(hd.getHinh_thuc_thanh_toan());
 
       BigDecimal phiVanChuyen = hd.getPhi_van_chuyen() != null ? hd.getPhi_van_chuyen() : BigDecimal.ZERO;
-      BigDecimal tongTienSauGiamCu = hd.getTong_tien_sau_giam() != null ? hd.getTong_tien_sau_giam()
+      BigDecimal tongSPCu = hd.getTong_tien_truoc_giam() != null ? hd.getTong_tien_truoc_giam()
           : BigDecimal.ZERO;
-      BigDecimal tongTienTruocGiamCu = hd.getTong_tien_truoc_giam() != null ? hd.getTong_tien_truoc_giam()
-          : BigDecimal.ZERO;
-      // tienGiamCu = Tổng trước giảm - Tổng sau giảm (bao gồm cả voucher đã trừ)
-      BigDecimal tienGiamCu = tongTienTruocGiamCu.subtract(tongTienSauGiamCu);
+
+      // ✅ FIX: Tính voucher cũ từ DB (không trừ phí ship)
+      BigDecimal tienGiamCu = BigDecimal.ZERO;
+      if (hd.getVoucher() != null) {
+        Voucher voucher = hd.getVoucher();
+        if (voucher.getKieuGiamGia().equals("Phần trăm")) {
+          tienGiamCu = tongSPCu.multiply(voucher.getGiaTriGiam().divide(new BigDecimal("100")));
+          if (voucher.getGiaTriToiDa() != null && tienGiamCu.compareTo(voucher.getGiaTriToiDa()) > 0) {
+            tienGiamCu = voucher.getGiaTriToiDa();
+          }
+        } else if (voucher.getKieuGiamGia().equals("Tiền mặt")) {
+          tienGiamCu = voucher.getGiaTriGiam();
+        }
+      }
       BigDecimal phuThu = isOnlineCash ? BigDecimal.ZERO
           : (hd.getPhu_thu() != null ? hd.getPhu_thu() : BigDecimal.ZERO);
 
@@ -780,17 +794,23 @@ public class HoaDonController {
         Optional<HoaDon> hdOpt = hoaDonRepo.findById(idHoaDon);
         Optional<ChiTietSanPham> ctspOpt = chiTietSanPhamRepo.findById(idCTSP);
 
-        // ✅ LOGIC MỚI: Kiểm tra sản phẩm theo cả ID và đơn giá
-        BigDecimal donGiaMoi = giaSauGiam.multiply(new BigDecimal(soLuongMua));
-        Optional<HoaDonChiTiet> hoaDonChiTietOpt = hoaDonChiTietRepo.findByHoaDonAndChiTietSanPhamAndDonGia(
-            idHoaDon, idCTSP, giaSauGiam);
+        // ✅ FIX: Chỉ check theo ID (BỎ QUA GIÁ), luôn merge + update giá mới
+        List<HoaDonChiTiet> existingItems = hoaDonChiTietRepo.findByHoaDonAndChiTietSanPham(
+            idHoaDon, idCTSP);
 
-        if (hoaDonChiTietOpt.isPresent()) {
-          // ✅ TRÙNG GIÁ: Cộng số lượng vào dòng hiện tại
-          HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietOpt.get();
-          hoaDonChiTiet.setSo_luong(hoaDonChiTiet.getSo_luong() + soLuongMua);
-          hoaDonChiTiet.setDon_gia(giaSauGiam.multiply(new BigDecimal(hoaDonChiTiet.getSo_luong())));
+        if (!existingItems.isEmpty()) {
+          // ✅ ĐÃ TỒN TẠI: Cộng số lượng + UPDATE GIÁ MỚI
+          HoaDonChiTiet hoaDonChiTiet = existingItems.get(0);
+          int soLuongCu = hoaDonChiTiet.getSo_luong();
+          int soLuongMoi = soLuongCu + soLuongMua;
+
+          hoaDonChiTiet.setSo_luong(soLuongMoi);
+          // ✅ LUÔN CẬP NHẬT GIÁ MỚI (tính lại theo giá hiện tại)
+          hoaDonChiTiet.setDon_gia(giaSauGiam.multiply(new BigDecimal(soLuongMoi)));
           hoaDonChiTietRepo.save(hoaDonChiTiet);
+
+          System.out.println("✅ Merge SP (ID: " + idCTSP + "): SL " + soLuongCu + " → " + soLuongMoi +
+              ", giá mới: " + giaSauGiam);
 
           // ✅ Theo dõi sản phẩm cộng số lượng để tính phụ thu
           Map<String, Object> mergedProduct = new HashMap<>();
@@ -799,15 +819,18 @@ public class HoaDonController {
           mergedProduct.put("giaSauGiam", giaSauGiam);
           mergedProducts.add(mergedProduct);
         } else {
-          // ✅ KHÁC GIÁ hoặc CHƯA TỒN TẠI: Tạo dòng mới
+          // ✅ CHƯA TỒN TẠI: Tạo dòng mới
           HoaDon hoaDon = hdOpt.get();
           ChiTietSanPham chiTietSanPham = ctspOpt.get();
           HoaDonChiTiet hoaDonChiTiet = new HoaDonChiTiet();
           hoaDonChiTiet.setHoaDon(hoaDon);
           hoaDonChiTiet.setChiTietSanPham(chiTietSanPham);
           hoaDonChiTiet.setSo_luong(soLuongMua);
-          hoaDonChiTiet.setDon_gia(donGiaMoi);
+          hoaDonChiTiet.setDon_gia(giaSauGiam.multiply(new BigDecimal(soLuongMua)));
           hoaDonChiTietRepo.save(hoaDonChiTiet);
+
+          System.out.println("✅ Thêm SP mới (ID: " + idCTSP + "): SL " + soLuongMua +
+              ", giá: " + giaSauGiam);
 
           // ✅ Theo dõi sản phẩm thêm mới (không tính phụ thu)
           Map<String, Object> newProduct = new HashMap<>();
@@ -822,9 +845,6 @@ public class HoaDonController {
       BigDecimal tongTienSanPham = chiTietList.stream()
           .map(HoaDonChiTiet::getDon_gia)
           .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-      // Tính tổng tiền trước giảm = Tổng SP + Phí ship
-      BigDecimal tongTienTruocGiam = tongTienSanPham.add(phiVanChuyen);
 
       // Tính lại số tiền giảm nếu có voucher
       BigDecimal tienGiam = BigDecimal.ZERO;
@@ -861,11 +881,12 @@ public class HoaDonController {
       BigDecimal phuThuFinal = isOnlineCash ? BigDecimal.ZERO
           : phuThu.add(tienThanhToanThemPhuThu).subtract(giamThemTuVoucher);
 
-      // Cập nhật hóa đơn
-      // tong_tien_truoc_giam = Tổng SP + Ship (chưa trừ voucher)
-      // tong_tien_sau_giam = Tổng trước giảm - Voucher (tổng cuối cùng)
-      hd.setTong_tien_truoc_giam(tongTienTruocGiam);
-      hd.setTong_tien_sau_giam(tongTienTruocGiam.subtract(tienGiam));
+      // ✅ UNIFIED: tong_tien_sau_giam = Total - Voucher (KHÔNG có ship, giống
+      // POS/Online)
+      // tong_tien_truoc_giam = Tổng SP only
+      // tong_tien_sau_giam = Tổng SP - Voucher (phi_van_chuyen lưu riêng)
+      hd.setTong_tien_truoc_giam(tongTienSanPham);
+      hd.setTong_tien_sau_giam(tongTienSanPham.subtract(tienGiam));
       hd.setPhu_thu(phuThuFinal);
       hd.setNgay_sua(LocalDateTime.now());
       hoaDonRepo.save(hd);
@@ -987,10 +1008,10 @@ public class HoaDonController {
         }
       }
 
-      // Cập nhật hóa đơn
+      // ✅ UNIFIED: tong_tien_sau_giam = Total - Voucher (KHÔNG có ship, giống
+      // POS/Online)
       hoaDon.setTong_tien_truoc_giam(tongTienTruocGiam);
-      BigDecimal phiVanChuyen = hoaDon.getPhi_van_chuyen() != null ? hoaDon.getPhi_van_chuyen() : BigDecimal.ZERO;
-      hoaDon.setTong_tien_sau_giam(tongTienTruocGiam.add(phiVanChuyen).subtract(tienGiam));
+      hoaDon.setTong_tien_sau_giam(tongTienTruocGiam.subtract(tienGiam));
       if (!isOnlineCash) {
         hoaDon.setPhu_thu(phuThu);
       }
@@ -1033,12 +1054,22 @@ public class HoaDonController {
           && "Tiền mặt".equalsIgnoreCase(hoaDon.getHinh_thuc_thanh_toan());
 
       BigDecimal phiVanChuyen = hoaDon.getPhi_van_chuyen() != null ? hoaDon.getPhi_van_chuyen() : BigDecimal.ZERO;
-      BigDecimal tongTienSauGiamCu = hoaDon.getTong_tien_sau_giam() != null ? hoaDon.getTong_tien_sau_giam()
+      BigDecimal tongSPCu = hoaDon.getTong_tien_truoc_giam() != null ? hoaDon.getTong_tien_truoc_giam()
           : BigDecimal.ZERO;
-      BigDecimal tongTienTruocGiamCu = hoaDon.getTong_tien_truoc_giam() != null ? hoaDon.getTong_tien_truoc_giam()
-          : BigDecimal.ZERO;
-      // tienGiamCu = Tổng trước giảm - Tổng sau giảm (bao gồm cả voucher đã trừ)
-      BigDecimal tienGiamCu = tongTienTruocGiamCu.subtract(tongTienSauGiamCu);
+
+      // ✅ FIX: Tính voucher cũ từ DB (không trừ phí ship)
+      BigDecimal tienGiamCu = BigDecimal.ZERO;
+      if (hoaDon.getVoucher() != null) {
+        Voucher voucher = hoaDon.getVoucher();
+        if (voucher.getKieuGiamGia().equals("Phần trăm")) {
+          tienGiamCu = tongSPCu.multiply(voucher.getGiaTriGiam().divide(new BigDecimal("100")));
+          if (voucher.getGiaTriToiDa() != null && tienGiamCu.compareTo(voucher.getGiaTriToiDa()) > 0) {
+            tienGiamCu = voucher.getGiaTriToiDa();
+          }
+        } else if (voucher.getKieuGiamGia().equals("Tiền mặt")) {
+          tienGiamCu = voucher.getGiaTriGiam();
+        }
+      }
       BigDecimal phuThu = isOnlineCash ? BigDecimal.ZERO
           : (hoaDon.getPhu_thu() != null ? hoaDon.getPhu_thu() : BigDecimal.ZERO);
 
@@ -1122,9 +1153,6 @@ public class HoaDonController {
           .map(HoaDonChiTiet::getDon_gia)
           .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-      // Tính tổng tiền trước giảm = Tổng SP + Phí ship
-      BigDecimal tongTienTruocGiam = tongTienSanPham.add(phiVanChuyen);
-
       // Cập nhật phụ thu nếu tăng số lượng
       BigDecimal phuThuFinal = phuThu;
       if (quantityChange > 0 && !isOnlineCash) {
@@ -1161,11 +1189,12 @@ public class HoaDonController {
         phuThuFinal = BigDecimal.ZERO;
       }
 
-      // Cập nhật hóa đơn
-      // tong_tien_truoc_giam = Tổng SP + Ship (chưa trừ voucher)
-      // tong_tien_sau_giam = Tổng trước giảm - Voucher (tổng cuối cùng)
-      hoaDon.setTong_tien_truoc_giam(tongTienTruocGiam);
-      hoaDon.setTong_tien_sau_giam(tongTienTruocGiam.subtract(tienGiam));
+      // ✅ UNIFIED: tong_tien_sau_giam = Total - Voucher (KHÔNG có ship, giống
+      // POS/Online)
+      // tong_tien_truoc_giam = Tổng SP only
+      // tong_tien_sau_giam = Tổng SP - Voucher (phi_van_chuyen lưu riêng)
+      hoaDon.setTong_tien_truoc_giam(tongTienSanPham);
+      hoaDon.setTong_tien_sau_giam(tongTienSanPham.subtract(tienGiam));
       hoaDon.setPhu_thu(phuThuFinal);
       hoaDon.setNgay_sua(LocalDateTime.now());
       hoaDonRepo.save(hoaDon);

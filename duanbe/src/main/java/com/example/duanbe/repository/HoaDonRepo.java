@@ -71,7 +71,7 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
       SELECT hd.id_hoa_don, hd.ma_hoa_don, hd.id_khach_hang, hd.ngay_tao, hd.email, hd.ho_ten, hd.sdt as sdt_nguoi_nhan,
       hd.dia_chi, v.ma_voucher, hd.tong_tien_truoc_giam, hd.tong_tien_sau_giam,
       hd.hinh_thuc_thanh_toan, hd.phuong_thuc_nhan_hang, hd.id_voucher, hd.phi_van_chuyen, v.mo_ta,
-      hd.trang_thai AS trang_thai_thanh_toan, hd.loai_hoa_don, hd.ghi_chu,
+      hd.trang_thai AS trang_thai_thanh_toan, hd.loai_hoa_don, hd.ghi_chu,(hd.tong_tien_truoc_giam -hd.tong_tien_sau_giam) as giam_gia,
       (SELECT TOP 1 trang_thai FROM theo_doi_don_hang t
       WHERE t.id_hoa_don = hd.id_hoa_don
       ORDER BY t.ngay_chuyen DESC) as trang_thai,

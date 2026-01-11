@@ -668,7 +668,7 @@ import { message, Modal } from 'ant-design-vue';
 import { useGbStore } from '@/stores/gbStore';
 import { Empty } from 'ant-design-vue';
 import jsPDF from 'jspdf';
-import logo from '../../../images/logo/LogoM.png';
+import logo from '../../../images/logo/anhLogoMenWear.png';
 import '../../../config/fonts/Roboto-normal'
 import '../../../config/fonts/Roboto-bold'
 import { toast } from 'vue3-toastify';
@@ -2366,7 +2366,7 @@ const formatDate = (date) => {
 const printInvoice = async () => {
   const doc = new jsPDF();
   doc.setFont("Roboto");
-  const logoWidth = 30;
+  const logoWidth = 60;
   const logoHeight = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
   const logoX = (pageWidth - logoWidth) / 2;
@@ -2430,7 +2430,7 @@ const printInvoice = async () => {
     doc.text(`${item.so_luong}`, 110, y, { align: "center" });
 
     // Đơn giá
-    const donGia = item.gia_sau_giam && item.gia_sau_giam < item.gia_ban ? item.gia_sau_giam : item.gia_ban;
+    const donGia = item.gia_sau_km && item.gia_sau_km < item.gia_goc ? item.gia_sau_km : item.gia_goc;
     if (item.gia_sau_giam && item.gia_sau_giam < item.gia_ban) {
       doc.setTextColor(255, 0, 0); // Màu đỏ
     }
@@ -2438,7 +2438,7 @@ const printInvoice = async () => {
     doc.setTextColor(0); // Reset màu về đen
 
     // Thành tiền
-    if (item.gia_sau_giam && item.gia_sau_giam < item.gia_ban) {
+    if (item.gia_sau_km && item.gia_sau_km < item.gia_goc) {
       doc.setTextColor(255, 0, 0); // Màu đỏ
     }
     doc.text(`${formatCurrency(donGia * item.so_luong)}`, 180, y, { align: "center" });
@@ -2447,10 +2447,10 @@ const printInvoice = async () => {
     y += productLines.length * 6 + 4;
 
     // Hiển thị giá gốc nếu có khuyến mãi
-    if (item.gia_sau_giam && item.gia_sau_giam < item.gia_ban) {
+    if (item.gia_sau_giam && item.gia_sau_giam < item.gia_goc) {
       doc.setFontSize(8);
       doc.setTextColor(150); // Màu xám
-      doc.text(`Giá gốc: ${formatCurrency(item.gia_ban)}`, 140, y - 6, { align: "center" });
+      doc.text(`Giá gốc: ${formatCurrency(item.gia_goc)}`, 140, y - 6, { align: "center" });
       doc.setTextColor(0); // Reset màu về đen
       doc.setFontSize(10);
       y += 4;
@@ -2465,7 +2465,7 @@ const printInvoice = async () => {
   doc.setFont("Roboto", "normal");
 
   // Tổng tiền sản phẩm (chưa có ship)
-  const tongTienSanPham = (activeTabData.value.hd.tong_tien_truoc_giam || 0) - (activeTabData.value.hd.phi_van_chuyen || 0);
+  const tongTienSanPham = (activeTabData.value.hd.tong_tien_truoc_giam || 0);
   doc.text(`Tổng tiền hàng:`, 115, y, { align: "left" });
   doc.text(`${formatCurrency(tongTienSanPham)}`, 190, y, { align: "right" });
 
@@ -2488,7 +2488,7 @@ const printInvoice = async () => {
 
   doc.setFont("Roboto", "bold");
   doc.text(`Thành tiền:`, 115, y, { align: "left" });
-  doc.text(`${formatCurrency(activeTabData.value.hd.tong_tien_sau_giam)}`, 190, y, { align: "right" });
+  doc.text(`${formatCurrency(activeTabData.value.hd.tong_tien_sau_giam + activeTabData.value.hd.phi_van_chuyen)}`, 190, y, { align: "right" });
   if (activeTabData.value.hd.hinh_thuc_thanh_toan === "Tiền mặt") {
     y += 6;
     doc.setFont("Roboto", "bold");

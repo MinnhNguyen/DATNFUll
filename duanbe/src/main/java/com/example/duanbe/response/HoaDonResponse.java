@@ -80,6 +80,8 @@ public interface HoaDonResponse {
 
   String getKieu_giam_gia();
 
+  BigDecimal getGiam_gia();
+
   // Trường mới liên quan đến trả hàng
   String getTrang_thai_tra_hang();
 

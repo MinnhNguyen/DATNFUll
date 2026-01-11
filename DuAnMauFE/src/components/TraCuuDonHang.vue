@@ -103,7 +103,7 @@
               </div>
               <div class="total-row" v-if="thongTinHoaDon.ma_voucher">
                 <span>Giảm giá:</span>
-                <span>{{ dinhDangTien(thongTinHoaDon.tong_tien_truoc_giam + thongTinHoaDon.phi_van_chuyen -
+                <span>{{ dinhDangTien(thongTinHoaDon.tong_tien_truoc_giam -
                   thongTinHoaDon.tong_tien_sau_giam) }}</span>
               </div>
               <div class="total-row">
@@ -187,7 +187,7 @@
               được thông tin giao hàng.</p>
           </a-collapse-panel>
         </a-collapse>
-        <img src="../images/logo/LogoM.png" alt="logo" id="logo" hidden>
+        <img src="../images/logo/anhLogoMenWear.png" alt="logo" id="logo" hidden>
       </div>
     </div>
   </div>
@@ -708,7 +708,7 @@ const inHoaDon = async () => {
 
     // Thêm logo ở giữa và phía trên
     try {
-      doc.addImage(logo.src, 'PNG', pageWidth / 2 - 20, 20, 40, 20);
+      doc.addImage(logo.src, 'PNG', pageWidth / 2 - 30, 20, 60, 20);
     } catch (error) {
       console.error('Không thể tải logo:', error);
       // Vẽ một hình chữ nhật đơn giản thay thế nếu không thể tải logo
@@ -726,7 +726,7 @@ const inHoaDon = async () => {
     doc.setFontSize(9);
     doc.setFont('Roboto', 'normal');
     doc.text('Địa chỉ: 123 Đường Thế Thao, Quận Cầu Giấy, Hà Nội', pageWidth / 2, 45, { align: 'center' });
-    doc.text('Điện thoại: (024) 123 4567 | Email: info@gbsports.com', pageWidth / 2, 50, { align: 'center' });
+    doc.text('Điện thoại: (024) 123 4567 | Email: info@MenWear.com', pageWidth / 2, 50, { align: 'center' });
 
 
     // Tiêu đề hóa đơn - Đơn giản và căn giữa
@@ -898,7 +898,7 @@ const inHoaDon = async () => {
     y += 7;
 
     // Giảm giá (voucher)
-    const giamGia = thongTinHoaDon.value.tong_tien_truoc_giam - thongTinHoaDon.value.tong_tien_sau_giam - thongTinHoaDon.value.phi_van_chuyen;
+    const giamGia = thongTinHoaDon.value.tong_tien_truoc_giam - thongTinHoaDon.value.tong_tien_sau_giam;
     doc.text('Giảm giá:', pageWidth - margin - 80, y);
     if (giamGia > 0) {
       doc.text(`${dinhDangTien(giamGia).replace('₫', 'đ')}`, pageWidth - margin, y, { align: 'right' });
@@ -927,7 +927,7 @@ const inHoaDon = async () => {
     doc.setFontSize(12);
     doc.setFont('Roboto', 'bold');
     doc.text('TỔNG THANH TOÁN:', pageWidth - margin - 80, y);
-    doc.text(`${dinhDangTien(thongTinHoaDon.value.tong_tien_sau_giam).replace('₫', 'đ')}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${dinhDangTien(thongTinHoaDon.value.tong_tien_sau_giam + thongTinHoaDon.value.phi_van_chuyen).replace('₫', 'đ')}`, pageWidth - margin, y, { align: 'right' });
 
     // Chữ ký
     y += 20;
@@ -944,7 +944,7 @@ const inHoaDon = async () => {
     y = pageHeight - 20;
     doc.setFontSize(9);
     doc.setFont('Roboto', 'bold');
-    doc.text('Cảm ơn quý khách đã mua hàng tại G-B Sports!', pageWidth / 2, y, { align: 'center' });
+    doc.text('Cảm ơn quý khách đã mua hàng tại MenWear!', pageWidth / 2, y, { align: 'center' });
 
     // Đóng loading
     message.destroy('pdfLoading');

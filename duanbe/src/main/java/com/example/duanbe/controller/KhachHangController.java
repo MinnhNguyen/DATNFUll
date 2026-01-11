@@ -1140,10 +1140,9 @@ public class KhachHangController {
       hoaDon.setSdt(request.getSdtNguoiNhan().trim());
       hoaDon.setDia_chi(request.getDiaChi().trim());
       hoaDon.setNgay_sua(LocalDateTime.now());
-      BigDecimal pvcCu = hoaDon.getPhi_van_chuyen() != null ? hoaDon.getPhi_van_chuyen() : BigDecimal.ZERO;
-      hoaDon.setTong_tien_sau_giam(hoaDon.getTong_tien_sau_giam().subtract(pvcCu).add(phiVanChuyen));
-      System.out.println("Phí vận chuyển: " + phiVanChuyen);
-      System.out.println("Phí vận chuyển: " + hoaDon.getTong_tien_sau_giam());
+      // ✅ UNIFIED: tong_tien_sau_giam KHÔNG bao gồm ship
+      // Chỉ cần update phi_van_chuyen mới, không cần tính lại tong_tien_sau_giam
+      System.out.println("Phí vận chuyển cũ: " + hoaDon.getPhi_van_chuyen() + " → mới: " + phiVanChuyen);
       hoaDon.setPhi_van_chuyen(phiVanChuyen);
       hoaDonRepo.save(hoaDon);
 
