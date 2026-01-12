@@ -238,18 +238,29 @@ public class BanHangWebController {
   }
 
   private void updateSoLuongSanPham(List<HoaDonChiTiet> list) {
+    // ✅ STOCK CONCURRENCY FIX: Validate stock BEFORE deducting
     for (HoaDonChiTiet hdct : list) {
       ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(hdct.getChiTietSanPham().getId_chi_tiet_san_pham()).get();
-      if (ctsp.getSo_luong() <= hdct.getSo_luong()) {
-        ctsp.setSo_luong(0);
-        // ⛔ KHÔNG tự động tắt trạng thái khi hết hàng - để admin quản lý thủ công
-        // ctsp.setTrang_thai(false);
-        chiTietSanPhamRepo.save(ctsp);
-      } else {
-        ctsp.setSo_luong(ctsp.getSo_luong() - hdct.getSo_luong());
-        chiTietSanPhamRepo.save(ctsp);
-      }
 
+      // Check if stock is sufficient
+      if (ctsp.getSo_luong() < hdct.getSo_luong()) {
+        throw new com.example.duanbe.exception.InsufficientStockException(
+            String.format("Sản phẩm \"%s\" chỉ còn %d trong kho, không đủ để bán %d!",
+                ctsp.getSanPham().getTen_san_pham(),
+                ctsp.getSo_luong(),
+                hdct.getSo_luong()),
+            ctsp.getId_chi_tiet_san_pham(),
+            hdct.getSo_luong(),
+            ctsp.getSo_luong());
+      }
+    }
+
+    // ✅ If all items have sufficient stock, deduct
+    for (HoaDonChiTiet hdct : list) {
+      ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(hdct.getChiTietSanPham().getId_chi_tiet_san_pham()).get();
+      ctsp.setSo_luong(ctsp.getSo_luong() - hdct.getSo_luong());
+      // ⛔ KHÔNG tự động tắt trạng thái khi hết hàng - để admin quản lý thủ công
+      chiTietSanPhamRepo.save(ctsp);
     }
   }
 
@@ -313,6 +324,25 @@ public class BanHangWebController {
 
   @PostMapping("/taoHoaDonChiTiet")
   public ResponseEntity<?> taoHoaDonChiTiet(@RequestBody List<HoaDonChiTiet> hoaDonChiTiets) {
+    // ✅ STOCK CONCURRENCY FIX: Validate stock BEFORE creating order (for both COD
+    // and Online)
+    for (HoaDonChiTiet hdct : hoaDonChiTiets) {
+      ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(hdct.getChiTietSanPham().getId_chi_tiet_san_pham())
+          .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+      // Check if stock is sufficient
+      if (ctsp.getSo_luong() < hdct.getSo_luong()) {
+        throw new com.example.duanbe.exception.InsufficientStockException(
+            String.format("Sản phẩm \"%s\" chỉ còn %d trong kho, không đủ để bán %d!",
+                ctsp.getSanPham().getTen_san_pham(),
+                ctsp.getSo_luong(),
+                hdct.getSo_luong()),
+            ctsp.getId_chi_tiet_san_pham(),
+            hdct.getSo_luong(),
+            ctsp.getSo_luong());
+      }
+    }
+
     ArrayList<HoaDonChiTiet> listHdct = new ArrayList<>();
     for (HoaDonChiTiet hdct : hoaDonChiTiets) {
       HoaDonChiTiet hoaDonChiTietAdd = new HoaDonChiTiet();
@@ -339,6 +369,24 @@ public class BanHangWebController {
 
   @PostMapping("/taoHoaDonChiTietMuaNgay")
   public ResponseEntity<?> taoHoaDonChiTietMuaNgay(@RequestBody List<HoaDonChiTiet> hoaDonChiTiets) {
+    // ✅ STOCK CONCURRENCY FIX: Validate stock BEFORE creating order
+    for (HoaDonChiTiet hdct : hoaDonChiTiets) {
+      ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(hdct.getChiTietSanPham().getId_chi_tiet_san_pham())
+          .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+      // Check if stock is sufficient
+      if (ctsp.getSo_luong() < hdct.getSo_luong()) {
+        throw new com.example.duanbe.exception.InsufficientStockException(
+            String.format("Sản phẩm \"%s\" chỉ còn %d trong kho, không đủ để bán %d!",
+                ctsp.getSanPham().getTen_san_pham(),
+                ctsp.getSo_luong(),
+                hdct.getSo_luong()),
+            ctsp.getId_chi_tiet_san_pham(),
+            hdct.getSo_luong(),
+            ctsp.getSo_luong());
+      }
+    }
+
     ArrayList<HoaDonChiTiet> listHdct = new ArrayList<>();
     for (HoaDonChiTiet hdct : hoaDonChiTiets) {
       HoaDonChiTiet hoaDonChiTietAdd = new HoaDonChiTiet();

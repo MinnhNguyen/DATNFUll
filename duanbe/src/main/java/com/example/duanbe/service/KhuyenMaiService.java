@@ -72,8 +72,17 @@ public class KhuyenMaiService {
         khuyenMai.setMaKhuyenMai(request.getMaKhuyenMai());
         khuyenMai.setTenKhuyenMai(request.getTenKhuyenMai());
         khuyenMai.setMoTa(request.getMoTa());
-        khuyenMai.setNgayBatDau(request.getNgayBatDau());
-        khuyenMai.setNgayHetHan(request.getNgayHetHan());
+
+        // ✅ TIMEZONE FIX: Convert LocalDateTime từ request sang OffsetDateTime với
+        // timezone Asia/Ho_Chi_Minh
+        java.time.ZoneId vietnamZone = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
+        if (request.getNgayBatDau() != null) {
+            khuyenMai.setNgayBatDau(request.getNgayBatDau().atZone(vietnamZone).toOffsetDateTime());
+        }
+        if (request.getNgayHetHan() != null) {
+            khuyenMai.setNgayHetHan(request.getNgayHetHan().atZone(vietnamZone).toOffsetDateTime());
+        }
+
         khuyenMai.setGiaTriGiam(request.getGiaTriGiam());
         khuyenMai.setKieuGiamGia(request.getKieuGiamGia());
         khuyenMai.setTrangThai(request.getTrangThai());
@@ -143,6 +152,7 @@ public class KhuyenMaiService {
         // Đảm bảo giá sau giảm không âm
         return giaSauGiam.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : giaSauGiam;
     }
+
     // 2️⃣ Thêm khuyến mãi mới
     @Transactional
     public String addKhuyenMai(KhuyenMaiRequest request, List<Integer> selectedChiTietSanPhamIds) {
@@ -156,7 +166,8 @@ public class KhuyenMaiService {
         if (request.getGiaTriGiam() == null || request.getGiaTriGiam().compareTo(BigDecimal.ZERO) <= 0) {
             return "Thêm thất bại: Giá trị giảm phải lớn hơn 0!";
         }
-        if ("Phần trăm".equals(request.getKieuGiamGia()) && request.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
+        if ("Phần trăm".equals(request.getKieuGiamGia())
+                && request.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
             return "Thêm thất bại: Giá trị giảm không được vượt quá 100 khi chọn Phần trăm!";
         }
         if (request.getKieuGiamGia() == null || request.getKieuGiamGia().trim().isEmpty()) {
@@ -187,7 +198,8 @@ public class KhuyenMaiService {
         // Lưu chi tiết khuyến mãi
         for (Integer chiTietSanPhamId : selectedChiTietSanPhamIds) {
             ChiTietSanPham chiTietSanPham = chiTietSanPhamRepository.findById(chiTietSanPhamId)
-                    .orElseThrow(() -> new IllegalArgumentException("Chi tiết sản phẩm không tồn tại: " + chiTietSanPhamId));
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Chi tiết sản phẩm không tồn tại: " + chiTietSanPhamId));
 
             // Tính giá sau giảm
             BigDecimal giaSauGiam = calculateGiaSauGiam(chiTietSanPham.getGia_ban(), khuyenMai);
@@ -215,8 +227,17 @@ public class KhuyenMaiService {
         khuyenMai.setMaKhuyenMai(request.getMaKhuyenMai());
         khuyenMai.setTenKhuyenMai(request.getTenKhuyenMai());
         khuyenMai.setMoTa(request.getMoTa());
-        khuyenMai.setNgayBatDau(request.getNgayBatDau());
-        khuyenMai.setNgayHetHan(request.getNgayHetHan());
+
+        // ✅ TIMEZONE FIX: Convert LocalDateTime từ request sang OffsetDateTime với
+        // timezone Asia/Ho_Chi_Minh
+        java.time.ZoneId vietnamZone = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
+        if (request.getNgayBatDau() != null) {
+            khuyenMai.setNgayBatDau(request.getNgayBatDau().atZone(vietnamZone).toOffsetDateTime());
+        }
+        if (request.getNgayHetHan() != null) {
+            khuyenMai.setNgayHetHan(request.getNgayHetHan().atZone(vietnamZone).toOffsetDateTime());
+        }
+
         khuyenMai.setGiaTriGiam(request.getGiaTriGiam());
         khuyenMai.setKieuGiamGia(request.getKieuGiamGia());
         khuyenMai.setGiaTriToiDa(request.getGiaTriToiDa());
@@ -231,7 +252,8 @@ public class KhuyenMaiService {
         if (khuyenMai.getGiaTriGiam() == null || khuyenMai.getGiaTriGiam().compareTo(BigDecimal.ZERO) <= 0) {
             return "Cập nhật thất bại: Giá trị giảm phải lớn hơn 0!";
         }
-        if ("Phần trăm".equals(khuyenMai.getKieuGiamGia()) && khuyenMai.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
+        if ("Phần trăm".equals(khuyenMai.getKieuGiamGia())
+                && khuyenMai.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
             return "Cập nhật thất bại: Giá trị giảm không được vượt quá 100 khi chọn Phần trăm!";
         }
         if (khuyenMai.getKieuGiamGia() == null || khuyenMai.getKieuGiamGia().trim().isEmpty()) {
@@ -260,7 +282,8 @@ public class KhuyenMaiService {
         KhuyenMai savedKhuyenMai = khuyenMaiRepository.save(khuyenMai);
 
         // Lấy danh sách ChiTietKhuyenMai hiện có
-        List<ChiTietKhuyenMai> existingChiTietKhuyenMais = chiTietKhuyenMaiRepository.findByKhuyenMaiId(savedKhuyenMai.getId());
+        List<ChiTietKhuyenMai> existingChiTietKhuyenMais = chiTietKhuyenMaiRepository
+                .findByKhuyenMaiId(savedKhuyenMai.getId());
         Set<Integer> existingIds = existingChiTietKhuyenMais.stream()
                 .map(ctkm -> ctkm.getChiTietSanPham().getId_chi_tiet_san_pham())
                 .collect(Collectors.toSet());
@@ -282,7 +305,8 @@ public class KhuyenMaiService {
                     .findFirst();
 
             ChiTietSanPham chiTietSanPham = chiTietSanPhamRepository.findById(chiTietSanPhamId)
-                    .orElseThrow(() -> new IllegalArgumentException("Chi tiết sản phẩm không tồn tại: " + chiTietSanPhamId));
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Chi tiết sản phẩm không tồn tại: " + chiTietSanPhamId));
             BigDecimal giaSauGiam = calculateGiaSauGiam(chiTietSanPham.getGia_ban(), savedKhuyenMai);
 
             if (existingChiTietKhuyenMai.isPresent()) {
@@ -329,13 +353,15 @@ public class KhuyenMaiService {
     }
 
     // 7️⃣ Tìm kiếm khuyến mãi theo khoảng ngày (có phân trang)
-    public Page<KhuyenMaiResponse> timKiemKhuyenMaiByDate(OffsetDateTime startDate, OffsetDateTime endDate, Pageable pageable) {
+    public Page<KhuyenMaiResponse> timKiemKhuyenMaiByDate(OffsetDateTime startDate, OffsetDateTime endDate,
+            Pageable pageable) {
         System.out.println("Searching by date - Start: " + startDate + ", End: " + endDate); // Debug
         return khuyenMaiRepository.searchByDateRange(startDate, endDate, pageable).map(this::toResponse);
     }
 
     // 8️⃣ Tìm kiếm khuyến mãi theo khoảng giá trị giảm (có phân trang)
-    public Page<KhuyenMaiResponse> timKiemKhuyenMaiByPrice(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+    public Page<KhuyenMaiResponse> timKiemKhuyenMaiByPrice(BigDecimal minPrice, BigDecimal maxPrice,
+            Pageable pageable) {
         BigDecimal min = minPrice != null ? minPrice : BigDecimal.ZERO;
         BigDecimal max = maxPrice != null ? maxPrice : khuyenMaiRepository.findMaxPrice();
 
