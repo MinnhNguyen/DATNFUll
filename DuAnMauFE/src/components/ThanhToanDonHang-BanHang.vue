@@ -111,23 +111,23 @@
               </a-radio>
             </div>
 
-            <div class="payment-method-item">
-              <a-radio value="vnpay" class="payment-radio">
-                <div class="payment-content">
-                  <div class="payment-icon">
-                    <credit-card-outlined />
-                  </div>
-                  <div class="payment-info">
-                    <p class="payment-name">VNPAY</p>
-                    <p class="payment-desc">Thanh toán qua VNPAY</p>
-                  </div>
-                  <div class="payment-logo">
-                    <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPAY"
-                      class="online-logo" />
-                  </div>
-                </div>
-              </a-radio>
-            </div>
+            <!-- <div class="payment-method-item"> -->
+            <!--   <a-radio value="vnpay" class="payment-radio"> -->
+            <!--     <div class="payment-content"> -->
+            <!--       <div class="payment-icon"> -->
+            <!--         <credit-card-outlined /> -->
+            <!--       </div> -->
+            <!--       <div class="payment-info"> -->
+            <!--         <p class="payment-name">VNPAY</p> -->
+            <!--         <p class="payment-desc">Thanh toán qua VNPAY</p> -->
+            <!--       </div> -->
+            <!--       <div class="payment-logo"> -->
+            <!--         <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPAY" -->
+            <!--           class="online-logo" /> -->
+            <!--       </div> -->
+            <!--     </div> -->
+            <!--   </a-radio> -->
+            <!-- </div> -->
 
             <div class="payment-method-item">
               <a-radio value="online-qr" class="payment-radio">
@@ -1515,7 +1515,19 @@ const placeOrder = async () => {
         }
       } catch (error) {
         console.error('Lỗi khi tạo đơn hàng COD:', error);
-        message.error('Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại sau.');
+
+        // ✅ STOCK CONCURRENCY FIX: Handle insufficient stock error
+        if (error.response?.status === 409) {
+          const errorMsg = error.response.data?.message ||
+            'Một số sản phẩm đã hết hàng hoặc không đủ số lượng. Vui lòng kiểm tra lại giỏ hàng.';
+
+          message.error(errorMsg, 6); // Show for 6 seconds
+
+          // Refresh order items to show updated stock
+          await fetchOrderItems();
+        } else {
+          message.error('Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại sau.');
+        }
       }
     } else if (selectedPaymentMethod.value === 'online-qr') {
       // ✅ Phase 2: ZaloPay Integration - Call handler instead of old logic
@@ -1543,7 +1555,19 @@ const placeOrder = async () => {
         localStorage.setItem('responseThanhToan', JSON.stringify(responseThanhToan));
       } catch (error) {
         console.error('Lỗi khi xử lý thanh toán PayOS:', error);
-        message.error('Có lỗi xảy ra khi xử lý thanh toán. Vui lòng thử lại sau.');
+
+        // ✅ STOCK CONCURRENCY FIX: Handle insufficient stock error
+        if (error.response?.status === 409) {
+          const errorMsg = error.response.data?.message ||
+            'Một số sản phẩm đã hết hàng hoặc không đủ số lượng. Vui lòng kiểm tra lại giỏ hàng.';
+
+          message.error(errorMsg, 6); // Show for 6 seconds
+
+          // Refresh order items to show updated stock
+          await fetchOrderItems();
+        } else {
+          message.error('Có lỗi xảy ra khi xử lý thanh toán. Vui lòng thử lại sau.');
+        }
       }
     } else if (selectedPaymentMethod.value === 'vnpay') {
       // Redirect to VNPAY payment gateway

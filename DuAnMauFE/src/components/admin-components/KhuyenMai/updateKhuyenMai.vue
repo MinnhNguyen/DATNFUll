@@ -13,19 +13,19 @@
             <div class="mb-3">
               <label for="maKhuyenMai" class="form-label">Mã khuyến mãi</label>
               <input type="text" class="form-control" id="maKhuyenMai" v-model="khuyenMai.maKhuyenMai" disabled
-                     :class="{ 'is-invalid': errors.maKhuyenMai }" />
+                :class="{ 'is-invalid': errors.maKhuyenMai }" />
               <div class="text-danger" v-if="errors.maKhuyenMai">{{ errors.maKhuyenMai }}</div>
             </div>
             <div class="mb-3">
               <label for="tenKhuyenMai" class="form-label">Tên khuyến mãi</label>
               <input type="text" class="form-control" id="tenKhuyenMai" v-model="khuyenMai.tenKhuyenMai" required
-                     :class="{ 'is-invalid': errors.tenKhuyenMai }" @input="handleTenKhuyenMaiInput" />
+                :class="{ 'is-invalid': errors.tenKhuyenMai }" @input="handleTenKhuyenMaiInput" />
               <div class="text-danger" v-if="errors.tenKhuyenMai">{{ errors.tenKhuyenMai }}</div>
             </div>
             <div class="mb-3">
               <label for="kieuGiamGia" class="form-label">Kiểu giảm giá</label>
               <select class="form-select" id="kieuGiamGia" v-model="khuyenMai.kieuGiamGia" required
-                      :class="{ 'is-invalid': errors.kieuGiamGia }" @change="validateKieuGiamGia">
+                :class="{ 'is-invalid': errors.kieuGiamGia }" @change="validateKieuGiamGia">
                 <option value="" disabled>Chọn kiểu</option>
                 <option value="Phần trăm">Phần trăm</option>
                 <option value="Tiền mặt">Tiền mặt</option>
@@ -36,7 +36,7 @@
               <label for="giaTriGiam" class="form-label">Giá trị giảm</label>
               <div class="input-group">
                 <input type="text" class="form-control" id="giaTriGiam" v-model="displayGiaTriGiam" required
-                       :class="{ 'is-invalid': errors.giaTriGiam }" @input="handleCurrencyInput('giaTriGiam', $event)" />
+                  :class="{ 'is-invalid': errors.giaTriGiam }" @input="handleCurrencyInput('giaTriGiam', $event)" />
                 <span class="input-group-text">{{ khuyenMai.kieuGiamGia === 'Phần trăm' ? '%' : '₫' }}</span>
               </div>
               <div class="text-danger" v-if="errors.giaTriGiam">{{ errors.giaTriGiam }}</div>
@@ -45,8 +45,8 @@
               <label for="giaTriToiDa" class="form-label">Giá trị tối đa</label>
               <div class="input-group">
                 <input type="text" class="form-control" id="giaTriToiDa" v-model="displayGiaTriToiDa" required
-                       :disabled="khuyenMai.kieuGiamGia === 'Tiền mặt'" :class="{ 'is-invalid': errors.giaTriToiDa }"
-                       @input="handleCurrencyInput('giaTriToiDa', $event)" />
+                  :disabled="khuyenMai.kieuGiamGia === 'Tiền mặt'" :class="{ 'is-invalid': errors.giaTriToiDa }"
+                  @input="handleCurrencyInput('giaTriToiDa', $event)" />
                 <span class="input-group-text">₫</span>
               </div>
               <div class="text-danger" v-if="errors.giaTriToiDa">{{ errors.giaTriToiDa }}</div>
@@ -54,13 +54,13 @@
             <div class="mb-3">
               <label for="ngayBatDau" class="form-label">Ngày bắt đầu</label>
               <input type="datetime-local" class="form-control" id="ngayBatDau" v-model="khuyenMai.ngayBatDau" required
-                     :class="{ 'is-invalid': errors.ngayBatDau }" @input="validateDates" />
+                :class="{ 'is-invalid': errors.ngayBatDau }" @input="validateDates" />
               <div class="text-danger" v-if="errors.ngayBatDau">{{ errors.ngayBatDau }}</div>
             </div>
             <div class="mb-3">
               <label for="ngayHetHan" class="form-label">Ngày kết thúc</label>
               <input type="datetime-local" class="form-control" id="ngayHetHan" v-model="khuyenMai.ngayHetHan" required
-                     :class="{ 'is-invalid': errors.ngayHetHan }" @input="validateDates" />
+                :class="{ 'is-invalid': errors.ngayHetHan }" @input="validateDates" />
               <div class="text-danger" v-if="errors.ngayHetHan">{{ errors.ngayHetHan }}</div>
             </div>
             <div class="mb-3">
@@ -68,8 +68,10 @@
               <textarea class="form-control" id="moTa" v-model="khuyenMai.moTa" rows="3"></textarea>
             </div>
             <div class="d-flex justify-content-center gap-3 mt-4">
-              <button type="submit" class="btn btn-primary" :disabled="hasErrors || selectedChiTietSanPhamIds.length === 0">Cập nhật</button>
-              <button type="button" class="btn btn-secondary" @click="router.push('/admin/quanlykhuyenmai')">Quay lại</button>
+              <button type="submit" class="btn btn-primary"
+                :disabled="hasErrors || selectedChiTietSanPhamIds.length === 0">Cập nhật</button>
+              <button type="button" class="btn btn-secondary" @click="router.push('/admin/quanlykhuyenmai')">Quay
+                lại</button>
             </div>
           </div>
 
@@ -79,7 +81,8 @@
             <div class="bg-light p-4 rounded">
               <h5 style="color: #ff6600;">Sản phẩm</h5>
               <div class="d-flex gap-3 align-items-center mt-2">
-                <input type="text" class="form-control w-75" id="keywordSanPham" v-model="keywordSanPham" placeholder="Nhập mã hoặc tên sản phẩm" @input="debounceFetchSanPham" />
+                <input type="text" class="form-control w-75" id="keywordSanPham" v-model="keywordSanPham"
+                  placeholder="Nhập mã hoặc tên sản phẩm" @input="debounceFetchSanPham" />
               </div>
               <div class="table-responsive p-2 mt-3 scrollable-table">
                 <table class="table table-bordered">
@@ -97,7 +100,8 @@
                     </tr>
                     <tr v-for="(sanPham, index) in sanPhamList" :key="sanPham.idSanPham">
                       <td>
-                        <input class="form-check-input sanPhamCheckbox" type="checkbox" :value="sanPham.idSanPham" v-model="selectedSanPhamIds" @change="refreshChiTietSanPham" />
+                        <input class="form-check-input sanPhamCheckbox" type="checkbox" :value="sanPham.idSanPham"
+                          v-model="selectedSanPhamIds" @change="refreshChiTietSanPham" />
                       </td>
                       <td>{{ index + 1 }}</td>
                       <td>{{ sanPham.maSanPham }}</td>
@@ -115,7 +119,8 @@
                 <table class="table table-bordered">
                   <thead class="co">
                     <tr>
-                      <th><input class="form-check-input" type="checkbox" @change="toggleSelectAllChiTietSanPham" /></th>
+                      <th><input class="form-check-input" type="checkbox" @change="toggleSelectAllChiTietSanPham" />
+                      </th>
                       <th>STT</th>
                       <th>Mã sản phẩm</th>
                       <th>Tên sản phẩm</th>
@@ -131,7 +136,8 @@
                     </tr>
                     <tr v-for="(item, index) in chiTietSanPhamList" :key="item.idChiTietSanPham">
                       <td>
-                        <input class="form-check-input chiTietSanPhamCheckbox" type="checkbox" :value="item.idChiTietSanPham" v-model="selectedChiTietSanPhamIds" />
+                        <input class="form-check-input chiTietSanPhamCheckbox" type="checkbox"
+                          :value="item.idChiTietSanPham" v-model="selectedChiTietSanPhamIds" />
                       </td>
                       <td>{{ index + 1 }}</td>
                       <td>{{ item.sanPham.maSanPham }}</td>
@@ -446,11 +452,18 @@ onMounted(async () => {
   try {
     const response = await khuyenMaiService.getKhuyenMaiById(id);
     if (response && !response.error) {
+      // ✅ CONVERT UTC DATETIME TỪ BACKEND VỀ FORMAT DATETIME-LOCAL (UTC+7)
       const adjustToLocalTime = (dateStr) => {
+        // Backend trả về OffsetDateTime với timezone info
+        // Cần convert về local time Vietnam để hiển thị trong datetime-local input
         const date = new Date(dateStr);
-        const offset = 7 * 60; // Vietnam UTC+7 in minutes
-        const localDate = new Date(date.getTime() + offset * 60 * 1000);
-        return localDate.toISOString().slice(0, 16);
+        // Format: yyyy-MM-ddTHH:mm cho datetime-local input
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
       };
 
       khuyenMai.value = {
@@ -512,8 +525,10 @@ const submitForm = async () => {
     giaTriGiam: khuyenMai.value.giaTriGiam,
     kieuGiamGia: khuyenMai.value.kieuGiamGia,
     giaTriToiDa: khuyenMai.value.giaTriToiDa,
-    ngayBatDau: khuyenMai.value.ngayBatDau ? new Date(khuyenMai.value.ngayBatDau).toISOString() : null,
-    ngayHetHan: khuyenMai.value.ngayHetHan ? new Date(khuyenMai.value.ngayHetHan).toISOString() : null,
+    // ✅ GỬI DATETIME THEO TIMEZONE UTC+7 (không convert sang UTC+0)
+    // Backend sẽ parse LocalDateTime và apply timezone Asia/Ho_Chi_Minh
+    ngayBatDau: khuyenMai.value.ngayBatDau ? khuyenMai.value.ngayBatDau + ':00' : null,
+    ngayHetHan: khuyenMai.value.ngayHetHan ? khuyenMai.value.ngayHetHan + ':00' : null,
     moTa: khuyenMai.value.moTa || '',
   };
 

@@ -1,16 +1,16 @@
 <template>
-    <div class="web p-0 m-0">
-        <TheNoitification />
-        <TheBaner />
-        <BoSuuTapHot />
-        <!-- <DanhMucSanPham /> -->
-        <SanPhamBanChay />
-        <!-- <SanPhamMoiChoTatCa /> -->
-        <AoTheThaoBanChay />
-        <!-- <QuanTheThaoBanChay /> -->
-        <ThuongHieuSanPham />
-    </div>
-    <!-- <ChatWidget :customerId="'1'" :staffId="'1'" senderType="CUSTOMER" :anou="false" /> -->
+  <div class="web p-0 m-0">
+    <!-- <TheNoitification /> -->
+    <TheBaner />
+    <BoSuuTapHot />
+    <!-- <DanhMucSanPham /> -->
+    <SanPhamBanChay />
+    <!-- <SanPhamMoiChoTatCa /> -->
+    <AoTheThaoBanChay />
+    <!-- <QuanTheThaoBanChay /> -->
+    <!-- <ThuongHieuSanPham /> -->
+  </div>
+  <!-- <ChatWidget :customerId="'1'" :staffId="'1'" senderType="CUSTOMER" :anou="false" /> -->
 </template>
 
 <script>
@@ -26,18 +26,18 @@ import TheNoitification from '@/components/TheNoitification.vue';
 // import ChatWidget from '@/components/ChatWidge/ChatWidget.vue';
 
 export default {
-    components: {
-        TheBaner,
-        AoTheThaoBanChay,
-        QuanTheThaoBanChay,
-        SanPhamBanChay,
-        BoSuuTapHot,
-        SanPhamMoiChoTatCa,
-        DanhMucSanPham,
-        ThuongHieuSanPham,
-        TheNoitification,
-        // ChatWidget
-    }
+  components: {
+    TheBaner,
+    AoTheThaoBanChay,
+    QuanTheThaoBanChay,
+    SanPhamBanChay,
+    BoSuuTapHot,
+    SanPhamMoiChoTatCa,
+    DanhMucSanPham,
+    ThuongHieuSanPham,
+    TheNoitification,
+    // ChatWidget
+  }
 }
 </script>
 
@@ -45,6 +45,6 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 .web {
-    font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 </style>

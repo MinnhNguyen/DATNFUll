@@ -11,40 +11,20 @@
           <div class="col-lg-4 bg-light p-4 rounded">
             <div class="mb-3">
               <label for="maKhuyenMai" class="form-label">Mã khuyến mãi</label>
-              <input
-                type="text"
-                class="form-control"
-                id="maKhuyenMai"
-                v-model="khuyenMai.maKhuyenMai"
-                required
-                :class="{ 'is-invalid': errors.maKhuyenMai }"
-                @input="handleMaKhuyenMaiInput"
-              />
+              <input type="text" class="form-control" id="maKhuyenMai" v-model="khuyenMai.maKhuyenMai" required
+                :class="{ 'is-invalid': errors.maKhuyenMai }" @input="handleMaKhuyenMaiInput" />
               <div class="text-danger" v-if="errors.maKhuyenMai">{{ errors.maKhuyenMai }}</div>
             </div>
             <div class="mb-3">
               <label for="tenKhuyenMai" class="form-label">Tên khuyến mãi</label>
-              <input
-                type="text"
-                class="form-control"
-                id="tenKhuyenMai"
-                v-model="khuyenMai.tenKhuyenMai"
-                required
-                :class="{ 'is-invalid': errors.tenKhuyenMai }"
-                @input="validateTenKhuyenMai"
-              />
+              <input type="text" class="form-control" id="tenKhuyenMai" v-model="khuyenMai.tenKhuyenMai" required
+                :class="{ 'is-invalid': errors.tenKhuyenMai }" @input="validateTenKhuyenMai" />
               <div class="text-danger" v-if="errors.tenKhuyenMai">{{ errors.tenKhuyenMai }}</div>
             </div>
             <div class="mb-3">
               <label for="kieuGiamGia" class="form-label">Kiểu giảm giá</label>
-              <select
-                class="form-select"
-                id="kieuGiamGia"
-                v-model="khuyenMai.kieuGiamGia"
-                required
-                :class="{ 'is-invalid': errors.kieuGiamGia }"
-                @change="validateKieuGiamGia"
-              >
+              <select class="form-select" id="kieuGiamGia" v-model="khuyenMai.kieuGiamGia" required
+                :class="{ 'is-invalid': errors.kieuGiamGia }" @change="validateKieuGiamGia">
                 <option value="" disabled>Chọn kiểu</option>
                 <option value="Phần trăm">Phần trăm</option>
                 <option value="Tiền mặt">Tiền mặt</option>
@@ -54,15 +34,8 @@
             <div class="mb-3">
               <label for="giaTriGiam" class="form-label">Giá trị giảm</label>
               <div class="input-group">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="giaTriGiam"
-                  v-model="displayGiaTriGiam"
-                  required
-                  :class="{ 'is-invalid': errors.giaTriGiam }"
-                  @input="handleGiaTriGiamInput"
-                />
+                <input type="text" class="form-control" id="giaTriGiam" v-model="displayGiaTriGiam" required
+                  :class="{ 'is-invalid': errors.giaTriGiam }" @input="handleGiaTriGiamInput" />
                 <span class="input-group-text">{{ khuyenMai.kieuGiamGia === 'Phần trăm' ? '%' : '₫' }}</span>
               </div>
               <div class="text-danger" v-if="errors.giaTriGiam">{{ errors.giaTriGiam }}</div>
@@ -70,67 +43,35 @@
             <div class="mb-3">
               <label for="giaTriToiDa" class="form-label">Giá trị tối đa</label>
               <div class="input-group">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="giaTriToiDa"
-                  v-model="displayGiaTriToiDa"
-                  :disabled="khuyenMai.kieuGiamGia === 'Tiền mặt'"
-                  :class="{ 'is-invalid': errors.giaTriToiDa }"
-                  @input="handleGiaTriToiDaInput"
-                />
+                <input type="text" class="form-control" id="giaTriToiDa" v-model="displayGiaTriToiDa"
+                  :disabled="khuyenMai.kieuGiamGia === 'Tiền mặt'" :class="{ 'is-invalid': errors.giaTriToiDa }"
+                  @input="handleGiaTriToiDaInput" />
                 <span class="input-group-text">₫</span>
               </div>
               <div class="text-danger" v-if="errors.giaTriToiDa">{{ errors.giaTriToiDa }}</div>
             </div>
             <div class="mb-3">
               <label for="ngayBatDau" class="form-label">Ngày bắt đầu</label>
-              <input
-                type="datetime-local"
-                class="form-control"
-                id="ngayBatDau"
-                v-model="khuyenMai.ngayBatDau"
-                required
-                :class="{ 'is-invalid': errors.ngayBatDau }"
-                @input="validateDates"
-              />
+              <input type="datetime-local" class="form-control" id="ngayBatDau" v-model="khuyenMai.ngayBatDau" required
+                :class="{ 'is-invalid': errors.ngayBatDau }" @input="validateDates" />
               <div class="text-danger" v-if="errors.ngayBatDau">{{ errors.ngayBatDau }}</div>
             </div>
             <div class="mb-3">
               <label for="ngayHetHan" class="form-label">Ngày kết thúc</label>
-              <input
-                type="datetime-local"
-                class="form-control"
-                id="ngayHetHan"
-                v-model="khuyenMai.ngayHetHan"
-                required
-                :class="{ 'is-invalid': errors.ngayHetHan }"
-                @input="validateDates"
-              />
+              <input type="datetime-local" class="form-control" id="ngayHetHan" v-model="khuyenMai.ngayHetHan" required
+                :class="{ 'is-invalid': errors.ngayHetHan }" @input="validateDates" />
               <div class="text-danger" v-if="errors.ngayHetHan">{{ errors.ngayHetHan }}</div>
             </div>
             <div class="mb-3">
               <label for="moTa" class="form-label">Mô tả</label>
-              <textarea
-                class="form-control"
-                id="moTa"
-                v-model="khuyenMai.moTa"
-                rows="3"
-              ></textarea>
+              <textarea class="form-control" id="moTa" v-model="khuyenMai.moTa" rows="3"></textarea>
             </div>
             <div class="d-flex justify-content-center gap-3 mt-4">
-              <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="hasErrors || selectedChiTietSanPhamIds.length === 0"
-              >
+              <button type="submit" class="btn btn-primary"
+                :disabled="hasErrors || selectedChiTietSanPhamIds.length === 0">
                 Lưu
               </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                @click="router.push('/admin/quanlykhuyenmai')"
-              >
+              <button type="button" class="btn btn-secondary" @click="router.push('/admin/quanlykhuyenmai')">
                 Quay lại
               </button>
             </div>
@@ -142,14 +83,8 @@
             <div class="bg-light p-4 rounded">
               <h5 style="color: #ff6600;">Sản phẩm</h5>
               <div class="d-flex gap-3 align-items-center mt-2">
-                <input
-                  type="text"
-                  class="form-control w-75"
-                  id="keywordSanPham"
-                  v-model="keywordSanPham"
-                  placeholder="Nhập mã hoặc tên sản phẩm"
-                  @input="debounceFetchSanPham"
-                />
+                <input type="text" class="form-control w-75" id="keywordSanPham" v-model="keywordSanPham"
+                  placeholder="Nhập mã hoặc tên sản phẩm" @input="debounceFetchSanPham" />
               </div>
               <div class="table-responsive p-2 mt-3 scrollable-table">
                 <table class="table table-bordered">
@@ -167,13 +102,8 @@
                     </tr>
                     <tr v-for="(sanPham, index) in sanPhamList" :key="sanPham.id_san_pham">
                       <td>
-                        <input
-                          class="form-check-input sanPhamCheckbox"
-                          type="checkbox"
-                          :value="sanPham.id_san_pham"
-                          v-model="selectedSanPhamIds"
-                          @change="refreshChiTietSanPham"
-                        />
+                        <input class="form-check-input sanPhamCheckbox" type="checkbox" :value="sanPham.id_san_pham"
+                          v-model="selectedSanPhamIds" @change="refreshChiTietSanPham" />
                       </td>
                       <td>{{ index + 1 }}</td>
                       <td>{{ sanPham.ma_san_pham }}</td>
@@ -191,7 +121,8 @@
                 <table class="table table-bordered">
                   <thead class="co">
                     <tr>
-                      <th><input class="form-check-input" type="checkbox" @change="toggleSelectAllChiTietSanPham" /></th>
+                      <th><input class="form-check-input" type="checkbox" @change="toggleSelectAllChiTietSanPham" />
+                      </th>
                       <th>STT</th>
                       <th>Mã sản phẩm</th>
                       <th>Tên sản phẩm</th>
@@ -207,12 +138,8 @@
                     </tr>
                     <tr v-for="(item, index) in chiTietSanPhamList" :key="item.id_chi_tiet_san_pham">
                       <td>
-                        <input
-                          class="form-check-input chiTietSanPhamCheckbox"
-                          type="checkbox"
-                          :value="item.id_chi_tiet_san_pham"
-                          v-model="selectedChiTietSanPhamIds"
-                        />
+                        <input class="form-check-input chiTietSanPhamCheckbox" type="checkbox"
+                          :value="item.id_chi_tiet_san_pham" v-model="selectedChiTietSanPhamIds" />
                       </td>
                       <td>{{ index + 1 }}</td>
                       <td>{{ item.sanPham.ma_san_pham }}</td>
@@ -529,8 +456,10 @@ const submitForm = async () => {
     giaTriGiam: parseFloat(khuyenMai.value.giaTriGiam),
     kieuGiamGia: khuyenMai.value.kieuGiamGia,
     giaTriToiDa: parseFloat(khuyenMai.value.giaTriToiDa),
-    ngayBatDau: khuyenMai.value.ngayBatDau ? new Date(khuyenMai.value.ngayBatDau).toISOString() : null,
-    ngayHetHan: khuyenMai.value.ngayHetHan ? new Date(khuyenMai.value.ngayHetHan).toISOString() : null,
+    // ✅ GỬI DATETIME THEO TIMEZONE UTC+7 (không convert sang UTC+0)
+    // Backend sẽ parse LocalDateTime và apply timezone Asia/Ho_Chi_Minh
+    ngayBatDau: khuyenMai.value.ngayBatDau ? khuyenMai.value.ngayBatDau + ':00' : null,
+    ngayHetHan: khuyenMai.value.ngayHetHan ? khuyenMai.value.ngayHetHan + ':00' : null,
     moTa: khuyenMai.value.moTa || '',
   };
 
